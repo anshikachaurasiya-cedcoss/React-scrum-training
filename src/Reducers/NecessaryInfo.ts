@@ -20,7 +20,7 @@ export const necessaryInfo = (
         case 'syncNecessaryInfo':
             return {
                 ...state,
-                ...action.state,
+            user_id : action.state,
             };
         case 'user_id':
             return {

@@ -7,6 +7,7 @@ import './styles.css';
 import { Toast, ToastWrapper } from '@cedcommerce/ounce-ui';
 import { BrokenPage1 } from './Components/EmptyState/EmptyPages';
 import NoInternet from './NoInternet';
+import Dashboard from './Components/Auth/Dashboard/Dashboard';
 
 const Auth = lazy(() => import('./Components/Auth'));
 const ShowMessage = lazy(
@@ -54,15 +55,12 @@ function App(Props: PropsI): JSX.Element {
                         path="/panel"
                         element={
                             <Suspense fallback={<></>}>
-                                <div>Panel.tsx</div>
+                                <Dashboard />
                             </Suspense>
                         }>
                         <Route path="*" element={<>NO Page Found 2</>} />
                     </Route>
-
-                    <Route path="*" element={<Navigate to={'/auth/login'} />}>
-                        {' '}
-                    </Route>
+                    <Route path="*" element={<Navigate to={'/auth/login'} />} />
                 </Routes>
                 <RenderToasts {...Props} />
             </NoInternet>
