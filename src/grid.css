@@ -1,0 +1,63 @@
+/* Ant Design Grid Customiation */
+.ant-table-thead > tr > th {
+    font-weight: bold;
+}
+.ant-table-row-expand-icon::before,
+.ant-table-row-expand-icon::after {
+    content:unset;
+}
+.ant-table-row-expand-icon {
+    border: unset;
+    background-image: url("Asests/Images/grid-circle-plus.svg");
+    background-size: 100%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-repeat: no-repeat;
+}
+.ant-table-row-expand-icon-expanded{
+    background-image: url("Asests/Images/grid-circle-minus.svg");
+}
+.ant-table-tbody > tr > td {
+    border-bottom: 1px solid #E1E3E5;
+}
+td > span.Polaris-TextStyle--variationStrong {
+    margin-bottom: 15px;
+    display: block;
+}
+.ant-table-expanded-row-level-1 td.ant-table-cell {
+    padding-left: 15px!important;
+    padding-right: 15px!important;
+}
+.product-img-container {
+    border: 1px solid #E1E3E5;
+    width: 60px;
+    height: 60px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ant-checkbox-inner {
+    height: 18px;
+    width:18px;
+    border-radius: 4px!important;
+}
+.ant-checkbox-checked .ant-checkbox-inner {
+    background-color: #2C6ECB!important;
+    border-color: #2C6ECB!important;
+}
+.ant-checkbox-checked .ant-checkbox-inner::after {
+    height: 10px;
+}
+.ant-checkbox-checked::after {
+    border-radius: 4px;
+}
+.ant-table-tbody > tr.ant-table-row-selected > td > .ant-table-row-expand-icon {
+    background-color: #e6f7ff;
+}
+.ant-table-tbody > tr.ant-table-row-selected > td {
+    border-color: #E1E3E5;
+}

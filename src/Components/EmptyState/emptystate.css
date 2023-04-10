@@ -1,0 +1,129 @@
+.empty_state_pages {
+    padding-bottom: 20px !important;
+}
+
+.empty_state_illustration svg {
+    max-width: 220px;
+    width: 100%;
+    height: auto;
+    display: inline-block;
+}
+
+.empty-subtitle {
+    text-align: center;
+    color: #4E4F52;
+    width: 70%;
+    margin: 0px auto;
+}
+
+.search_result .empty-subtitle,
+.coonect_account .empty-subtitle,
+.not_found_page .empty-subtitle,
+.empty_notification .empty-subtitle,
+.empty_product .empty-subtitle,
+.no_faq .empty-subtitle {
+    width: 100%;
+}
+
+/* no internet css start */
+#root>.custom_session_expire,
+#root>.no_internet {
+    height: calc(100vh - 50px);
+}
+
+.no_internet {
+    height: calc(100vh - 200px);
+    display: table;
+    width: 100%;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    padding-left: 100px;
+    padding-right: 100px;
+}
+
+@media only screen and (max-width: 900px)  {
+    .no_internet {
+        padding-left: 1.6rem;
+        padding-right: 1.6rem;
+    }
+}
+
+.no_internet .inte-card {
+    height: 100%;
+}
+
+.no_internet .inte-card__Body {
+    height: 100%;
+    display: grid;
+    place-items: center;
+}
+
+.no_internet .empty-subtitle {
+    width: fit-content;
+}
+
+/* no internet css stop */
+.custom_session_expire {
+    height: calc(100vh - 200px);
+    display: table;
+    width: 100%;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    padding-left: 100px;
+    padding-right: 100px;
+}
+
+/* .custom_session_expire.before_login_broken {
+    height: 100vh;
+} */
+.custom_session_expire.after_login_broken {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.custom_session_expire .inner_s {
+    display: table-cell;
+    vertical-align: middle;
+    height: 50px;
+    background: #fff;
+    /* padding: 20px; */
+}
+
+.empty_state_pages.session_box {
+    max-width: 1190px;
+    margin: 0px auto;
+}
+
+.empty_state_illustration {
+    text-align: center;
+}
+
+.state_actions {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+@media only screen and (max-width: 900px) {
+    .custom_session_expire {
+        padding-left: 1.6rem;
+        padding-right: 1.6rem;
+    }
+
+    .empty-subtitle {
+        width: 100%;
+    }
+
+    .empty_state_illustration svg {
+        max-width: 170px;
+    }
+}
+
+@media only screen and (max-width: 450px) {
+    .empty_state_illustration svg {
+        max-width: 155px;
+        width: 100%;
+    }
+}

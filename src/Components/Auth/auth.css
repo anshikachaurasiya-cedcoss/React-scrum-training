@@ -1,0 +1,69 @@
+.inte-auth__Main {
+    position: relative;
+}
+
+.inte-auth-custom .inte__l-title {
+    font-size: 2.8rem;
+    color: #413BBC;
+    font-weight: bold;
+}
+
+.init-LoginPage {
+    max-width: 52%;
+    margin: 0rem auto;
+}
+
+.init-LoginPage__Wrapper {
+    background-size: auto auto;
+}
+
+.inte-auth-custom .inte-card {
+    position: relative;
+}
+
+.custom-card-message .timer_position {
+    position: absolute;
+    text-align: center;
+    left: 0;
+    right: 0;
+    bottom: -32px;
+}
+.custom-card-message .timer_position * {
+    text-align: center;
+}
+
+.inte-auth-custom {
+    padding: 0 1.2rem;
+}
+
+.inte-auth-custom .inte__lr-Layout {
+    justify-content: space-between;
+}
+
+.inte-auth-custom .inte__l-Layout {
+    max-width: 35%;
+}
+
+.inte-auth-custom .inte__r-Layout {
+    max-width: 55%;
+}
+.auth_page_title h1 {
+    color: #413BBC !important;
+}
+@media only screen and (max-width: 768px) {
+
+    .inte-auth-custom .inte__l-Layout,
+    .inte-auth-custom .inte__r-Layout {
+        max-width: 100%;
+    }
+}
+@media only screen and (max-width: 1200px){
+    .init-LoginPage{
+        max-width: 100%;
+    }
+}
+@media only screen and (min-width: 1201px) and (max-width: 1500px){
+    .init-LoginPage{
+        max-width: 65%;
+    }
+}

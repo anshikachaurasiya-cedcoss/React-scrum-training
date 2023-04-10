@@ -1,0 +1,6 @@
+/build/**
+*.css
+*.scss
+*.js
+webpack.config.ts
+!.eslintrc.js

@@ -1,0 +1,529 @@
+body {
+    background-color: #F5F6F6 !important;
+}
+
+.inte--logoWrapper {
+    top: 0.2rem !important;
+}
+
+.line-clamp-singleRow {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+pre {
+    font-family: 'Inter' !important;
+    display: block;
+    white-space: normal;
+    word-break: break-word;
+}
+
+*,
+p.Paragraph {
+    word-break: break-word;
+}
+
+/* Onboarding page */
+.custom-help-points ul.inte__List {
+    padding-left: 2rem;
+}
+
+.custom-help-points ul.inte__List li {
+    padding: 0;
+}
+
+.custom-help-points ul.inte__List li h3 {
+    color: var(--inte-G450);
+}
+
+.otp-fields .inte-formElement {
+    width: 4.3rem;
+    height: 4.4rem;
+    text-align: center;
+}
+
+/*overview page*/
+.custom-overview-card {
+    object-fit: cover;
+    object-position: center center;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.inte__Sidebar--expanded .inte__Sidebar--toggle {
+    display: none;
+}
+
+.inte__Sidebar--expanded .inte__Topbar .inte-flex__item:first-child {
+    margin-left: unset !important;
+    padding-top: 1rem;
+    padding-left: 0;
+}
+
+.inte__Sidebar--expanded .inte__Sidebar {
+    padding: 9rem 0 0;
+}
+
+.inte__Sidebar--expanded .custom-notify .inte-flex__item {
+    padding-top: 1rem;
+}
+
+.inte__Sidebar--expanded,
+.inte__Sidebar--expanded .inte__Topbar,
+.inte__Sidebar--expanded .inte__Sidebar {
+    background: #F5F6F6;
+}
+
+.inte__Sidebar--expanded .inte__Topbar {
+    border-bottom: 1px solid #D7D9DB;
+}
+
+.inte__Sidebar--expanded .inte__Sidebar {
+    border-right: 1px solid #D7D9DB;
+}
+
+.inte__Popover-Wrapper .inte-notification:last-child {
+    border-bottom: 0.1rem solid var(--border-layout);
+}
+
+.custom-notification .inte-card.inte-card--plain {
+    padding: 1.6rem;
+}
+
+
+
+.inte__Popover-Wrapper .inte-notification {
+    border-bottom: unset;
+}
+
+.custom_button_hover button.inte-btn {
+    display: block;
+    text-align: left;
+}
+
+.custom_button_hover button.inte-btn:hover {
+    background-color: #ECEDEE;
+}
+
+.custom_button_hover button.inte-btn:hover span,
+.custom_button_hover button.inte-btn:hover {
+    color: #1C2433;
+}
+
+.custom_auth_loader {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 0.1rem solid var(--inte-B80);
+    border-top: 0.1rem solid rgba(255, 255, 255, 0.7);
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.inte-Alert__text button.inte-btn {
+    text-align: left;
+}
+
+.inte__Sidebar .inte__SidebarItems {
+    padding-bottom: 100px !important;
+}
+
+.inte__Sidebar .inte__SidebarItems ul.inte-flex li.inte-flex__item.custom_logout {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-top: 1px solid var(--inte-G42);
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 1.2rem;
+    padding-top: 0.6rem;
+    background: #F5F6F6;
+    margin-bottom: 0;
+    padding-bottom: 50px;
+}
+
+.inte-Modal-Dialog__Modal {
+    animation: none !important;
+    animation-name: none !important;
+    animation-duration: unset !important;
+    animation-fill-mode: none !important;
+}
+
+.inte__Sidebar .inte__SidebarItems>ul+ul {
+    display: none;
+}
+
+.custom_session_expire.broken_faq {
+    padding: 0;
+    min-height: calc(100vh - 290px);
+    height: auto;
+}
+
+.custom_session_expire.no_faq {
+    padding: 0;
+    margin-top: 2.4rem;
+    height: auto;
+    min-height: calc(100vh - 170px);
+}
+
+@media only screen and (max-width: 768px) {
+    .inte__Sidebar--expanded .inte__Main {
+        width: 100% !important;
+    }
+
+    .inte__Topbar>.inte-flex>.inte-flex__item:first-child {
+        margin-left: 5rem !important;
+        padding-top: 0.5rem;
+    }
+
+    .inte--logoWrapper.inte--logoWrapper--Mobile svg {
+        width: 40px !important;
+    }
+
+    .inte--logoWrapper.inte--logoWrapper--Mobile {
+        margin-top: 9px;
+    }
+}
+
+.inte-pageHeader {
+    border: none !important;
+}
+
+.custom-popover-btn .inte-btn__icon--round {
+    box-shadow: 0px 0px 3px 0px #0000001F;
+    background: #fff;
+}
+
+.custom-popover-btn .inte-btn,
+.custom-popover-btn .inte-btn:hover,
+.custom-popover-btn .inte-btn.inte-btn--Primary,
+.custom-popover-btn .inte-btn.inte-btn--Primary:hover {
+    background-color: transparent !important;
+}
+
+.custom-icon_overlapping {
+    display: inline-block;
+    position: relative;
+}
+
+.icon-overlapping_icon {
+    position: relative;
+    margin-left: -16px;
+    width: 28px;
+    border-radius: 100%;
+    display: inline-block;
+}
+
+.custom-icon_overlapping .icon-overlapping_icon:first-child {
+    margin-left: 0;
+}
+
+.text_center_note>button {
+    justify-content: left !important;
+    display: block;
+    text-align: left;
+}
+
+.custom-card__header .inte-card__Header {
+    padding-bottom: 0;
+}
+
+.custom-banner .Polaris-Stack--spacingLoose .Polaris-Stack__Item {
+    margin: 0;
+}
+
+.custom-banner .Polaris-Stack--spacingLoose .Polaris-Stack__Item--fill {
+    margin-top: 1.25rem;
+    margin-left: 1.25rem;
+}
+
+.custom-banner .Polaris-Stack--alignmentFill .Polaris-Stack__Item {
+    margin-top: 1.25rem;
+}
+
+.custom-banner .Polaris-Stack--alignmentFill .Polaris-Stack--spacingExtraTight {
+    margin-bottom: 20px;
+}
+
+.custom-banner .Polaris-Stack--spacingExtraTight .Polaris-Stack__Item {
+    margin-top: 0.25rem;
+}
+
+.custom-banner img {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.custom-selection-btn .Polaris-Button {
+    border: unset;
+    padding: 0;
+    box-shadow: unset;
+}
+
+.custom-selection-btn .Polaris-Button:hover {
+    background: unset;
+}
+
+.custom-selection-btn .Polaris-Button .Polaris-Icon {
+    width: 12px;
+    height: 12px;
+}
+
+td.ant-table-cell .inte--Badge {
+    min-width: 115px;
+    text-align: center;
+}
+
+td.ant-table-cell .inte--Badge .inte--Badge-content {
+    display: block;
+    text-align: center;
+}
+
+td.ant-table-cell .inte--Badge .inte--Badge-content>span {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+td.ant-table-cell .inte--Badge .inte--Badge-content>span.inte__ToolTip {
+    margin-left: 3px;
+}
+
+/* Auth Page Design */
+.inte-auth .inte__r-Layout>.inte-card {
+    box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.1);
+}
+
+.inte-auth h3.inte__l-title {
+    font-size: 2.8rem;
+    color: #413BBC;
+    font-weight: bold;
+}
+
+.inte-auth .inte__l-Layout {
+    max-width: 50%;
+    flex-grow: 1;
+    padding: 0 5rem 0 0;
+}
+
+.inte-auth .inte__r-Layout {
+    max-width: 50%;
+}
+
+.inte-auth__Wrapper {
+    background-image: url(../src/Asests/Images/logo.svg);
+    background-repeat: no-repeat;
+    background-size: 35%;
+}
+
+.inte-Alert--success .inte-Alert__Icon {
+    flex: 0 0 20px;
+    height: 20px;
+    background-image: url(../src/Asests/Images/check_update.svg);
+    margin-top: 1px;
+}
+
+.inte-Alert--success .inte-Alert__Icon svg {
+    display: none;
+}
+
+.inte-auth {
+    min-height: 100vh;
+    max-width: 980px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 10rem 1.6rem 12rem;
+    position: relative;
+}
+
+.inte-auth__Footer {
+    position: absolute;
+    bottom: 9rem;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.inte-welcome {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.custom-text_btn span.inte__text {
+    display: block;
+    text-align: left;
+}
+
+/*    */
+.inte-WelcomeMeta__Wrapper-Inner {
+    max-width: 55rem;
+    margin: 0 auto;
+    width: 100%;
+    padding: 10rem 1.2rem;
+}
+
+button.inte-fbBtn {
+    display: flex;
+    gap: 1.2rem;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 1.1rem;
+    background-color: rgba(66, 103, 178, 1);
+    border: 0;
+    border-radius: 0.4rem;
+    color: var(--inte-G0);
+    cursor: pointer;
+    transition: 300ms all linear;
+}
+
+button.inte-fbBtn:hover {
+    background-color: rgb(54 85 149);
+}
+
+
+.inte__Main {
+    position: relative;
+    min-height: 100vh;
+}
+
+.app-footer {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding-left: 1.6rem;
+    padding-right: 1.6rem;
+    padding-top: 1.6rem;
+}
+
+.custom-loader-config>* {
+    position: static !important;
+}
+
+.inte-Backdrop {
+    z-index: 99999;
+}
+
+.ant-tooltip {
+    z-index: 9999 !important;
+}
+
+.ant-tooltip-inner {
+    box-shadow: 0px 0px 12px 3px #e4e4e4 !important;
+}
+
+.more_notification {
+    padding-right: 1.2rem;
+}
+
+.more_notification button {
+    padding-left: 0;
+}
+
+.custom_th_shorting span.custom_tooltip_label,
+.custom_th_shorting .table-head-tootip>h3 {
+    white-space: nowrap;
+}
+
+.no_create_camp {
+    position: relative;
+}
+
+.no_create_camp::after {
+    content: '';
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    opacity: 0.6;
+    cursor: not-allowed;
+    z-index: 9;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.inte-Backdrop {
+    animation-name: none !important;
+    animation-duration: unset !important;
+    animation-fill-mode: none !important;
+}
+
+.ant-table-cell .inte--Avatar img {
+    height: auto !important;
+    object-fit: unset !important;
+}
+
+@media only screen and (max-width: 1500px) {
+
+    .ant-table-tbody>tr>td,
+    .ant-table tfoot>tr>td {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .custom_th_shorting {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .inte__Topbar-Connect--Right {
+        gap: unset !important;
+    }
+}
+
+@media only screen and (max-width: 1500px) and (min-width: 769px) {
+
+    .inte__Topbar~.inte__Main,
+    .inte__Topbar {
+        padding-left: 1.6rem !important;
+        padding-right: 1.6rem !important;
+    }
+}
+
+@media only screen and (max-width: 1400px) {
+    .custom-help-section {
+        max-width: 100% !important;
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    .mobile_spacing {
+        padding-left: 1.6rem;
+        padding-right: 1.6rem;
+    }
+
+    .configuration-tab-manage ul.inte-tabsWrap {
+        white-space: nowrap;
+    }
+}
+
+@media only screen and (max-width: 769px) and (min-width: 768px) {
+    .inte--logoWrapper.inte--logoWrapper--Mobile {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .inte--logoWrapper.inte--logoWrapper--Mobile {
+        display: block;
+    }
+
+    .inte--logoWrapper {
+        display: none;
+    }
+}
