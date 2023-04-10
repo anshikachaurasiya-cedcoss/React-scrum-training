@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { DI, DIProps, parseJwt, extractUSername } from '../../../Core';
 import { loginStatus } from '../../../Actions';
 import * as queryString from 'query-string';
@@ -11,12 +11,7 @@ import {
     FormElement,
     TextField,
 } from '@cedcommerce/ounce-ui';
-import {
-    APP_SOURCE_NAME,
-    regexValidation,
-    urlFetchCalls,
-} from '../../../Constant';
-import { RegistrationPage } from '../StaticMessages';
+import { regexValidation, urlFetchCalls } from '../../../Constant';
 
 interface PropsI extends DIProps {
     loginStatus: () => void;
@@ -42,27 +37,93 @@ function Login(_props: PropsI): JSX.Element {
         loading: false,
         eyeoff: false,
     });
-    const [pageLoad, pageLoadingState] = useState<boolean>(true);
     const [errorValidation, setErrorValidation] = useState<objectState>({
-        email: { error: false, message: '', showError: false },
-        password: { error: false, showError: false },
+        email: { error: true, message: '', showError: false },
+        password: { error: true, showError: false },
     });
     const navigate = useNavigate();
     const dispatcher = useContext(StoreDispatcher);
-
-    useEffect(() => {
-        dispatcher({
-            type: 'logout',
-            state: {},
-        });
-        _props.di.globalState.removeLocalStorage('auth_token');
-        pageLoadingState(false);
-        return () => {};
-    }, []);
-
-    if (pageLoad) {
-        return <></>;
-    }
+    // function handles the state on blur of input boxes
+    const blurHandler = (name: string) => {
+        if (name === 'Email') {
+            if (state.username === '') {
+                errorValidation.email.showError = true;
+            } else {
+                if (!state.username.match(regexValidation.emailFormat)) {
+                    errorValidation.email.showError = true;
+                    errorValidation.email.message =
+                        'Please enter a valid email';
+                } else {
+                    errorValidation.email.showError = false;
+                    errorValidation.email.message = '';
+                }
+            }
+        } else {
+            if (state.password === '') {
+                errorValidation.password.showError = true;
+            } else {
+                errorValidation.password.showError = false;
+            }
+        }
+        setErrorValidation({ ...errorValidation });
+    };
+    // function sets the state on the change of input boxes
+    const changeHandler = (e: any, name: string) => {
+        if (name === 'Email') {
+            errorValidation.email.showError = false;
+            errorValidation.email.message = '';
+            state.username = e;
+        } else {
+            errorValidation.password.showError = false;
+            state.password = e;
+        }
+        setErrorValidation({ ...errorValidation });
+        setState({ ...state });
+    };
+    // function hits the login api on login button handler
+    const login = () => {
+        const {
+            post: { userLogin },
+        } = urlFetchCalls;
+        _props.di
+            .POST(userLogin, {
+                email: username,
+                password: password,
+            })
+            .then((res) => {
+                console.log(res);
+                if (res.success) {
+                    _props.success(res.message);
+                    let obj = parseJwt(res.data.token);
+                    console.log(obj);
+                    _props.di.globalState.set(
+                        `${obj.user_id}_auth_token`,
+                        res.data.token
+                    );
+                    state.username = '';
+                    state.password = '';
+                    setState({ ...state });
+                    dispatcher({
+                        type: 'syncNecessaryInfo',
+                        state: obj.user_id,
+                    });
+                    navigate('/panel');
+                } else {
+                    _props.error(res.message);
+                }
+            });
+    };
+    // function disables or enables the login button
+    const disableBtn = () => {
+        if (
+            state.username.match(regexValidation.emailFormat) &&
+            state.password !== ''
+        ) {
+            return false;
+        } else {
+            return true;
+        }
+    };
 
     const { username, password, loading, eyeoff } = state;
     return (
@@ -75,6 +136,8 @@ function Login(_props: PropsI): JSX.Element {
                     required={true}
                     placeHolder={'ex: abc@gmail.com'}
                     value={username}
+                    onChange={(e) => changeHandler(e, 'Email')}
+                    onblur={() => blurHandler('Email')}
                 />
                 <div>
                     <FlexLayout direction="vertical" spacing="mediumTight">
@@ -86,6 +149,7 @@ function Login(_props: PropsI): JSX.Element {
                             strength={false}
                             show={eyeoff}
                             type="password"
+                            error={errorValidation.password.showError}
                             innerSufIcon={
                                 eyeoff ? (
                                     <Eye
@@ -112,15 +176,16 @@ function Login(_props: PropsI): JSX.Element {
                                 )
                             }
                             onChange={(e) => {
-                                console.log('object');
+                                changeHandler(e, 'Password');
                             }}
+                            onblur={() => blurHandler('Password')}
                         />
 
                         <FlexLayout halign="end">
                             <Button
                                 type="TextButton"
                                 thickness="thin"
-                                onClick={() => console.log('object')}>
+                                onClick={() => navigate('/auth/forgot')}>
                                 Forgot Password?
                             </Button>
                         </FlexLayout>
@@ -131,10 +196,8 @@ function Login(_props: PropsI): JSX.Element {
                     thickness="large"
                     length="fullBtn"
                     loading={loading}
-                    disable={false}
-                    onClick={() => {
-                        console.log('Clicked');
-                    }}>
+                    disable={disableBtn()}
+                    onClick={login}>
                     Login
                 </Button>
             </FormElement>

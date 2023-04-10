@@ -7,6 +7,7 @@ import Footer from '../Footer/Footer';
 import './auth.css';
 import Login from './Login/Login';
 import { cardTitleAuth } from '../../Constant';
+import Forget from './Forget/Forget';
 
 function Auth(_props: DIProps): JSX.Element {
     const match = useParams();
@@ -77,6 +78,7 @@ function Auth(_props: DIProps): JSX.Element {
                             }>
                             <Routes>
                                 <Route path="login" element={<Login />} />
+                                <Route path="forgot" element={<Forget />} />
                                 <Route
                                     path="*"
                                     element={<Navigate to={'/auth/login'} />}
