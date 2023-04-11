@@ -91,11 +91,9 @@ function Login(_props: PropsI): JSX.Element {
                 password: password,
             })
             .then((res) => {
-                console.log(res);
                 if (res.success) {
                     _props.success(res.message);
                     let obj = parseJwt(res.data.token);
-                    console.log(obj);
                     _props.di.globalState.set(
                         `${obj.user_id}_auth_token`,
                         res.data.token

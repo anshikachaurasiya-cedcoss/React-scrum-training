@@ -8,7 +8,6 @@ import { DI } from '../../../Core/DependencyInjection';
 
 const Dashboard = (_props: PropsI) => {
     const navigate = useNavigate();
-    console.log(_props.redux);
     return (
         <>
             <Topbar
