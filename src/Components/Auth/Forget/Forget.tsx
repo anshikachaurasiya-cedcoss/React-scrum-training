@@ -70,7 +70,6 @@ const Forget = (_props: PropsI) => {
                     'Reset your password for Social Ads on Buy with Prime Account',
             })
             .then((res) => {
-                console.log(res);
                 if (res.success) {
                     navigate('/auth/forgotsuccess');
                     setBtnLoading(false);
