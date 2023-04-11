@@ -57,7 +57,7 @@ const Forget = (_props: PropsI) => {
     // function hits the forget api on click of generate link button
     const generateHandler = () => {
         setBtnLoading(true);
-        let location = window.location.href;
+        let location = window.location.origin;
         const {
             post: { forgotPassword },
         } = urlFetchCalls;
@@ -65,7 +65,7 @@ const Forget = (_props: PropsI) => {
         _props.di
             .POST(forgotPassword, {
                 email: emailState.value,
-                'reset-link': location,
+                'reset-link': `${location}/auth/reset`,
                 subject:
                     'Reset your password for Social Ads on Buy with Prime Account',
             })
