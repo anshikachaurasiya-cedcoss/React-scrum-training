@@ -8,6 +8,7 @@ import './auth.css';
 import Login from './Login/Login';
 import { cardTitleAuth } from '../../Constant';
 import Forget from './Forget/Forget';
+import ResetPasswordAlert from './Layouts/ResetPasswordAlert';
 
 function Auth(_props: DIProps): JSX.Element {
     const match = useParams();
@@ -42,7 +43,7 @@ function Auth(_props: DIProps): JSX.Element {
                                         textcolor="light"
                                         type="Heading"
                                         utility="none">
-                                        React-
+                                        Social Ads
                                     </TextStyles>
                                     <TextStyles
                                         alignment="left"
@@ -52,7 +53,7 @@ function Auth(_props: DIProps): JSX.Element {
                                         textcolor="light"
                                         type="Heading"
                                         utility="none">
-                                        Boiler Plate
+                                        for Buy with Prime
                                     </TextStyles>
                                 </div>
                             }
@@ -71,7 +72,10 @@ function Auth(_props: DIProps): JSX.Element {
                                             textcolor="light"
                                             type="SubHeading"
                                             utility="none">
-                                            React boiler plate description
+                                            Create Ad campaigns for your
+                                            products with the “Buy with Prime”
+                                            badge and drive traffic through
+                                            tailored social advertising.
                                         </TextStyles>
                                     </FlexLayout>
                                 </>
@@ -79,6 +83,10 @@ function Auth(_props: DIProps): JSX.Element {
                             <Routes>
                                 <Route path="login" element={<Login />} />
                                 <Route path="forgot" element={<Forget />} />
+                                <Route
+                                    path="forgotsuccess"
+                                    element={<ResetPasswordAlert />}
+                                />
                                 <Route
                                     path="*"
                                     element={<Navigate to={'/auth/login'} />}
