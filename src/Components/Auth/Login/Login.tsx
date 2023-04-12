@@ -124,13 +124,18 @@ function Login(_props: PropsI): JSX.Element {
     };
 
     const { username, password, loading, eyeoff } = state;
+    const {
+        email: { message: emailMsg, showError: emailError },
+        password: { showError: pwdError },
+    } = errorValidation;
+
     return (
         <>
             <FormElement>
                 <TextField
                     name={'Email'}
-                    error={errorValidation.email.showError}
-                    showHelp={errorValidation.email.message}
+                    error={emailError}
+                    showHelp={emailMsg}
                     required={true}
                     placeHolder={'ex: abc@gmail.com'}
                     value={username}
@@ -147,7 +152,7 @@ function Login(_props: PropsI): JSX.Element {
                             strength={false}
                             show={eyeoff}
                             type="password"
-                            error={errorValidation.password.showError}
+                            error={pwdError}
                             innerSufIcon={
                                 eyeoff ? (
                                     <Eye

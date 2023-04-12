@@ -7,6 +7,7 @@
     "build:production": "webpack --progress --mode production --env env_code=production",
     "build:testing": "webpack --progress --mode production --env env_code=testing",
     "build:staging": "webpack --progress --mode production --env env_code=staging",
+    "build:testing.local":"webpack --progress --mode production --env env_code=testing.local",
     "start": "webpack serve --open --progress --env env_code=testing.local",
     "watch": "webpack --watch"
   },
