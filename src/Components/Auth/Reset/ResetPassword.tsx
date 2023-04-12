@@ -13,6 +13,7 @@ import { Eye, EyeOff } from 'react-feather';
 import CustomHelpPoints from '../../CustomHelpPoints';
 import { regexValidation, urlFetchCalls } from '../../../Constant';
 import PasswordCreatedAlert from '../Layouts/PasswordCreatedAlert';
+import { useSearchParams } from 'react-router-dom';
 
 interface resetPwdObj {
     password: string;
@@ -22,7 +23,7 @@ interface resetPwdObj {
     error: boolean;
 }
 let start: any = '',
-    token = '';
+    token: any = '';
 const ResetPassword = (_props: PropsI) => {
     const [state, setState] = useState<resetPwdObj>({
         password: '',
@@ -39,30 +40,33 @@ const ResetPassword = (_props: PropsI) => {
         confirmPassword: { showError: false, message: '' },
     });
 
+    const [searchParams] = useSearchParams();
+
     useEffect(() => {
-        start = window.location.search.indexOf('=');
-        token = window.location.search.substring(
-            start + 1,
-            window.location.search.length
-        );
-        setDetails(parseJwt(atob(token)).email);
+        token = searchParams.get('token');
+        setDetails(parseJwt(atob(token)));
     }, []);
     // function handles the state on change of input fields
     const inputHandler = (e: any, name: string) => {
         if (name === 'New Password') {
             state.password = e;
-            if (state.password.match(regexValidation.passwordformat)) {
-                errorValidation.password.showError = false;
-            } else {
+            if (state.password === '') {
                 errorValidation.password.showError = true;
-                state.error = true;
+            } else {
+                errorValidation.password.showError = false;
             }
             if (state.confirmPassword !== '') {
                 checkValidation();
             }
         } else {
             state.confirmPassword = e;
-            checkValidation();
+            if (state.confirmPassword === '') {
+                errorValidation.confirmPassword.showError = true;
+                errorValidation.confirmPassword.message = '';
+            } else {
+                errorValidation.confirmPassword.showError = false;
+                checkValidation();
+            }
         }
         setErrorValidation({ ...errorValidation });
         setState({ ...state });
@@ -81,19 +85,7 @@ const ResetPassword = (_props: PropsI) => {
         setErrorValidation({ ...errorValidation });
         setState({ ...state });
     };
-    // function checks for validation on blur of the input field
-    const blurHandler = (name: string) => {
-        if (name === 'New Password') {
-            if (state.password === '') {
-                errorValidation.password.showError = true;
-            }
-        } else {
-            if (state.confirmPassword === '') {
-                errorValidation.confirmPassword.showError = true;
-            }
-        }
-        setErrorValidation({ ...errorValidation });
-    };
+
     // function hits the save password api
     const savePasswordHandler = () => {
         state.loading = true;
@@ -138,13 +130,12 @@ const ResetPassword = (_props: PropsI) => {
                             name={'New Password'}
                             required={true}
                             placeHolder={'Enter Password'}
-                            strength={false}
+                            strength={true}
                             type="password"
                             show={eyeoff}
                             value={password}
                             error={pwdError}
                             onChange={(e) => inputHandler(e, 'New Password')}
-                            onblur={() => blurHandler('New Password')}
                             innerSufIcon={
                                 eyeoff ? (
                                     <Eye
@@ -183,7 +174,6 @@ const ResetPassword = (_props: PropsI) => {
                             onChange={(e) =>
                                 inputHandler(e, 'Confirm Password')
                             }
-                            onblur={() => blurHandler('Confirm Password')}
                         />
                         <hr />
                         <Button
