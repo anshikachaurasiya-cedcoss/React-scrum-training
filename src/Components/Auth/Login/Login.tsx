@@ -82,6 +82,7 @@ function Login(_props: PropsI): JSX.Element {
     };
     // function hits the login api on login button handler
     const login = () => {
+        setState({ ...state, loading: true });
         const {
             post: { userLogin },
         } = urlFetchCalls;
@@ -91,26 +92,26 @@ function Login(_props: PropsI): JSX.Element {
                 password: password,
             })
             .then((res) => {
-                console.log(res);
                 if (res.success) {
                     _props.success(res.message);
                     let obj = parseJwt(res.data.token);
-                    console.log(obj);
                     _props.di.globalState.set(
                         `${obj.user_id}_auth_token`,
                         res.data.token
                     );
                     state.username = '';
                     state.password = '';
-                    setState({ ...state });
                     dispatcher({
                         type: 'syncNecessaryInfo',
                         state: obj.user_id,
                     });
-                    navigate('/panel');
+                    state.loading = false;
+                    setTimeout(() => navigate('/panel'), 1000);
                 } else {
+                    state.loading = false;
                     _props.error(res.message);
                 }
+                setState({ ...state });
             });
     };
     // function disables or enables the login button

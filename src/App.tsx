@@ -7,7 +7,7 @@ import './styles.css';
 import { Toast, ToastWrapper } from '@cedcommerce/ounce-ui';
 import { BrokenPage1 } from './Components/EmptyState/EmptyPages';
 import NoInternet from './NoInternet';
-import Dashboard from './Components/Auth/Dashboard/Dashboard';
+import Dashboard from './Components/Dashboard/Dashboard';
 
 const Auth = lazy(() => import('./Components/Auth'));
 const ShowMessage = lazy(
