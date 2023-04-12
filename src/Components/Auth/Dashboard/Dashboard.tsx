@@ -2,9 +2,9 @@ import { Button, Topbar } from '@cedcommerce/ounce-ui';
 import React from 'react';
 import { ArrowLeft } from 'react-feather';
 import { useNavigate } from 'react-router-dom';
-import Logo from '../../Asests/Images/svg/Logo';
+import Logo from '../../../Asests/Images/svg/Logo';
 import { PropsI } from 'src/Core/@types';
-import { DI } from '../../Core/DependencyInjection';
+import { DI } from '../../../Core/DependencyInjection';
 
 const Dashboard = (_props: PropsI) => {
     const navigate = useNavigate();
