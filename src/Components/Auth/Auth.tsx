@@ -10,7 +10,8 @@ import { cardTitleAuth } from '../../Constant';
 import Forget from './Forget/Forget';
 import ResetPasswordAlert from './Layouts/ResetPasswordAlert';
 import ResetPassword from './Reset/ResetPassword';
-import PasswordCreatedAlert from './Layouts/PasswordCreatedAlert';
+import RegisterUrl from './RegisterPage/RegisterUrl';
+import RegisterPage from './RegisterPage/RegisterPage';
 
 function Auth(_props: DIProps): JSX.Element {
     const match = useParams();
@@ -27,8 +28,7 @@ function Auth(_props: DIProps): JSX.Element {
             ? cardTitleAuth.reset
             : cardTitleAuth.default;
     };
-    const registerPath = match['*']?.includes('/register');
-
+    const registerPath = match['*']?.includes('register');
     return (
         <>
             <div className="init-LoginPage__Wrapper">
@@ -79,6 +79,16 @@ function Auth(_props: DIProps): JSX.Element {
                                             badge and drive traffic through
                                             tailored social advertising.
                                         </TextStyles>
+                                        {registerPath ? (
+                                            <Alert
+                                                type="warning"
+                                                children={''}
+                                                desciption="Please do not close the window, else it would lead to re-installation from Buy with Prime Console."
+                                                destroy={false}
+                                            />
+                                        ) : (
+                                            <></>
+                                        )}
                                     </FlexLayout>
                                 </>
                             }>
@@ -92,6 +102,14 @@ function Auth(_props: DIProps): JSX.Element {
                                 <Route
                                     path="reset"
                                     element={<ResetPassword />}
+                                />
+                                <Route
+                                    path="register"
+                                    element={<RegisterUrl />}
+                                />
+                                <Route
+                                    path={'register/:uId'}
+                                    element={<RegisterPage />}
                                 />
                                 <Route
                                     path="*"

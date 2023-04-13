@@ -38,7 +38,9 @@ export const globalState: GSI = {
     get:
         (_StateProps: any) =>
         (key: string, prefixIncluded = false): string | null => {
+            
             if (!prefixIncluded) {
+                
                 if (_StateProps && typeof _StateProps.user_id === 'string') {
                     return SelectedStorage.getItem(
                         _StateProps.user_id + '_' + key
