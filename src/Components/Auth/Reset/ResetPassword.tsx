@@ -44,7 +44,7 @@ const ResetPassword = (_props: PropsI) => {
 
     useEffect(() => {
         token = searchParams.get('token');
-        setDetails(parseJwt(atob(token)));
+        setDetails(parseJwt(atob(token)).email);
     }, []);
     // function handles the state on change of input fields
     const inputHandler = (e: any, name: string) => {
