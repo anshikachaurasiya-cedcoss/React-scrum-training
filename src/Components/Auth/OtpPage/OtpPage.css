@@ -1,0 +1,5 @@
+.custom--style .inte--Textfield__thick .inte-formElement.inte-formElementTextfield,
+.inte-select--thick .inte-select.inte-formElement {
+    height: 4.4rem !important;
+    width: 4.3rem !important;
+}

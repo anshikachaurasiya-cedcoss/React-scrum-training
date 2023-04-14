@@ -183,7 +183,7 @@ const RegisterPage = (_props: PropsI) => {
             .POST(emailExistsCheck, { data: { email: email } })
             .then((res) => {
                 state.loading = false;
-                if (res) {
+                if (res.success) {
                     openModal();
                 } else {
                     _props.error(res.message);
