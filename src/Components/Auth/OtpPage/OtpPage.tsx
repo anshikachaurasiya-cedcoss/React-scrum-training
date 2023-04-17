@@ -18,6 +18,8 @@ interface OtpProps extends DIProps {
     getMail: (num: number) => void;
     emailResponse: any;
     email: string;
+    setAccountCreate: React.Dispatch<React.SetStateAction<{}>>;
+    createUser: () => void;
 }
 
 const OtpPage = (_props: OtpProps) => {
@@ -26,7 +28,9 @@ const OtpPage = (_props: OtpProps) => {
         otpModal,
         openModal,
         getMail,
+        setAccountCreate,
         emailResponse: { no_of_attempts_left, success },
+        createUser,
     } = _props;
 
     const [otp, setOtp] = useState([
@@ -45,7 +49,7 @@ const OtpPage = (_props: OtpProps) => {
         msg: '',
         border: '',
     });
-
+    // function sets the timer of 1 sec after component mount
     useEffect(() => {
         clearInterval(timeRef.current);
         timeRef.current = setInterval(timer, 1000);
@@ -53,23 +57,22 @@ const OtpPage = (_props: OtpProps) => {
             setDisable({ ...disable, btnDisable: false });
         }
     }, [sec]);
+    //
     useEffect(() => {
         inpRef.current[0].focus();
-        if (success) {
-            setDisable({
-                ...disable,
-                loader: false,
-            });
-            setTimeout(() => {
-                setDisable({ ...disable, msg: '', loader: false });
-            }, 5000);
-            setSec(60);
-        }
+
         if (no_of_attempts_left < 4) {
             setDisable({
                 ...disable,
                 msg: 'One-time passcode sent successfully!',
+                loader: false,
             });
+        }
+        if (success) {
+            setTimeout(() => {
+                setDisable({ ...disable, msg: '', loader: false });
+            }, 5000);
+            setSec(60);
         }
     }, [no_of_attempts_left]);
 
@@ -139,6 +142,9 @@ const OtpPage = (_props: OtpProps) => {
             setDisable({ ...disable, loader: false });
             if (res.success) {
                 setDisable({ ...disable, border: 'Success' });
+                openModal();
+                setAccountCreate(res);
+                createUser();
             } else {
                 reset();
                 setDisable({
@@ -152,9 +158,10 @@ const OtpPage = (_props: OtpProps) => {
 
     const reset = () => {
         inpRef.current[0].focus();
-        inpRef.current.map((ele: any) => {
+        otp.forEach((ele: any) => {
             ele.value = '';
         });
+        setOtp([...otp]);
     };
 
     const backspaceHandler = (index: number, item: any) => {
@@ -239,7 +246,7 @@ const OtpPage = (_props: OtpProps) => {
                             textcolor={
                                 disable.msg ===
                                 'One-time passcode sent successfully!'
-                                    ? 'success'
+                                    ? 'positive'
                                     : 'negative'
                             }
                             paragraphTypes="MD-1.4"
