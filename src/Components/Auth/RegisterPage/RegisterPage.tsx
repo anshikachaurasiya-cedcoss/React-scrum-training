@@ -186,6 +186,9 @@ const RegisterPage = (_props: PropsI) => {
                 if (res.success) {
                     state.loading = true;
                     getMail(1);
+                state.loading = false;
+                if (res.success) {
+                    openModal();
                 } else {
                     state.loading = false;
                     _props.error(res.message);
