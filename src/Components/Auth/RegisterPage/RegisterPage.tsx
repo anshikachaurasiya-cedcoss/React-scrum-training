@@ -3,7 +3,6 @@ import {
     CheckBox,
     FlexLayout,
     FormElement,
-    Modal,
     TextField,
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useState } from 'react';
@@ -37,7 +36,7 @@ const RegisterPage = (_props: PropsI) => {
     });
 
     const [otpModal, setOtpModal] = useState(false);
-
+    // setting the auth_token in useEffect
     useEffect(() => {
         let auth_token = _props.di.globalState.get('auth_token', true);
         if (auth_token) {
@@ -51,6 +50,8 @@ const RegisterPage = (_props: PropsI) => {
         password: { error: false, showError: false, message: '' },
         confirmPassword: { error: false, showError: false, message: '' },
     });
+
+    const [emailResponse, setEmailResponse] = useState({});
 
     const { AgreeTnc, BrandLenght, emailErrors, PasswordNotMatched } =
         RegistrationPage;
@@ -182,16 +183,40 @@ const RegisterPage = (_props: PropsI) => {
         _props.di
             .POST(emailExistsCheck, { data: { email: email } })
             .then((res) => {
+                if (res.success) {
+                    state.loading = true;
+                    getMail(1);
                 state.loading = false;
                 if (res.success) {
                     openModal();
                 } else {
+                    state.loading = false;
                     _props.error(res.message);
                 }
                 setState({ ...state });
             });
     };
+    // function hits the send otp api
+    const getMail = (num: number) => {
+        const {
+            get: { otpMail },
+        } = urlFetchCalls;
 
+        _props.di.GET(otpMail, { email: email }).then((res) => {
+            setEmailResponse(res);
+            if (res.success) {
+                state.loading = false;
+                if (num === 1) {
+                    openModal();
+                }
+            } else {
+                _props.error(res.message);
+                state.loading = false;
+            }
+            setState({ ...state });
+        });
+    };
+    // function handles the state of modal
     const openModal = () => {
         setOtpModal(!otpModal);
     };
@@ -283,8 +308,15 @@ const RegisterPage = (_props: PropsI) => {
                     Create Account
                 </Button>
             </FormElement>
+            {/* rendering of otp modal */}
             {otpModal ? (
-                <OtpPage otpModal={otpModal} openModal={openModal} />
+                <OtpPage
+                    otpModal={otpModal}
+                    openModal={openModal}
+                    getMail={getMail}
+                    emailResponse={emailResponse}
+                    email={email}
+                />
             ) : (
                 <></>
             )}
