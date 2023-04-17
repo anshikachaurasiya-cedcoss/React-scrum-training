@@ -28,6 +28,14 @@ const OtpPage = (_props: OtpProps) => {
         getMail,
         emailResponse: { no_of_attempts_left, success },
     } = _props;
+
+    const [otp, setOtp] = useState([
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+        { value: '' },
+    ]);
     let inpRef = useRef<any>([]);
     let timeRef = useRef<any>();
     let [sec, setSec] = useState(60);
@@ -37,6 +45,7 @@ const OtpPage = (_props: OtpProps) => {
         msg: '',
         border: '',
     });
+
     useEffect(() => {
         clearInterval(timeRef.current);
         timeRef.current = setInterval(timer, 1000);
@@ -63,6 +72,7 @@ const OtpPage = (_props: OtpProps) => {
             });
         }
     }, [no_of_attempts_left]);
+
     const timer = () => {
         if (sec > 0) {
             sec--;
@@ -72,7 +82,6 @@ const OtpPage = (_props: OtpProps) => {
 
     const resendHandler = () => {
         getMail(0);
-
         disable.loader = true;
         disable.btnDisable = true;
         disable.border = '';
@@ -81,31 +90,39 @@ const OtpPage = (_props: OtpProps) => {
         reset();
     };
 
-    const changeHandler = (e: any, i: number) => {
-        setDisable({ ...disable, msg: '', border: '' });
+    const changeHandler = (e: any, index: number, item: any) => {
         let arr: any = [];
-        if (e.match(/^[0-9]{1}$/)) {
-            inpRef.current[i].value = e;
-            if (
-                inpRef.current[i].value !== '' &&
-                inpRef.current[i + 1] !== undefined
-            ) {
-                inpRef.current[i + 1].focus();
+        setDisable({ ...disable, msg: '', border: '' });
+        let ind = otp.findIndex((ele, i) => i === index);
+        if (e !== '') {
+            if (e.match(/^[0-9]{1}$/)) {
+                otp[ind].value = e;
+                if (otp[ind].value !== '') {
+                    if (inpRef.current[index + 1])
+                        inpRef.current[index + 1].focus();
+                }
+            } else if (otp[ind].value !== '') {
+                let len = e.split('').length;
+                if (e.split('')[len - 1].match(/^[0-9]$/) !== null) {
+                    otp[ind].value = e.split('').slice(len - 1);
+                    if (inpRef.current[index + 1])
+                        inpRef.current[index + 1].focus();
+                }
             }
-            let count: boolean = true;
-            let check = (ele: any) => ele.value === '';
-            let val = inpRef.current.find(check);
-            if (val) {
-                count = false;
-            }
-            if (count) {
-                inpRef.current.map((ele: any) => {
-                    arr.push(ele.value);
-                });
-                checkOtp(arr);
-            }
-        } else {
-            inpRef.current[i].value = '';
+            setOtp([...otp]);
+        }
+        let count: boolean = true;
+
+        let val = otp.find((ele) => ele.value === '');
+        if (val) {
+            count = false;
+        }
+        if (count) {
+            otp.forEach((ele) => {
+                arr.push(ele.value);
+            });
+            let otpArr = arr.join('');
+            checkOtp(otpArr);
         }
     };
     const {
@@ -114,7 +131,7 @@ const OtpPage = (_props: OtpProps) => {
 
     const checkOtp = (arr: any) => {
         setDisable({ ...disable, loader: true });
-        let otp = parseInt(arr.join(''));
+        let otp = parseInt(arr);
         const {
             post: { validateOtp },
         } = urlFetchCalls;
@@ -140,10 +157,15 @@ const OtpPage = (_props: OtpProps) => {
         });
     };
 
-    const backspaceHandler = (i: number) => {
-        if (inpRef.current[i].value === '') {
-            inpRef.current[i - 1].focus();
+    const backspaceHandler = (index: number, item: any) => {
+        let ind = otp.findIndex((ele, i) => i === index);
+        if (index > 0) inpRef.current[index - 1].focus();
+        if (otp[ind].value !== '') {
+            otp[ind].value = '';
+        } else if (otp[ind].value === '') {
+            if (ind > 0) otp[ind - 1].value = '';
         }
+        setOtp([...otp]);
     };
 
     const { btnDisable, loader } = disable;
@@ -180,20 +202,21 @@ const OtpPage = (_props: OtpProps) => {
                                 wrap="noWrap"
                                 spacing="tight"
                                 valign="center">
-                                {[1, 2, 3, 4, 5].map((item, i) => {
+                                {otp.map((item: any, i: number) => {
                                     return (
                                         <TextField
                                             controlStates={disable.border}
                                             key={item}
                                             type="text"
+                                            value={item.value}
                                             ref={(ref) =>
                                                 (inpRef.current[i] = ref)
                                             }
                                             onChange={(e) =>
-                                                changeHandler(e, i)
+                                                changeHandler(e, i, item)
                                             }
                                             onBackspace={() =>
-                                                backspaceHandler(i)
+                                                backspaceHandler(i, item)
                                             }
                                         />
                                     );
