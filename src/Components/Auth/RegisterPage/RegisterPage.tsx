@@ -13,6 +13,8 @@ import { regexValidation, urlFetchCalls } from '../../../Constant';
 import CustomHelpPoints from '../../CustomHelpPoints';
 import { RegistrationPage } from '../StaticMessages';
 import OtpPage from '../OtpPage/OtpPage';
+import { syncConnectorInfo } from '../../../Actions/NecessaryFun';
+import RegisterRedirectPage from './RegisterRedirectPage';
 
 interface loginStateObj {
     brandName: string;
@@ -52,6 +54,7 @@ const RegisterPage = (_props: PropsI) => {
     });
 
     const [emailResponse, setEmailResponse] = useState({});
+    const [accountCreate, setAccountCreate] = useState<any>({});
 
     const { AgreeTnc, BrandLenght, emailErrors, PasswordNotMatched } =
         RegistrationPage;
@@ -186,14 +189,12 @@ const RegisterPage = (_props: PropsI) => {
                 if (res.success) {
                     state.loading = true;
                     getMail(1);
-                state.loading = false;
-                if (res.success) {
-                    openModal();
-                } else {
-                    state.loading = false;
-                    _props.error(res.message);
+                    if (!res.success) {
+                        state.loading = false;
+                        _props.error(res.message);
+                    }
+                    setState({ ...state });
                 }
-                setState({ ...state });
             });
     };
     // function hits the send otp api
@@ -216,112 +217,161 @@ const RegisterPage = (_props: PropsI) => {
             setState({ ...state });
         });
     };
+
+    const createUser = () => {
+        const {
+            post: { createUser },
+        } = urlFetchCalls;
+        _props.di
+            .POST(createUser, {
+                data: {
+                    user: {
+                        email: email,
+                        password: password,
+                        confirmPassword: confirmPassword,
+                    },
+                    config: [
+                        {
+                            key: 'brand',
+                            value: 'Sarthak Brand',
+                            group_code: 'meta-testwebapi',
+                        },
+                    ],
+                },
+            })
+            .then((res) => console.log(res));
+    };
+
+    useEffect(() => {
+        syncConnectorInfo(_props);
+    }, []);
+
     // function handles the state of modal
     const openModal = () => {
         setOtpModal(!otpModal);
     };
     return (
         <>
-            <FormElement>
-                <TextField
-                    name={'Store / Brand Name'}
-                    required={true}
-                    placeHolder={'Enter Store / Brand Name'}
-                    value={brandName}
-                    error={brandErr}
-                    showHelp={brandMessage}
-                    onChange={(e) => changeHandler(e, 'Store / Brand Name')}
-                    onblur={() => blurHandler('Store / Brand Name')}
-                />
-                <TextField
-                    name={'Email'}
-                    required={true}
-                    placeHolder={'ex: abc@gmail.com'}
-                    value={email}
-                    onChange={(e) => changeHandler(e, 'Email')}
-                    onblur={() => blurHandler('Email')}
-                    error={emailErr}
-                    showHelp={emailMessage}
-                />
-                <TextField
-                    name={'Create Password'}
-                    required={true}
-                    placeHolder={'Enter Password'}
-                    strength={true}
-                    show={eyeoff}
-                    type="password"
-                    error={pwdErr}
-                    value={password}
-                    onChange={(e) => changeHandler(e, 'Create Password')}
-                    onblur={() => blurHandler('Create Password')}
-                    innerSufIcon={
-                        eyeoff ? (
-                            <Eye
-                                color="rgb(112, 116, 126)"
-                                size={24}
-                                onClick={() =>
-                                    setState({
-                                        ...state,
-                                        eyeoff: !eyeoff,
-                                    })
-                                }
-                            />
-                        ) : (
-                            <EyeOff
-                                color="rgb(112, 116, 126)"
-                                size={24}
-                                onClick={() =>
-                                    setState({
-                                        ...state,
-                                        eyeoff: !eyeoff,
-                                    })
-                                }
-                            />
-                        )
-                    }
-                />
-                <CustomHelpPoints />
-                <TextField
-                    name={'Confirm Password'}
-                    required={true}
-                    placeHolder={'Confirm Password'}
-                    value={confirmPassword}
-                    onChange={(e) => changeHandler(e, 'Confirm Password')}
-                    error={confirmPwdErr}
-                    showHelp={confirmMessage}
-                    type="password"
-                />
-                <FlexLayout valign="center" spacing="extraTight" halign="start">
-                    <CheckBox
-                        labelVal={AgreeTnc}
-                        checked={checkField}
-                        onClick={checkHandler}
-                    />
-                    <Button type="TextButton" content="Read Our Policies" />
-                </FlexLayout>
-                <hr />
-                <Button
-                    length="fullBtn"
-                    disable={checksAllCond()}
-                    loading={loading}
-                    onClick={createHandler}>
-                    Create Account
-                </Button>
-            </FormElement>
-            {/* rendering of otp modal */}
-            {otpModal ? (
-                <OtpPage
-                    otpModal={otpModal}
-                    openModal={openModal}
-                    getMail={getMail}
-                    emailResponse={emailResponse}
-                    email={email}
-                />
+            {accountCreate.success ? (
+                <RegisterRedirectPage />
             ) : (
-                <></>
+                <>
+                    <FormElement>
+                        <TextField
+                            name={'Store / Brand Name'}
+                            required={true}
+                            placeHolder={'Enter Store / Brand Name'}
+                            value={brandName}
+                            error={brandErr}
+                            showHelp={brandMessage}
+                            onChange={(e) =>
+                                changeHandler(e, 'Store / Brand Name')
+                            }
+                            onblur={() => blurHandler('Store / Brand Name')}
+                        />
+                        <TextField
+                            name={'Email'}
+                            required={true}
+                            placeHolder={'ex: abc@gmail.com'}
+                            value={email}
+                            onChange={(e) => changeHandler(e, 'Email')}
+                            onblur={() => blurHandler('Email')}
+                            error={emailErr}
+                            showHelp={emailMessage}
+                        />
+                        <TextField
+                            name={'Create Password'}
+                            required={true}
+                            placeHolder={'Enter Password'}
+                            strength={true}
+                            show={eyeoff}
+                            type="password"
+                            error={pwdErr}
+                            value={password}
+                            onChange={(e) =>
+                                changeHandler(e, 'Create Password')
+                            }
+                            onblur={() => blurHandler('Create Password')}
+                            innerSufIcon={
+                                eyeoff ? (
+                                    <Eye
+                                        color="rgb(112, 116, 126)"
+                                        size={24}
+                                        onClick={() =>
+                                            setState({
+                                                ...state,
+                                                eyeoff: !eyeoff,
+                                            })
+                                        }
+                                    />
+                                ) : (
+                                    <EyeOff
+                                        color="rgb(112, 116, 126)"
+                                        size={24}
+                                        onClick={() =>
+                                            setState({
+                                                ...state,
+                                                eyeoff: !eyeoff,
+                                            })
+                                        }
+                                    />
+                                )
+                            }
+                        />
+                        <CustomHelpPoints />
+                        <TextField
+                            name={'Confirm Password'}
+                            required={true}
+                            placeHolder={'Confirm Password'}
+                            value={confirmPassword}
+                            onChange={(e) =>
+                                changeHandler(e, 'Confirm Password')
+                            }
+                            error={confirmPwdErr}
+                            showHelp={confirmMessage}
+                            type="password"
+                        />
+                        <FlexLayout
+                            valign="center"
+                            spacing="extraTight"
+                            halign="start">
+                            <CheckBox
+                                labelVal={AgreeTnc}
+                                checked={checkField}
+                                onClick={checkHandler}
+                            />
+                            <Button
+                                type="TextButton"
+                                content="Read Our Policies"
+                            />
+                        </FlexLayout>
+                        <hr />
+                        <Button
+                            length="fullBtn"
+                            disable={checksAllCond()}
+                            loading={loading}
+                            onClick={createHandler}>
+                            Create Account
+                        </Button>
+                    </FormElement>
+                    {/* rendering of otp modal */}
+                    {otpModal ? (
+                        <OtpPage
+                            otpModal={otpModal}
+                            openModal={openModal}
+                            getMail={getMail}
+                            emailResponse={emailResponse}
+                            email={email}
+                            setAccountCreate={setAccountCreate}
+                            createUser={createUser}
+                        />
+                    ) : (
+                        <></>
+                    )}
+                </>
             )}
         </>
     );
 };
 
-export default DI(RegisterPage);
+export default DI(RegisterPage, { func: { syncConnectorInfo } });

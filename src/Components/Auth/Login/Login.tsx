@@ -1,7 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { DI, DIProps, parseJwt, extractUSername } from '../../../Core';
 import { loginStatus } from '../../../Actions';
-import * as queryString from 'query-string';
 import { useNavigate } from 'react-router-dom';
 import { StoreDispatcher } from '../../..';
 import { Eye, EyeOff } from 'react-feather';
