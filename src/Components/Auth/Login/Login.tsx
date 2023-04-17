@@ -103,7 +103,7 @@ function Login(_props: PropsI): JSX.Element {
                     state.password = '';
                     dispatcher({
                         type: 'syncNecessaryInfo',
-                        state: obj.user_id,
+                        state: { user_id: obj.user_id },
                     });
                     state.loading = false;
                     setTimeout(() => navigate('/panel'), 1000);
