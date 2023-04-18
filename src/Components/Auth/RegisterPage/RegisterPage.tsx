@@ -7,14 +7,17 @@ import {
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff } from 'react-feather';
-import { DI } from '../../../Core/DependencyInjection';
-import { PropsI } from 'src/Core/@types';
+import { DI, DIProps } from '../../../Core';
 import { regexValidation, urlFetchCalls } from '../../../Constant';
 import CustomHelpPoints from '../../CustomHelpPoints';
 import { RegistrationPage } from '../StaticMessages';
 import OtpPage from '../OtpPage/OtpPage';
-import { syncConnectorInfo } from '../../../Actions/NecessaryFun';
 import RegisterRedirectPage from './RegisterRedirectPage';
+import { syncConnectorInfo } from '../../../Actions';
+
+interface PropsI extends DIProps {
+    syncConnectorInfo: () => void;
+}
 
 interface loginStateObj {
     brandName: string;
@@ -26,7 +29,7 @@ interface loginStateObj {
     checkField: boolean;
 }
 
-const RegisterPage = (_props: PropsI) => {
+const RegisterPage = (_props: DIProps) => {
     const [state, setState] = useState<loginStateObj>({
         brandName: '',
         email: '',
@@ -45,6 +48,12 @@ const RegisterPage = (_props: PropsI) => {
             _props.di.globalState.set('auth_token', auth_token);
         }
     }, []);
+
+    useEffect(() => {
+        syncConnectorInfo(_props);
+    }, []);
+
+    console.log('props redux', _props);
 
     const [errorValidation, setErrorValidation] = useState({
         brand: { error: false, showError: false, message: '' },
@@ -233,7 +242,7 @@ const RegisterPage = (_props: PropsI) => {
                     config: [
                         {
                             key: 'brand',
-                            value: 'Sarthak Brand',
+                            value: brandName,
                             group_code: 'meta-testwebapi',
                         },
                     ],
@@ -241,10 +250,6 @@ const RegisterPage = (_props: PropsI) => {
             })
             .then((res) => console.log(res));
     };
-
-    useEffect(() => {
-        syncConnectorInfo(_props);
-    }, []);
 
     // function handles the state of modal
     const openModal = () => {

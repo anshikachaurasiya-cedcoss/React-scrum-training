@@ -16,6 +16,7 @@ export const necessaryInfo = (
     state: any = {},
     action: necessaryInfoActionI
 ): any => {
+    console.log('reducer')
     switch (action.type) {
         case 'syncNecessaryInfo':
             return {
