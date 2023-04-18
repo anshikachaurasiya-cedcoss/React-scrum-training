@@ -5,18 +5,19 @@ import {
     FormElement,
     TextField,
 } from '@cedcommerce/ounce-ui';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Eye, EyeOff } from 'react-feather';
-import { DI, DIProps } from '../../../Core';
+import { DI, DIProps, parseJwt } from '../../../Core';
 import { regexValidation, urlFetchCalls } from '../../../Constant';
 import CustomHelpPoints from '../../CustomHelpPoints';
 import { RegistrationPage } from '../StaticMessages';
 import OtpPage from '../OtpPage/OtpPage';
-import RegisterRedirectPage from './RegisterRedirectPage';
 import { syncConnectorInfo } from '../../../Actions';
+import { StoreDispatcher } from '../../..';
+import RegisterRedirectPage from './RegisterRedirectPage';
 
 interface PropsI extends DIProps {
-    syncConnectorInfo: () => void;
+    syncConnectorInfo: any;
 }
 
 interface loginStateObj {
@@ -29,7 +30,7 @@ interface loginStateObj {
     checkField: boolean;
 }
 
-const RegisterPage = (_props: DIProps) => {
+const RegisterPage = (_props: PropsI) => {
     const [state, setState] = useState<loginStateObj>({
         brandName: '',
         email: '',
@@ -40,6 +41,8 @@ const RegisterPage = (_props: DIProps) => {
         checkField: false,
     });
 
+    const dispatcher = useContext(StoreDispatcher);
+
     const [otpModal, setOtpModal] = useState(false);
     // setting the auth_token in useEffect
     useEffect(() => {
@@ -47,13 +50,15 @@ const RegisterPage = (_props: DIProps) => {
         if (auth_token) {
             _props.di.globalState.set('auth_token', auth_token);
         }
+        if (auth_token) {
+            let obj = parseJwt(auth_token);
+            dispatcher({
+                type: 'user_id',
+                state: { user_id: obj.user_id },
+            });
+            _props.syncConnectorInfo(_props);
+        }
     }, []);
-
-    useEffect(() => {
-        syncConnectorInfo(_props);
-    }, []);
-
-    console.log('props redux', _props);
 
     const [errorValidation, setErrorValidation] = useState({
         brand: { error: false, showError: false, message: '' },
@@ -64,6 +69,7 @@ const RegisterPage = (_props: DIProps) => {
 
     const [emailResponse, setEmailResponse] = useState({});
     const [accountCreate, setAccountCreate] = useState<any>({});
+    const [registerResponse, setRegisterResponse] = useState<any>({});
 
     const { AgreeTnc, BrandLenght, emailErrors, PasswordNotMatched } =
         RegistrationPage;
@@ -175,7 +181,7 @@ const RegisterPage = (_props: DIProps) => {
             return true;
         }
     };
-
+    // destructuring of state
     let {
         eyeoff,
         password,
@@ -226,7 +232,7 @@ const RegisterPage = (_props: DIProps) => {
             setState({ ...state });
         });
     };
-
+    // function hits the account creation api as the otp is successfully verified
     const createUser = () => {
         const {
             post: { createUser },
@@ -236,8 +242,8 @@ const RegisterPage = (_props: DIProps) => {
                 data: {
                     user: {
                         email: email,
-                        password: password,
-                        confirmPassword: confirmPassword,
+                        new_password: password,
+                        confirm_password: confirmPassword,
                     },
                     config: [
                         {
@@ -248,7 +254,13 @@ const RegisterPage = (_props: DIProps) => {
                     ],
                 },
             })
-            .then((res) => console.log(res));
+            .then((res) => {
+                if (res.success) {
+                    setRegisterResponse(res);
+                } else {
+                    _props.error(res.message);
+                }
+            });
     };
 
     // function handles the state of modal
@@ -258,7 +270,7 @@ const RegisterPage = (_props: DIProps) => {
     return (
         <>
             {accountCreate.success ? (
-                <RegisterRedirectPage />
+                <RegisterRedirectPage registerResponse={registerResponse} />
             ) : (
                 <>
                     <FormElement>

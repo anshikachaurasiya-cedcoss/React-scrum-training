@@ -11,7 +11,6 @@ import { urlFetchCalls } from '../../../Constant';
 import { DI, DIProps } from '../../../Core/DependencyInjection';
 import './OtpPage.css';
 import loaderImage from '../../../Asests/Images/loaderImage.gif';
-import { syncConnectorInfo } from '../../../Actions/NecessaryFun';
 
 interface OtpProps extends DIProps {
     otpModal: boolean;

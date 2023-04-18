@@ -14,16 +14,13 @@ type ReduxRI = ThunkAction<void, any, unknown, Action<string>>;
 export const syncConnectorInfo =
     (props: any, shop_url?: string | null): ReduxRI =>
     async (dispatch, ownProps: any) => {
-        console.log('upper state')
         const state = { ...ownProps().necessaryInfo };
-        console.log('state')
         await requests
             .GET(
                 dispatch,
                 state
             )('connector/get/all')
             .then((e) => {
-                console.log('first',e)
                 if (e.success && e.data) {
                     const disconnected =
                         e.data?.[APP_TARGET_NAME]?.installed?.[0]
