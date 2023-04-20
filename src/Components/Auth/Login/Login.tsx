@@ -1,7 +1,6 @@
 import React, { useContext, useState } from 'react';
-import { DI, DIProps, parseJwt, extractUSername } from '../../../Core';
+import { DI, DIProps, parseJwt } from '../../../Core';
 import { loginStatus } from '../../../Actions';
-import * as queryString from 'query-string';
 import { useNavigate } from 'react-router-dom';
 import { StoreDispatcher } from '../../..';
 import { Eye, EyeOff } from 'react-feather';
@@ -43,6 +42,16 @@ function Login(_props: PropsI): JSX.Element {
     });
     const navigate = useNavigate();
     const dispatcher = useContext(StoreDispatcher);
+
+    const {
+        di: {
+            globalState: { set },
+            POST,
+        },
+        success,
+        error,
+    } = _props;
+
     // function handles the state on blur of input boxes
     const blurHandler = (name: string) => {
         if (name === 'Email') {
@@ -86,33 +95,28 @@ function Login(_props: PropsI): JSX.Element {
         const {
             post: { userLogin },
         } = urlFetchCalls;
-        _props.di
-            .POST(userLogin, {
-                email: username,
-                password: password,
-            })
-            .then((res) => {
-                if (res.success) {
-                    _props.success(res.message);
-                    let obj = parseJwt(res.data.token);
-                    _props.di.globalState.set(
-                        `${obj.user_id}_auth_token`,
-                        res.data.token
-                    );
-                    state.username = '';
-                    state.password = '';
-                    dispatcher({
-                        type: 'syncNecessaryInfo',
-                        state: { user_id: obj.user_id },
-                    });
-                    state.loading = false;
-                    setTimeout(() => navigate('/panel'), 1000);
-                } else {
-                    state.loading = false;
-                    _props.error(res.message);
-                }
-                setState({ ...state });
-            });
+        POST(userLogin, {
+            email: username,
+            password: password,
+        }).then((res: any) => {
+            if (res.success) {
+                success(res.message);
+                let obj = parseJwt(res.data.token);
+                set(`${obj.user_id}_auth_token`, res.data.token);
+                state.username = '';
+                state.password = '';
+                dispatcher({
+                    type: 'syncNecessaryInfo',
+                    state: { user_id: obj.user_id },
+                });
+                state.loading = false;
+                navigate('/panel');
+            } else {
+                state.loading = false;
+                error(res.message);
+            }
+            setState({ ...state });
+        });
     };
     // function disables or enables the login button
     const disableBtn = () => {
