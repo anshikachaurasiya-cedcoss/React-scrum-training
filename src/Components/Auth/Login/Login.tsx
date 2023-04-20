@@ -1,3 +1,7 @@
+
+import React, { useContext, useState } from 'react';
+import { DI, DIProps, parseJwt } from '../../../Core';
+import { loginStatus } from '../../../Actions';
 import React, { useContext, useEffect, useState } from 'react';
 import { DI, DIProps, parseJwt } from '../../../Core';
 import {
@@ -50,6 +54,15 @@ function Login(_props: PropsI): JSX.Element {
     const [redirectSuccess, setRedirectSuccess] = useState(false);
     const navigate = useNavigate();
     const dispatcher = useContext(StoreDispatcher);
+
+    const {
+        di: {
+            globalState: { set },
+            POST,
+        },
+        success,
+        error,
+    } = _props;
     // destructuring of props
     const {
         di: {
@@ -116,6 +129,28 @@ function Login(_props: PropsI): JSX.Element {
     // function hits the login api on login button handler
     const login = () => {
         setState({ ...state, loading: true });
+        const {
+            post: { userLogin },
+        } = urlFetchCalls;
+        POST(userLogin, {
+            email: username,
+            password: password,
+        }).then((res: any) => {
+            if (res.success) {
+                success(res.message);
+                let obj = parseJwt(res.data.token);
+                set(`${obj.user_id}_auth_token`, res.data.token);
+                state.username = '';
+                state.password = '';
+                dispatcher({
+                    type: 'syncNecessaryInfo',
+                    state: { user_id: obj.user_id },
+                });
+                state.loading = false;
+                navigate('/panel');
+            } else {
+                state.loading = false;
+                error(res.message);
 
         POST(userLogin, {
             email: username,
