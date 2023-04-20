@@ -12,6 +12,7 @@ import ResetPasswordAlert from './Layouts/ResetPasswordAlert';
 import ResetPassword from './Reset/ResetPassword';
 import RegisterUrl from './RegisterPage/RegisterUrl';
 import RegisterPage from './RegisterPage/RegisterPage';
+import OnBoardingSuccessPage from './OnBoarding/OnBoardingSuccessPage';
 
 function Auth(_props: DIProps): JSX.Element {
     const match = useParams();

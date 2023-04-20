@@ -1,10 +1,9 @@
 import React, { useContext, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PropsI } from 'src/Core/@types';
 import { StoreDispatcher } from '../../..';
 import { parseJwt, DI } from '../../../Core';
 
-const RegisterUrl = (_props: PropsI) => {
+const RegisterUrl = () => {
     const dispatcher = useContext(StoreDispatcher);
     let navigate = useNavigate();
 

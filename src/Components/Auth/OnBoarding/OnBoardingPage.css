@@ -1,0 +1,35 @@
+.onBoarding__wrapper {
+    max-width: 63% !important;
+    margin: auto !important;
+    padding: 60px 12px;
+}
+
+.logo--wrapper {
+    background: #EFF0F0 !important;
+    padding: 5px;
+    border-radius: 40px;
+}
+
+.logo--wrapper svg {
+    height: 52 !important;
+    width: 30 !important;
+}
+
+
+.custom--button .inte-btn--Primary {
+    background-color: #4267B2 !important;
+    border: 0.1rem solid var(--inte-transparet);
+    color: var(--inte-G10);
+    padding: 12px 24px;
+}
+
+.link--style a {
+    font-size: 14px !important;
+}
+
+@media (max-width:1113px) {
+    .onBoarding__wrapper {
+        padding: 50px 2px !important;
+        max-width: 95% !important;
+    }
+}

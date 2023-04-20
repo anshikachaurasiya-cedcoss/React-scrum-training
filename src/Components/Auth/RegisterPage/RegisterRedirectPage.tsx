@@ -12,11 +12,16 @@ const RegisterRedirectPage = (_props: RegisterProps) => {
     let navigate = useNavigate();
     let [sec, setSec] = useState(5);
     let timeRef = useRef<any>();
+
+    const {
+        redux: { user_id },
+    } = _props;
+
     useEffect(() => {
         clearInterval(timeRef.current);
         timeRef.current = setInterval(timer, 1000);
         if (sec === 0) {
-            navigate(`/panel/${_props.redux.user_id}/dashboard`);
+            navigate(`/panel/${user_id}/dashboard`);
         }
     }, [sec]);
 
@@ -37,9 +42,7 @@ const RegisterRedirectPage = (_props: RegisterProps) => {
             <Button
                 icon={<ArrowRight size={20} />}
                 type="Plain"
-                onClick={() =>
-                    navigate(`/panel/${_props.redux.user_id}/dashboard`)
-                }>
+                onClick={() => navigate(`/panel/${user_id}/dashboard`)}>
                 Proceed to Account Connection
             </Button>
             <TextStyles content={`Redirecting in ${sec} seconds.`} />
