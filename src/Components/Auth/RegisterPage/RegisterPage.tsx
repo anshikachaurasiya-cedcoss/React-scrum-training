@@ -17,7 +17,7 @@ import { StoreDispatcher } from '../../..';
 import RegisterRedirectPage from './RegisterRedirectPage';
 
 interface PropsI extends DIProps {
-    syncConnectorInfo: any;
+    syncConnectorInfo: (_props: DIProps) => void;
 }
 
 interface loginStateObj {
@@ -40,15 +40,25 @@ const RegisterPage = (_props: PropsI) => {
         confirmPassword: '',
         checkField: false,
     });
+    // destructuring of props
+    const {
+        syncConnectorInfo,
+        di: {
+            globalState: { get, set },
+            POST,
+            GET,
+        },
+        error,
+    } = _props;
 
     const dispatcher = useContext(StoreDispatcher);
 
     const [otpModal, setOtpModal] = useState(false);
     // setting the auth_token in useEffect
     useEffect(() => {
-        let auth_token = _props.di.globalState.get('auth_token', true);
+        let auth_token = get('auth_token', true);
         if (auth_token) {
-            _props.di.globalState.set('auth_token', auth_token);
+            set('auth_token', auth_token);
         }
         if (auth_token) {
             let obj = parseJwt(auth_token);
@@ -56,7 +66,7 @@ const RegisterPage = (_props: PropsI) => {
                 type: 'user_id',
                 state: { user_id: obj.user_id },
             });
-            _props.syncConnectorInfo(_props);
+            syncConnectorInfo(_props);
         }
     }, []);
 
@@ -198,27 +208,27 @@ const RegisterPage = (_props: PropsI) => {
             post: { emailExistsCheck },
         } = urlFetchCalls;
 
-        _props.di
-            .POST(emailExistsCheck, { data: { email: email } })
-            .then((res) => {
-                if (res.success) {
-                    state.loading = true;
-                    getMail(1);
-                    if (!res.success) {
-                        state.loading = false;
-                        _props.error(res.message);
-                    }
-                    setState({ ...state });
+        POST(emailExistsCheck, { data: { email: email } }).then((res) => {
+            if (res.success) {
+                state.loading = true;
+                getMail(1);
+                if (!res.success) {
+                    state.loading = false;
+                    error(res.message);
                 }
-            });
+                setState({ ...state });
+            } else {
+                setState({ ...state, loading: false });
+                error(res.message);
+            }
+        });
     };
     // function hits the send otp api
     const getMail = (num: number) => {
         const {
             get: { otpMail },
         } = urlFetchCalls;
-
-        _props.di.GET(otpMail, { email: email }).then((res) => {
+        GET(otpMail, { email: email }).then((res) => {
             setEmailResponse(res);
             if (res.success) {
                 state.loading = false;
@@ -226,7 +236,7 @@ const RegisterPage = (_props: PropsI) => {
                     openModal();
                 }
             } else {
-                _props.error(res.message);
+                error(res.message);
                 state.loading = false;
             }
             setState({ ...state });
@@ -237,30 +247,28 @@ const RegisterPage = (_props: PropsI) => {
         const {
             post: { createUser },
         } = urlFetchCalls;
-        _props.di
-            .POST(createUser, {
-                data: {
-                    user: {
-                        email: email,
-                        new_password: password,
-                        confirm_password: confirmPassword,
-                    },
-                    config: [
-                        {
-                            key: 'brand',
-                            value: brandName,
-                            group_code: 'meta-testwebapi',
-                        },
-                    ],
+        POST(createUser, {
+            data: {
+                user: {
+                    email: email,
+                    new_password: password,
+                    confirm_password: confirmPassword,
                 },
-            })
-            .then((res) => {
-                if (res.success) {
-                    setRegisterResponse(res);
-                } else {
-                    _props.error(res.message);
-                }
-            });
+                config: [
+                    {
+                        key: 'brand',
+                        value: brandName,
+                        group_code: 'meta-testwebapi',
+                    },
+                ],
+            },
+        }).then((res) => {
+            if (res.success) {
+                setRegisterResponse(res);
+            } else {
+                error(res.message);
+            }
+        });
     };
 
     // function handles the state of modal

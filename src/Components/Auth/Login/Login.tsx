@@ -1,6 +1,10 @@
-import React, { useContext, useState } from 'react';
-import { DI, DIProps, parseJwt, extractUSername } from '../../../Core';
-import { loginStatus } from '../../../Actions';
+import React, { useContext, useEffect, useState } from 'react';
+import { DI, DIProps, parseJwt } from '../../../Core';
+import {
+    loginStatus,
+    syncConnectorInfo,
+    syncNecessaryInfo,
+} from '../../../Actions';
 import { useNavigate } from 'react-router-dom';
 import { StoreDispatcher } from '../../..';
 import { Eye, EyeOff } from 'react-feather';
@@ -11,9 +15,12 @@ import {
     TextField,
 } from '@cedcommerce/ounce-ui';
 import { regexValidation, urlFetchCalls } from '../../../Constant';
+import OnBoardingSuccessPage from '../OnBoarding/OnBoardingSuccessPage';
 
 interface PropsI extends DIProps {
     loginStatus: () => void;
+    syncConnectorInfo: (_props: DIProps) => void;
+    syncNecessaryInfo: () => void;
 }
 interface objIErrorValidate {
     error?: boolean;
@@ -40,8 +47,35 @@ function Login(_props: PropsI): JSX.Element {
         email: { error: true, message: '', showError: false },
         password: { error: true, showError: false },
     });
+    const [redirectSuccess, setRedirectSuccess] = useState(false);
     const navigate = useNavigate();
     const dispatcher = useContext(StoreDispatcher);
+    // destructuring of props
+    const {
+        di: {
+            POST,
+            globalState: { set },
+        },
+    } = _props;
+    // destructuring of states
+    const { username, password, loading, eyeoff } = state;
+    const {
+        email: { message: emailMsg, showError: emailError },
+        password: { showError: pwdError },
+    } = errorValidation;
+    // destructing of fetching calls
+    const {
+        post: { userLogin },
+    } = urlFetchCalls;
+
+    useEffect(() => {
+        let token = localStorage.getItem('user_token');
+        if (token !== null) {
+            
+            setRedirectSuccess(true);
+        }
+    }, []);
+
     // function handles the state on blur of input boxes
     const blurHandler = (name: string) => {
         if (name === 'Email') {
@@ -82,37 +116,28 @@ function Login(_props: PropsI): JSX.Element {
     // function hits the login api on login button handler
     const login = () => {
         setState({ ...state, loading: true });
-        const {
-            post: { userLogin },
-        } = urlFetchCalls;
-        _props.di
-            .POST(userLogin, {
-                email: username,
-                password: password,
-            })
-            .then((res) => {
-                if (res.success) {
-                    _props.success(res.message);
-                    let obj = parseJwt(res.data.token);
-                    _props.di.globalState.set(
-                        `${obj.user_id}_auth_token`,
-                        res.data.token
-                    );
-                    state.username = '';
-                    state.password = '';
-                    dispatcher({
-                        type: 'syncNecessaryInfo',
-                        state: { user_id: obj.user_id },
-                    });
-                    state.loading = false;
-                    setTimeout(() => navigate('/panel'), 1000);
-                } else {
-                    state.loading = false;
-                    _props.error(res.message);
-                }
-                setState({ ...state });
-            });
+
+        POST(userLogin, {
+            email: username,
+            password: password,
+        }).then((res) => {
+            if (res.success) {
+                state.loading = true;
+                let obj = parseJwt(res.data.token);
+                set(`${obj.user_id}_auth_token`, res.data.token);
+                dispatcher({
+                    type: 'user_id',
+                    state: { user_id: obj.user_id },
+                });
+                navigate(`/panel/${obj.user_id}/dashboard`);
+            } else {
+                state.loading = false;
+                _props.error(res.message);
+            }
+            setState({ ...state });
+        });
     };
+
     // function disables or enables the login button
     const disableBtn = () => {
         if (
@@ -124,12 +149,6 @@ function Login(_props: PropsI): JSX.Element {
             return true;
         }
     };
-
-    const { username, password, loading, eyeoff } = state;
-    const {
-        email: { message: emailMsg, showError: emailError },
-        password: { showError: pwdError },
-    } = errorValidation;
 
     return (
         <>
@@ -206,8 +225,11 @@ function Login(_props: PropsI): JSX.Element {
                     Login
                 </Button>
             </FormElement>
+            {redirectSuccess ? <OnBoardingSuccessPage /> : <></>}
         </>
     );
 }
 
-export default DI(Login, { func: { loginStatus } });
+export default DI(Login, {
+    func: { loginStatus, syncConnectorInfo, syncNecessaryInfo },
+});
