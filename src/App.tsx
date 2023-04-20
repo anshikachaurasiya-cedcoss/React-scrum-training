@@ -7,7 +7,9 @@ import './styles.css';
 import { Toast, ToastWrapper } from '@cedcommerce/ounce-ui';
 import { BrokenPage1 } from './Components/EmptyState/EmptyPages';
 import NoInternet from './NoInternet';
-import Dashboard from './Components/Auth/Dashboard/Dashboard';
+import OnBoardingPage from './Components/Auth/OnBoarding/OnBoardingPage';
+import OnBoardingSuccessPage from './Components/Auth/OnBoarding/OnBoardingSuccessPage';
+import OnBoardingErrorPage from './Components/Auth/OnBoarding/OnBoardingErrorPage';
 
 const Auth = lazy(() => import('./Components/Auth'));
 const ShowMessage = lazy(
@@ -20,6 +22,9 @@ interface PropsI extends DIProps {
 function App(Props: PropsI): JSX.Element {
     const {
         redux: { user_id, errorFound },
+        di: {
+            globalState: { get },
+        },
     } = Props;
     if (
         user_id == undefined ||
@@ -52,14 +57,24 @@ function App(Props: PropsI): JSX.Element {
                         <Route path="*" element={<>NO Page Found 2</>} />
                     </Route>
                     <Route
-                        path="/panel"
+                        path="/panel/:uId/dashboard"
                         element={
                             <Suspense fallback={<></>}>
-                                <Dashboard />
+                                <OnBoardingPage />
                             </Suspense>
                         }>
                         <Route path="*" element={<>NO Page Found 2</>} />
                     </Route>
+                    <Route
+                        path="/show/message"
+                        element={<OnBoardingErrorPage />}
+                    />
+                    {/* <Route
+                        path={`/auth/login?bearer=${get(
+                            'auth_token'
+                        )}&connection_status=1`}
+                        element={<OnBoardingSuccessPage />}
+                    /> */}
                     <Route path="*" element={<Navigate to={'/auth/login'} />} />
                 </Routes>
                 <RenderToasts {...Props} />

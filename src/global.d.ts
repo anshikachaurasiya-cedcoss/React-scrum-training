@@ -5,6 +5,10 @@ declare module '*.png' {
     export default '' as string;
 }
 
+declare module '*.gif' {
+    export default '' as string;
+}
+
 declare module 'image-exists';
 declare module 'query-string';
 declare module 'array-move';

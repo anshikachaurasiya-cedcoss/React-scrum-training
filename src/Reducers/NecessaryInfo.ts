@@ -47,6 +47,7 @@ export const necessaryInfo = (
             return {};
         case 'setConnector':
             return {
+                
                 ...state,
                 ...action.state,
             };

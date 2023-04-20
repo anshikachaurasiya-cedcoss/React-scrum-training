@@ -5,7 +5,7 @@ export const RegistrationPage = {
     AgreeTnc: 'Accept Terms & Conditions',
     PassStrenght: 'Password is weak',
     BrandLenght: 'Maximum character limit is 100.',
-    emailError: 'Please enter a valid email',
+    emailErrors: 'Please enter a valid email',
     SimilarPassword:
         'Your new password cannot be the same as your current password.',
     emailExists: 'This email already exists. ',
