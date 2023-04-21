@@ -10,6 +10,9 @@ import NoInternet from './NoInternet';
 import OnBoardingPage from './Components/Auth/OnBoarding/OnBoardingPage';
 import OnBoardingSuccessPage from './Components/Auth/OnBoarding/OnBoardingSuccessPage';
 import OnBoardingErrorPage from './Components/Auth/OnBoarding/OnBoardingErrorPage';
+import Dashboard from './Components/Panel/Dashboard';
+import Panel from './Components/Panel/Panel';
+import CampaignPage from './Components/Panel/CampaignPage';
 
 const Auth = lazy(() => import('./Components/Auth'));
 const ShowMessage = lazy(
@@ -57,7 +60,7 @@ function App(Props: PropsI): JSX.Element {
                         <Route path="*" element={<>NO Page Found 2</>} />
                     </Route>
                     <Route
-                        path="/panel/:uId/dashboard"
+                        path="/panel/:uId/dashboard*"
                         element={
                             <Suspense fallback={<></>}>
                                 <OnBoardingPage />
@@ -69,6 +72,8 @@ function App(Props: PropsI): JSX.Element {
                         path="/show/message"
                         element={<OnBoardingErrorPage />}
                     />
+                    <Route path="/panel" element={<Panel />} />
+                    <Route path="/campaign" element={<CampaignPage />} />
                     {/* <Route
                         path={`/auth/login?bearer=${get(
                             'auth_token'

@@ -1,0 +1,10 @@
+.icon--bg {
+    background: #F3F4F5 !important;
+    padding: 5px !important;
+    width: 35%;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}

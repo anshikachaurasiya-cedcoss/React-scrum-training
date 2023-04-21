@@ -18,13 +18,13 @@ import onboardinglogo from '../../../Asests/Images/onboardinglogo.png';
 import CheckField from '../../../Asests/Images/svg/CheckField';
 import { DI, DIProps } from '../../../Core/DependencyInjection';
 import { syncNecessaryInfo, syncConnectorInfo } from '../../../Actions';
-import Dashboard from '../Dashboard/Dashboard';
 import { urlFetchCalls } from '../../../Constant';
 import { parseJwt } from '../../../Core';
 import { StoreDispatcher } from '../../../';
 import OnBoardingSuccessPage from './OnBoardingSuccessPage';
 import OnBoardingErrorPage from './OnBoardingErrorPage';
 import { useSearchParams } from 'react-router-dom';
+import Panel from '../../Panel/Panel';
 
 interface PropsI extends DIProps {
     syncNecessaryInfo: () => void;
@@ -39,9 +39,6 @@ const OnBoardingPage = (_props: PropsI) => {
         },
         syncNecessaryInfo,
         syncConnectorInfo,
-        redux: {
-            basic: { stepActive },
-        },
     } = _props;
     const {
         get: { installtionForm },
@@ -132,11 +129,11 @@ const OnBoardingPage = (_props: PropsI) => {
 
     return (
         <>
-            {redirectLoader || stepActive === undefined ? (
+            {redirectLoader || _props.redux.basic?.stepActive === undefined ? (
                 <Loader type="Loader1" />
             ) : (
                 <>
-                    {Number(stepActive) === 0 ? (
+                    {Number(_props.redux.basic?.stepActive) === 0 ? (
                         <>
                             <div className="onBoarding__wrapper">
                                 <FlexLayout direction="vertical">
@@ -457,7 +454,7 @@ const OnBoardingPage = (_props: PropsI) => {
                             <Footer />
                         </>
                     ) : (
-                        <Dashboard />
+                        <Panel />
                     )}
                 </>
             )}
