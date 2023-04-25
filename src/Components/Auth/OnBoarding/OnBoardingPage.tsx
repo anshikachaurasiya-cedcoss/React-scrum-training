@@ -7,6 +7,7 @@ import {
     Image,
     List,
     Loader,
+    SessionExpired,
     TextLink,
     TextStyles,
 } from '@cedcommerce/ounce-ui';
@@ -21,10 +22,9 @@ import { syncNecessaryInfo, syncConnectorInfo } from '../../../Actions';
 import { urlFetchCalls } from '../../../Constant';
 import { parseJwt } from '../../../Core';
 import { StoreDispatcher } from '../../../';
-import OnBoardingSuccessPage from './OnBoardingSuccessPage';
-import OnBoardingErrorPage from './OnBoardingErrorPage';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Panel from '../../Panel/Panel';
+import OnBoardingErrorModal from './OnBoardingErrorModal';
 
 interface PropsI extends DIProps {
     syncNecessaryInfo: () => void;
@@ -44,24 +44,36 @@ const OnBoardingPage = (_props: PropsI) => {
         get: { installtionForm },
     } = urlFetchCalls;
     const [errorModal, setErrorModal] = useState(false);
-    let [redirectLoader, setRedirectLoader] = useState(true);
-    let [sec, setSec] = useState(2);
+    const [redirectLoader, setRedirectLoader] = useState(true);
+    const [sec, setSec] = useState(2);
     const [fbResponse, setFbResponse] = useState<any>({});
-    let timeRef = useRef<any>();
+    const timeRef = useRef<any>();
 
     let dispatcher = useContext(StoreDispatcher);
     let [searchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
+        let success = searchParams.get('success');
+        let message = searchParams.get('message');
+        if (success) {
+            let obj = {
+                success: false,
+                message: message,
+            };
+            localStorage.removeItem('user_token');
+            setFbResponse({ ...obj });
+        }
         let auth_token = get('auth_token');
         if (auth_token) {
             let obj = parseJwt(auth_token);
-
             dispatcher({
                 type: 'user_id',
                 state: { user_id: obj.user_id },
             });
             syncConnectorInfo(_props);
+        } else {
+            navigate('/auth/login');
         }
     }, []);
 
@@ -69,29 +81,12 @@ const OnBoardingPage = (_props: PropsI) => {
         clearInterval(timeRef.current);
         setInterval(() => {
             if (sec > 0) {
-                sec--;
-                setSec(sec);
+                setSec((sec) => sec - 1);
             }
         }, 1000);
         if (sec === 0) {
             syncNecessaryInfo();
-
             setRedirectLoader(false);
-            if (localStorage.getItem('user_token') !== null) {
-                let message = searchParams.get('message');
-                let token = searchParams.get('connection_status');
-                if (message !== null) {
-                    setFbResponse({
-                        ...fbResponse,
-                        message: searchParams.get('message'),
-                        success: false,
-                    });
-                }
-                if (token !== null) {
-                    setFbResponse({ ...fbResponse, success: true });
-                }
-                localStorage.removeItem('user_token');
-            }
         }
     }, [sec]);
     const registerError = () => {
@@ -309,20 +304,44 @@ const OnBoardingPage = (_props: PropsI) => {
                                                     direction="vertical">
                                                     {fbResponse.success ===
                                                     false ? (
-                                                        <OnBoardingErrorPage
-                                                            registerError={
-                                                                registerError
-                                                            }
-                                                            errorModal={
-                                                                errorModal
-                                                            }
-                                                            fbResponse={
-                                                                fbResponse
-                                                            }
-                                                            openModalFunc={
-                                                                openModalFunc
-                                                            }
-                                                        />
+                                                        <>
+                                                            <Alert
+                                                                destroy={false}
+                                                                type="danger"
+                                                                desciption={
+                                                                    <TextLink
+                                                                        onClick={
+                                                                            registerError
+                                                                        }
+                                                                        label="Wondering what went wrong?"
+                                                                        extraClass="link--style"
+                                                                    />
+                                                                }
+                                                                children={
+                                                                    <TextStyles
+                                                                        content="Unable to connect your account. Please try again."
+                                                                        textcolor="dark"
+                                                                        type="Paragraph"
+                                                                        paragraphTypes="MD-1.4"
+                                                                    />
+                                                                }
+                                                            />
+                                                            {errorModal ? (
+                                                                <OnBoardingErrorModal
+                                                                    fbResponse={
+                                                                        fbResponse
+                                                                    }
+                                                                    errorModal={
+                                                                        errorModal
+                                                                    }
+                                                                    openModalFunc={
+                                                                        openModalFunc
+                                                                    }
+                                                                />
+                                                            ) : (
+                                                                <></>
+                                                            )}
+                                                        </>
                                                     ) : (
                                                         <></>
                                                     )}

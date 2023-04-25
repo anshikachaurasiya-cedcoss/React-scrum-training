@@ -5,7 +5,7 @@ import { parseJwt, DI } from '../../../Core';
 
 const RegisterUrl = () => {
     const dispatcher = useContext(StoreDispatcher);
-    let navigate = useNavigate();
+    const navigate = useNavigate();
 
     const [searchParams] = useSearchParams();
     useEffect(() => {

@@ -1,35 +1,39 @@
 import {
     ActionList,
     AdvanceFilter,
+    AutoComplete,
     Badge,
     Button,
     Card,
     CheckBox,
     FlexChild,
     FlexLayout,
+    FormElement,
     Grid,
     OverlappingImages,
     PageHeader,
     Pagination,
     Popover,
-    TextField,
     TextStyles,
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
+import { gridData, newColumns, filterVal, pageArr } from '../ConstantArrays';
 import {
     Download,
     Plus,
     Filter,
-    Search,
     MoreVertical,
     AlertTriangle,
+    ChevronDown,
+    ChevronUp,
 } from 'react-feather';
 import { DI, DIProps } from '../../Core/DependencyInjection';
 import { urlFetchCalls } from '../../Constant';
 import Facebook from '../../Asests/Images/svg/Facebook';
 import Instagram from '../../Asests/Images/svg/Instagram';
 import { useNavigate } from 'react-router-dom';
+import { environment } from '../../environments/environment';
 
 type typeProps =
     | 'Neutral-100-Border'
@@ -38,7 +42,6 @@ type typeProps =
     | 'Positive-100'
     | 'Positive-200'
     | 'Neutral-300'
-    | 'Neutral-100'
     | 'Info-100';
 
 type keyProps =
@@ -58,9 +61,11 @@ type badgeProps = {
 
 interface PropsI extends DIProps {}
 let start = 0;
-let arr: any = [];
 const Dashboard = (_props: PropsI) => {
-    let statusArr: badgeProps = [
+    const {
+        get: { getCampaignsUrl, bulkExportCSV, getCampaignsAutoCompleteUrl },
+    } = urlFetchCalls;
+    const statusArr: badgeProps = [
         { key: 'PENDING', type: 'Neutral-100-Border' },
         { key: 'PAUSED', type: 'Warning-100' },
         { key: 'ERRORS', type: 'Neutral-100' },
@@ -73,48 +78,53 @@ const Dashboard = (_props: PropsI) => {
             type: 'Info-100',
         },
     ];
-    let [actionList, setActionList] = useState(false);
-    let [popOver, setPopOver] = useState(false);
+    const [actionList, setActionList] = useState(false);
+    const [popOver, setPopOver] = useState({
+        addItemPopOver: false,
+        filterPopOver: false,
+    });
+    const [searchVal, setSearchVal] = useState('');
 
-    const openActionList = () => {
-        setActionList(!actionList);
+    const openActionList = (obj: any) => {
+        // let newData = data;
+        // console.log(newData);
+        // data.forEach((ele: any) => {
+        //     if (ele.campaign_id === obj.campaign_id) {
+        //         console.log(newData);
+        //     }
+        // });
     };
-    const gridHead = [
-        {
-            dataIndex: 'campaign_name',
-            fixed: 'left',
-            key: 'campaign_name',
-            title: 'Campaign',
-        },
-        {
-            dataIndex: 'status',
-            fixed: 'left',
-            key: 'status',
-            title: 'Status',
-        },
-        {
-            dataIndex: 'campaign_placement',
-            key: 'campaign_placement',
-            title: 'Placement',
-        },
-        { dataIndex: 'start_date', key: 'start_date', title: 'Start Date' },
-        { dataIndex: 'end_date', key: 'end_date', title: 'End Date' },
-        {
-            dataIndex: 'daily_budget',
-            key: 'daily_budget',
-            title: 'Daily Budget',
-        },
-        { dataIndex: 'spend', key: 'spend', title: 'Spend' },
-        { dataIndex: 'sales', key: 'sales', title: 'Sales' },
-        {
-            render: () => (
+
+    const renderActionList = (obj: any) => {
+        if (
+            obj.status === 'PENDING' ||
+            obj.status === 'ENDED' ||
+            obj.status === 'DISCONNECTED' ||
+            obj.status === 'ARCHIVED'
+        ) {
+            return (
                 <ActionList
                     activator={
-                        <div
-                            className="icon--bg"
-                            onClick={() => openActionList()}>
-                            <MoreVertical size={20} color="#3B424F" />
-                        </div>
+                        <Button
+                            disable
+                            type="TextButton"
+                            icon={<MoreVertical size={20} color="#8C9098" />}
+                        />
+                    }
+                    options={[]}
+                    open={actionList}
+                />
+            );
+        } else {
+            return (
+                <ActionList
+                    activator={
+                        <Button
+                            onClick={() => openActionList(obj)}
+                            type="TextButton"
+                            iconRound
+                            icon={<MoreVertical size={20} color="#3B424F" />}
+                        />
                     }
                     options={[
                         {
@@ -136,507 +146,144 @@ const Dashboard = (_props: PropsI) => {
                     ]}
                     open={actionList}
                 />
-            ),
+            );
+        }
+    };
+    const gridHead = [
+        {
+            dataIndex: 'campaign_name',
+            fixed: 'left',
+            key: 'campaign_name',
+            title: 'Campaign',
+        },
+        {
+            dataIndex: 'statusComponent',
+            fixed: 'left',
+            key: 'status',
+            title: 'Status',
+        },
+        {
+            dataIndex: 'campaign_placement',
+            key: 'campaign_placement',
+            title: 'Placement',
+        },
+        { dataIndex: 'start_date', key: 'start_date', title: 'Start Date' },
+        { dataIndex: 'end_date', key: 'end_date', title: 'End Date' },
+        {
+            dataIndex: 'daily_budget',
+            key: 'daily_budget',
+            title: 'Daily Budget',
+        },
+        { dataIndex: 'spend', key: 'spend', title: 'Spend' },
+        { dataIndex: 'sales', key: 'sales', title: 'Sales' },
+        {
+            render: (obj: any) => renderActionList(obj),
             fixed: 'right',
             key: 'actions',
             title: 'Actions',
         },
     ];
-    const newColumns = [
+
+    const [filtersArr, setFiltersArr] = useState(filterVal);
+    const [showFilter, setShowFilter] = useState<any>([]);
+    const filterArr = [
         {
-            dataIndex: 'impressions',
-            key: 'impressions',
-            title: 'Impressions',
-            checked: false,
+            children: (
+                <FormElement>
+                    {filtersArr.map((ele, i) => {
+                        return (
+                            <CheckBox
+                                key={i}
+                                labelVal={ele.status}
+                                checked={ele.checked}
+                                onClick={() => filterHandler(ele, i)}
+                            />
+                        );
+                    })}
+                </FormElement>
+            ),
+            name: 'Status',
         },
-        { dataIndex: 'clicks', key: 'clicks', title: 'Clicks', checked: false },
-        { dataIndex: 'orders', key: 'orders', title: 'Orders', checked: false },
-        { dataIndex: 'roas', key: 'roas', title: 'ROAS', checked: false },
     ];
+    const filterHandler = (ele: any, i: number) => {
+        let filterObj = filtersArr.find((item) => item.status === ele.status);
+        const ind = showFilter.findIndex((item: any) => item.checked === true);
+        if (filterObj) {
+            filtersArr[i].checked = !filtersArr[i].checked;
+            setFiltersArr([...filtersArr]);
+            if (filterObj.checked === true) {
+                showFilter.push(filterObj);
+            } else {
+                showFilter.splice(ind, 1);
+            }
+            setShowFilter([...showFilter]);
+        }
+    };
+
+    const disableBtn = () => {
+        let obj = filtersArr.find((ele) => ele.checked === true);
+        if (obj !== undefined) {
+            return false;
+        }
+        if (obj === undefined) {
+            return true;
+        }
+    };
+
+    const applyFilter = () => {
+        let obj = {};
+        showFilter.forEach((ele: any, i: number) => {
+            Object.assign(obj, { [`filter[status][${i}]`]: ele.status });
+        });
+        GET(getCampaignsUrl, {
+            shop_id: current?.target._id,
+            filter: JSON.stringify(obj),
+            order: 1,
+            count: 5,
+            activePage: 2,
+        }).then((res) => {});
+    };
+
+    const removeItemFilter = (ele: any) => {
+        let ind = showFilter.findIndex(
+            (item: any) => item.status === ele.status
+        );
+        let index = filtersArr.findIndex((item) => item.status === ele.status);
+        let removedFilter = [...filtersArr];
+        removedFilter[index].checked = false;
+        setFiltersArr([...removedFilter]);
+        let removedData = [...showFilter];
+        removedData.splice(ind, 1);
+        setShowFilter([...removedData]);
+    };
+
+    const removeAllFilter = () => {
+        setShowFilter([]);
+        let removedFilters = [...filtersArr];
+        removedFilters.forEach((ele) => {
+            ele.checked = false;
+        });
+        setFiltersArr([...removedFilters]);
+    };
 
     const [gridHeading, setGridheading] = useState({
         gridHead: gridHead,
         newColumns: newColumns,
     });
 
-    const gridData = [
-        {
-            campaign_name: 'retargeting campaign 1',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'PENDING',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 2',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'PAUSED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 3',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ERRORS',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 4',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'SCHEDULED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 5',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ACTIVE',
-            campaign_placement: ['facebook', 'instagram'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 6',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ENDED',
-            campaign_placement: ['instagram'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 7',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'DISCONNECTED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 8',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'SCHEDULED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 9',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ERRORS',
-            campaign_placement: ['instagram'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 10',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ARCHIVED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 11',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'DISCONNECTED',
-            campaign_placement: ['facebook', 'instagram'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 12',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ENDED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 13',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ACTIVE',
-            campaign_placement: ['facebook', 'instagram'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 14',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'SCHEDULED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 15',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ACTIVE',
-            campaign_placement: ['instagram'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 16',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ERRORS',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 17',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'PENDING',
-            campaign_placement: ['facebook', 'instagram'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign 18',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'PAUSED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'retargeting campaign',
-            campaign_id: '23854594149590431',
-            daily_budget: 86,
-            status: 'ACTIVE',
-            campaign_placement: ['instagram'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '05/01/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'syed campaign 34',
-            campaign_id: '23854594122030431',
-            daily_budget: 85,
-            status: 'SCHEDULED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '04/30/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'syed campaign 23',
-            campaign_id: '23854594122030431',
-            daily_budget: 85,
-            status: 'ERRORS',
-            campaign_placement: ['facebook', 'instagram'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'syed campaign 25',
-            campaign_id: '23854594122030431',
-            daily_budget: 85,
-            status: 'PENDING',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '04/30/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'syed campaign 24',
-            campaign_id: '23854594122030431',
-            daily_budget: 85,
-            status: 'ARCHIVED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '04/30/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'syed campaign 23',
-            campaign_id: '23854594122030431',
-            daily_budget: 85,
-            status: 'ERRORS',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '04/30/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'syed campaign 21',
-            campaign_id: '23854594122030431',
-            daily_budget: 85,
-            status: 'PENDING',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '04/30/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-        {
-            campaign_name: 'syed campaign 11',
-            campaign_id: '23854594122030431',
-            daily_budget: 85,
-            status: 'SCHEDULED',
-            campaign_placement: ['facebook'],
-            user_id: '643fa76ff0ed0bf6ab0c2c82',
-            shop_id: 902,
-            start_date: '04/28/2023',
-            end_date: '04/30/2023',
-            spend: 0,
-            impressions: 0,
-            clicks: 0,
-            orders: 0,
-            sales: 0,
-            roas: 0,
-        },
-    ];
-    const pageArr = [
-        {
-            label: '5',
-            value: '5',
-        },
-        {
-            label: '10',
-            value: '10',
-        },
-        {
-            label: '15',
-            value: '15',
-        },
-        {
-            label: '20',
-            value: '20',
-        },
-        {
-            label: '25',
-            value: '25',
-        },
-    ];
-    let navigate = useNavigate();
+    const navigate = useNavigate();
 
-    const [optionPagination, setOptionPagination] = useState('5');
-    let [currentPage, setCurrentPage] = useState(1);
-    let [data, setData] = useState<any>([]);
+    const [data, setData] = useState<any>([]);
+    const [page, setPage] = useState({ optionPagination: 5, currentPage: 1 });
     // destructuring of fetching calls
-    const {
-        get: { getCampaignsUrl },
-    } = urlFetchCalls;
+
     // const destructuring of props
     const {
-        di: { GET },
+        di: {
+            GET,
+            globalState: { get },
+        },
+        redux: { current },
     } = _props;
     // useEffect used to call the function which hits the api of get campaigns data
     useEffect(() => {
@@ -644,41 +291,39 @@ const Dashboard = (_props: PropsI) => {
     }, []);
 
     useEffect(() => {
-        setCurrentPage(1);
+        // setCurrentPage(1);
+        setPage({ ...page, currentPage: 1 });
         let copy = gridData;
-        data = copy.slice(0, Number(optionPagination));
-        setData(data);
-        designGridData(data);
-    }, [optionPagination]);
+        let copyData = copy.slice(0, Number(page.optionPagination));
+        setData(copyData);
+        designGridData(copyData);
+    }, [page.optionPagination]);
 
     const getCampaginsData = () => {
+        setData(() => gridData);
+        designGridData(gridData);
         GET(getCampaignsUrl, {
             shop_id: _props.redux.account?.target.meta[0]._id,
-            count: optionPagination,
-            activePage: currentPage,
-        }).then((res) => {
-            if (res.success) {
-                if (res.data.rows.length === 0) {
-                    setData(gridData);
-                    designGridData(gridData);
-                }
-            }
-        });
+            count: page.optionPagination,
+            activePage: page.currentPage,
+        }).then((res) => {});
     };
+
     // function design the data fetched from api
     const designGridData = (dataArr: any[]) => {
         let newData = dataArr.map((ele) => {
             let obj = { ...ele };
             let type = statusArr.find((item) => item.key === ele.status)?.type;
-            obj.status = (
+            obj.statusComponent = (
                 <Badge
                     type={type}
                     size={'regular'}
                     children={<TextStyles content={ele.status.toLowerCase()} />}
                 />
             );
+            obj.action = false;
             if (ele.status === 'ERRORS') {
-                obj.status = (
+                obj.statusComponent = (
                     <Badge customBgColor="white">
                         <FlexLayout spacing="extraTight" halign="center">
                             <AlertTriangle color="#C4281C" size={20} />
@@ -721,42 +366,60 @@ const Dashboard = (_props: PropsI) => {
     };
     // function change the pagination count on change
     const countChange = (count: number) => {
-        let page = count.toString();
-        let val = pageArr.find((ele) => ele.value === page);
+        let pageSelect = count.toString();
+        let val = pageArr.find((ele) => ele.value === pageSelect);
         if (val) {
-            setOptionPagination(val.value);
+            setPage({ ...page, optionPagination: Number(val.value) });
         }
     };
-    let end = Number(optionPagination);
-
+    let end = Number(page.optionPagination);
     const nextChange = () => {
-        currentPage = currentPage + 1;
-        setCurrentPage(currentPage);
-        manageGrid();
+        let obj = { ...page };
+        obj.currentPage = obj.currentPage + 1;
+        let copyData = gridData;
+        start = Number(page.optionPagination) * page.currentPage;
+        end =
+            Number(page.optionPagination) * page.currentPage +
+            Number(page.optionPagination);
+        let newData = copyData.slice(start, end);
+        setPage({ ...obj });
+        setData(() => newData);
+        designGridData(newData);
     };
     const prevChange = () => {
-        currentPage = currentPage - 1;
-        setCurrentPage(currentPage);
-        manageGrid();
-    };
-    const enterChange = (page: string | number) => {
-        currentPage = Number(page);
-        setCurrentPage(currentPage);
-        manageGrid();
-    };
-    const manageGrid = () => {
         let copyData = gridData;
+        let obj = { ...page };
+        obj.currentPage = obj.currentPage - 1;
         start =
-            Number(optionPagination) * currentPage -
-            (Number(optionPagination) + 1);
-        end = Number(optionPagination) * currentPage;
-        data = copyData.slice(start + 1, end);
-        setData(data);
-        designGridData(data);
+            Number(obj.optionPagination) * obj.currentPage -
+            obj.optionPagination;
+        end = Number(obj.optionPagination) * obj.currentPage;
+        let newData = copyData.slice(start, end);
+        setData(() => newData);
+        setPage({ ...obj });
+        designGridData(newData);
+    };
+    const enterChange = (current: string | number) => {
+        let obj = { ...page };
+        obj.currentPage = Number(current);
+        start =
+            Number(page.optionPagination) * Number(current) -
+            Number(page.optionPagination) +
+            1;
+        end = Number(page.optionPagination) * Number(current);
+        let copyData = gridData;
+        let newData = copyData.slice(start - 1, end);
+        setData([...newData]);
+        setPage({ ...obj });
+        designGridData(newData);
     };
 
     const handlePopOver = () => {
-        setPopOver(!popOver);
+        setPopOver({ ...popOver, addItemPopOver: !popOver.addItemPopOver });
+    };
+
+    const handleFilterPopOver = () => {
+        setPopOver({ ...popOver, filterPopOver: !popOver.filterPopOver });
     };
 
     const addColumn = (obj: any) => {
@@ -778,6 +441,25 @@ const Dashboard = (_props: PropsI) => {
         setGridheading({ ...gridHeading, gridHead: newHeadingData });
     };
 
+    const searchHandler = () => {
+        GET(getCampaignsAutoCompleteUrl, {
+            shop_id: current?.target._id,
+            keyword: searchVal,
+        }).then((res) => {});
+    };
+    // function downloads the camapign Report in a csv format
+    const downloadCampaign = () => {
+        let url =
+            environment.API_ENDPOINT +
+            bulkExportCSV +
+            `?shop_id=${_props.redux.current?.target._id}&bearer=${get(
+                'auth_token'
+            )}`;
+
+        window.open(url);
+    };
+    const { addItemPopOver, filterPopOver } = popOver;
+    const { currentPage, optionPagination } = page;
     return (
         <>
             <PageHeader
@@ -787,9 +469,7 @@ const Dashboard = (_props: PropsI) => {
                     <Button
                         icon={<Plus />}
                         thickness="large"
-                        onClick={() =>
-                            navigate(`/panel/${_props.redux.user_id}/campaign`)
-                        }>
+                        onClick={() => navigate(`campaign`)}>
                         Create Campaign
                     </Button>
                 }
@@ -801,7 +481,8 @@ const Dashboard = (_props: PropsI) => {
                     <Button
                         icon={<Download size={16} color="#3B424F" />}
                         type="Outlined"
-                        thickness="large">
+                        thickness="large"
+                        onClick={downloadCampaign}>
                         <TextStyles
                             content="Download Report"
                             type="Paragraph"
@@ -813,28 +494,38 @@ const Dashboard = (_props: PropsI) => {
                 <FlexLayout
                     direction="vertical"
                     desktopWidth="100"
+                    mobileWidth="100"
+                    tabWidth="100"
                     spacing="loose">
                     <hr />
-                    <FlexLayout valign="center" halign="fill">
-                        <FlexChild desktopWidth="50">
-                            <TextField
-                                innerPreIcon={
-                                    <Search color="#70747E" size={20} />
-                                }
+                    <FlexLayout valign="center" halign="fill" wrap="noWrap">
+                        <FlexChild
+                            desktopWidth="50"
+                            mobileWidth="50"
+                            tabWidth="50">
+                            <AutoComplete
+                                value={searchVal}
+                                onEnter={searchHandler}
+                                onChange={(e: any) => setSearchVal(e)}
                                 placeHolder="Search Campaign"
                                 thickness="thin"
+                                options={[]}
                             />
                         </FlexChild>
-                        <FlexChild desktopWidth="50">
+                        <FlexChild
+                            desktopWidth="50"
+                            mobileWidth="50"
+                            tabWidth="50">
                             <FlexLayout spacing="loose" halign="end">
                                 <AdvanceFilter
                                     type="Outlined"
                                     icon={<Filter color="#3B424F" size={16} />}
-                                    filters={[]}
+                                    filters={filterArr}
                                     button="Filter"
                                     heading="Filters"
+                                    disableApply={disableBtn()}
+                                    onApply={applyFilter}
                                 />
-
                                 <Popover
                                     onClose={handlePopOver}
                                     activator={
@@ -855,7 +546,7 @@ const Dashboard = (_props: PropsI) => {
                                             />
                                         </Button>
                                     }
-                                    open={popOver}
+                                    open={addItemPopOver}
                                     popoverContainer="body"
                                     popoverWidth={165}>
                                     <FlexLayout
@@ -885,6 +576,117 @@ const Dashboard = (_props: PropsI) => {
                             </FlexLayout>
                         </FlexChild>
                     </FlexLayout>
+                    <FlexLayout>
+                        {showFilter.length > 0 ? (
+                            <Card cardType="Subdued" extraClass="badge--card">
+                                <Popover
+                                    activator={
+                                        <Button
+                                            onClick={handleFilterPopOver}
+                                            type="Secondary">
+                                            <FlexLayout
+                                                spacing="tight"
+                                                halign="center"
+                                                valign="center">
+                                                <TextStyles content="Status:" />
+                                                <TextStyles
+                                                    content={
+                                                        showFilter[0].status
+                                                    }
+                                                    type="Paragraph"
+                                                    paragraphTypes="MD-1.4"
+                                                />
+                                                {showFilter.length > 1 ? (
+                                                    <Badge
+                                                        size="small"
+                                                        customBgColor="#3B424F"
+                                                        badgeTextColor="#FAFAFB">
+                                                        <FlexLayout
+                                                            spacing="extraTight"
+                                                            halign="center"
+                                                            valign="center"
+                                                            wrap="noWrap">
+                                                            <TextStyles
+                                                                content="+"
+                                                                textcolor="#FAFAFB"
+                                                            />
+                                                            <TextStyles
+                                                                textcolor="#FAFAFB"
+                                                                content={
+                                                                    showFilter.length -
+                                                                    1
+                                                                }
+                                                                type="Paragraph"
+                                                                paragraphTypes="XS-1.2"
+                                                            />
+                                                        </FlexLayout>
+                                                    </Badge>
+                                                ) : (
+                                                    <></>
+                                                )}
+                                                {filterPopOver ? (
+                                                    <ChevronUp
+                                                        size={16}
+                                                        color="#3B424F"
+                                                    />
+                                                ) : (
+                                                    <ChevronDown
+                                                        size={16}
+                                                        color="#3B424F"
+                                                    />
+                                                )}
+                                                <Button
+                                                    thickness="extraThin"
+                                                    content="X"
+                                                    type="Secondary"
+                                                    onClick={removeAllFilter}
+                                                />
+                                            </FlexLayout>
+                                        </Button>
+                                    }
+                                    popoverContainer="body"
+                                    children={
+                                        <FlexLayout spacing="tight">
+                                            {showFilter.map((ele: any) => {
+                                                return (
+                                                    <Badge
+                                                        size="small"
+                                                        type="Neutral-200"
+                                                        key={ele}>
+                                                        <FlexLayout
+                                                            spacing="extraTight"
+                                                            halign="center"
+                                                            valign="center">
+                                                            <TextStyles
+                                                                content={
+                                                                    ele.status
+                                                                }
+                                                                type="Paragraph"
+                                                                paragraphTypes="MD-1.4"
+                                                            />
+                                                            <Button
+                                                                content="X"
+                                                                type="Secondary"
+                                                                thickness="extraThin"
+                                                                onClick={() =>
+                                                                    removeItemFilter(
+                                                                        ele
+                                                                    )
+                                                                }
+                                                            />
+                                                        </FlexLayout>
+                                                    </Badge>
+                                                );
+                                            })}
+                                        </FlexLayout>
+                                    }
+                                    open={filterPopOver}
+                                />
+                            </Card>
+                        ) : (
+                            <></>
+                        )}
+                    </FlexLayout>
                     <Grid
                         columns={gridHeading.gridHead}
                         dataSource={data}
@@ -894,8 +696,8 @@ const Dashboard = (_props: PropsI) => {
                         countPerPage={optionPagination}
                         currentPage={currentPage}
                         onCountChange={(count) => countChange(count)}
-                        onEnter={
-                            (page: string | number) => enterChange(Number(page))
+                        onEnter={(page: string | number) =>
+                            enterChange(Number(page))
                         }
                         onNext={nextChange}
                         onPrevious={() => prevChange()}

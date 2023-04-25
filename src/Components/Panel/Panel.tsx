@@ -15,6 +15,8 @@ import Cedcommerce from '../../Asests/Images/svg/Cedcommerce';
 import MobileLogo from '../../Asests/Images/svg/MobileLogo';
 import Dashboard from './Dashboard';
 import Footer from '../Footer/Footer';
+import { Outlet, Route, Routes } from 'react-router-dom';
+import CampaignPage from './CampaignPage';
 
 const Panel = (_props: PropsI) => {
     const menu = [
@@ -22,31 +24,31 @@ const Panel = (_props: PropsI) => {
             id: 'dashboard',
             content: 'Dashboard',
             icon: <Home />,
-            path: '/dashboard',
+            path: 'dashboard',
         },
         {
             id: 'productlist',
             content: 'Product List',
             icon: <Box />,
-            path: '/productlist',
+            path: 'productlist',
         },
         {
             id: 'settings',
             content: 'Settings',
             icon: <Settings />,
-            path: '/settings',
+            path: 'settings',
         },
         {
             id: 'help',
             content: 'Help',
             icon: <LifeBuoy />,
-            path: '/help',
+            path: 'help',
         },
         {
             id: 'faq',
             content: 'FAQ',
             icon: <HelpCircle />,
-            path: '/faq',
+            path: 'faq',
         },
     ];
 
@@ -56,21 +58,35 @@ const Panel = (_props: PropsI) => {
 
     return (
         <>
-            <Topbar
-                connectRight={
-                    <Button type="Outlined" icon={<Bell size={'16px'} />} />
-                }
-            />
-            <NewSidebar
-                logo={<Cedcommerce />}
-                mobileLogo={<MobileLogo />}
-                menu={menu}
-                subMenu={submenu}
-            />
-            <BodyLayout>
-                <Dashboard />
-                <Footer />
-            </BodyLayout>
+            <Routes>
+                <Route
+                    path="*"
+                    element={
+                        <>
+                            <Topbar
+                                connectRight={
+                                    <Button
+                                        type="Outlined"
+                                        icon={<Bell size={'16px'} />}
+                                    />
+                                }
+                            />
+                            <NewSidebar
+                                logo={<Cedcommerce />}
+                                mobileLogo={<MobileLogo />}
+                                menu={menu}
+                                subMenu={submenu}
+                            />
+                            <BodyLayout>
+                                <Outlet />
+                                <Footer />
+                            </BodyLayout>
+                        </>
+                    }>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="campaign" element={<CampaignPage />} />
+                </Route>
+            </Routes>
         </>
     );
 };

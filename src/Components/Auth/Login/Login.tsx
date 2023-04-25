@@ -5,7 +5,7 @@ import {
     syncConnectorInfo,
     syncNecessaryInfo,
 } from '../../../Actions';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { StoreDispatcher } from '../../..';
 import { Eye, EyeOff } from 'react-feather';
 import {
@@ -54,8 +54,11 @@ function Login(_props: PropsI): JSX.Element {
     const {
         di: {
             POST,
-            globalState: { set },
+            globalState: { set, get },
         },
+        error,
+        syncConnectorInfo,
+        syncNecessaryInfo,
     } = _props;
     // destructuring of states
     const { username, password, loading, eyeoff } = state;
@@ -67,13 +70,32 @@ function Login(_props: PropsI): JSX.Element {
     const {
         post: { userLogin },
     } = urlFetchCalls;
-
+    const [searchParams] = useSearchParams();
     useEffect(() => {
-        let token = localStorage.getItem('user_token');
-        if (token !== null) {
-            setRedirectSuccess(true);
+        let myToken = localStorage.getItem('user_token');
+
+        if (myToken) {
+            dispatcher({
+                type: 'user_id',
+                state: { user_id: parseJwt(myToken).user_id },
+            });
+            syncConnectorInfo(_props);
+            setTimeout(() => syncNecessaryInfo(), 1000);
+            let status = searchParams.get('connection_status');
+            if (status) {
+                localStorage.removeItem('user_token');
+                navigate('/success/message');
+            }
         }
-    }, []);
+
+        let token = get('auth_token');
+        if (token) {
+            dispatcher({
+                type: 'user_id',
+                state: { user_id: parseJwt(token).user_id },
+            });
+        }
+    });
 
     // function handles the state on blur of input boxes
     const blurHandler = (name: string) => {
@@ -131,7 +153,7 @@ function Login(_props: PropsI): JSX.Element {
                 navigate(`/panel/${obj.user_id}/dashboard`);
             } else {
                 state.loading = false;
-                _props.error(res.message);
+                error(res.message);
             }
             setState({ ...state });
         });
@@ -224,7 +246,6 @@ function Login(_props: PropsI): JSX.Element {
                     Login
                 </Button>
             </FormElement>
-            {redirectSuccess ? <OnBoardingSuccessPage /> : <></>}
         </>
     );
 }

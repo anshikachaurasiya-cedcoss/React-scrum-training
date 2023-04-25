@@ -1,7 +1,11 @@
 import React from 'react';
 
 const CampaignPage = () => {
-    return <div>CampaignPage</div>;
+    return (
+        <>
+            <h2>Create Campaign Page</h2>
+        </>
+    );
 };
 
 export default CampaignPage;
