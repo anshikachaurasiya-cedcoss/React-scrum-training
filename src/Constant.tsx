@@ -26,6 +26,8 @@ export const mail_id = 'support@cedcommerce.com';
 export const regexValidation = {
     emailFormat:
         /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.+([a-zA-Z0-9-]+)2*$/,
+    singleDigit: /^[0-9]{1}$/,
+    onlyDigit: /^[0-9]$/,
 };
 /**
  * url Endpoints (GET POST PUT DELETE) and redirection url

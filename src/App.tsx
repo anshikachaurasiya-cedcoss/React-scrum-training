@@ -22,9 +22,6 @@ interface PropsI extends DIProps {
 function App(Props: PropsI): JSX.Element {
     const {
         redux: { user_id, errorFound },
-        di: {
-            globalState: { get },
-        },
     } = Props;
     if (
         user_id == undefined ||
@@ -57,7 +54,7 @@ function App(Props: PropsI): JSX.Element {
                         <Route path="*" element={<>NO Page Found 2</>} />
                     </Route>
                     <Route
-                        path="/panel/:uId/dashboard"
+                        path="/panel/:uId*"
                         element={
                             <Suspense fallback={<></>}>
                                 <OnBoardingPage />
@@ -69,12 +66,10 @@ function App(Props: PropsI): JSX.Element {
                         path="/show/message"
                         element={<OnBoardingErrorPage />}
                     />
-                    {/* <Route
-                        path={`/auth/login?bearer=${get(
-                            'auth_token'
-                        )}&connection_status=1`}
+                    <Route
+                        path="/success/message"
                         element={<OnBoardingSuccessPage />}
-                    /> */}
+                    />
                     <Route path="*" element={<Navigate to={'/auth/login'} />} />
                 </Routes>
                 <RenderToasts {...Props} />

@@ -9,9 +9,9 @@ interface RegisterProps extends DIProps {
 }
 
 const RegisterRedirectPage = (_props: RegisterProps) => {
-    let navigate = useNavigate();
-    let [sec, setSec] = useState(5);
-    let timeRef = useRef<any>();
+    const navigate = useNavigate();
+    const [sec, setSec] = useState(5);
+    const timeRef = useRef<any>();
 
     const {
         redux: { user_id },
@@ -27,8 +27,7 @@ const RegisterRedirectPage = (_props: RegisterProps) => {
 
     const timer = () => {
         if (sec > 0) {
-            sec--;
-            setSec(sec);
+            setSec((sec) => sec - 1);
         }
     };
 

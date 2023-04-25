@@ -11,7 +11,7 @@ import { PropsI } from 'src/Core/@types';
 import { DI } from '../../../Core/DependencyInjection';
 import { Eye, EyeOff } from 'react-feather';
 import CustomHelpPoints from '../../CustomHelpPoints';
-import { regexValidation, urlFetchCalls } from '../../../Constant';
+import { urlFetchCalls } from '../../../Constant';
 import PasswordCreatedAlert from '../Layouts/PasswordCreatedAlert';
 import { useSearchParams } from 'react-router-dom';
 
@@ -25,6 +25,9 @@ interface resetPwdObj {
 let start: any = '',
     token: any = '';
 const ResetPassword = (_props: PropsI) => {
+    const {
+        di: { POST },
+    } = _props;
     const [state, setState] = useState<resetPwdObj>({
         password: '',
         confirmPassword: '',
@@ -33,7 +36,7 @@ const ResetPassword = (_props: PropsI) => {
         error: true,
     });
     const [details, setDetails] = useState('');
-    let [resetSuccessful, setResetSuccessFul] = useState(false);
+    const [resetSuccessful, setResetSuccessFul] = useState(false);
 
     const [errorValidation, setErrorValidation] = useState({
         password: { showError: false, message: '' },
@@ -93,20 +96,18 @@ const ResetPassword = (_props: PropsI) => {
         const {
             post: { forgotReset },
         } = urlFetchCalls;
-        _props.di
-            .POST(forgotReset, {
-                new_password: state.password,
-                confirm_password: state.confirmPassword,
-                token: token,
-            })
-            .then((res) => {
-                state.loading = false;
-                if (res.success) {
-                    setResetSuccessFul(true);
-                } else {
-                    _props.error(res.message);
-                }
-            });
+        POST(forgotReset, {
+            new_password: state.password,
+            confirm_password: state.confirmPassword,
+            token: token,
+        }).then((res) => {
+            state.loading = false;
+            if (res.success) {
+                setResetSuccessFul(true);
+            } else {
+                _props.error(res.message);
+            }
+        });
         setState({ ...state });
     };
     const { confirmPassword, password, loading, eyeoff, error } = state;

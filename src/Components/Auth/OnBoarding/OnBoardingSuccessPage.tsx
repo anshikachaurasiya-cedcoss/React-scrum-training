@@ -1,32 +1,24 @@
 import { Loader } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { parseJwt } from '../../../Core';
+import { useNavigate } from 'react-router-dom';
+import { DI, DIProps } from '../../../Core';
 
-const OnBoardingSuccessPage = () => {
-    let [sec, setSec] = useState(3);
+interface PropsI extends DIProps {}
+
+const OnBoardingSuccessPage = (_props: PropsI) => {
+    const [sec, setSec] = useState(3);
     let timeRef = useRef<any>();
-    let [loaderPercentage, setLoaderPercentage] = useState(33.3);
-    let [searchParams] = useSearchParams();
+    const [loaderPercentage, setLoaderPercentage] = useState(33.3);
     let navigate = useNavigate();
-
-    useEffect(() => {
-        let token = localStorage.getItem('user_token');
-        if (token) {
-            let id = parseJwt(token).user_id;
-            navigate(`/panel/${id}/dashboard`);
-        }
-    }, []);
 
     useEffect(() => {
         timeRef.current = setInterval(() => {
             if (sec > 0) {
-                sec--;
-                setSec(sec);
-                loaderPercentage = loaderPercentage + 33.3;
-                setLoaderPercentage(loaderPercentage);
+                setSec((sec) => sec - 1);
+                setLoaderPercentage((prev) => prev + 33.3);
             }
             if (sec === 0) {
+                navigate(`/panel/${_props.redux.user_id}/dashboard`);
             }
         }, 1000);
         return () => {
@@ -44,4 +36,4 @@ const OnBoardingSuccessPage = () => {
     );
 };
 
-export default OnBoardingSuccessPage;
+export default DI(OnBoardingSuccessPage);

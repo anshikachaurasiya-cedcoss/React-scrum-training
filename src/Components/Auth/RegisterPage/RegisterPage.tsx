@@ -57,10 +57,9 @@ const RegisterPage = (_props: PropsI) => {
     // setting the auth_token in useEffect
     useEffect(() => {
         let auth_token = get('auth_token', true);
+
         if (auth_token) {
             set('auth_token', auth_token);
-        }
-        if (auth_token) {
             let obj = parseJwt(auth_token);
             dispatcher({
                 type: 'user_id',
@@ -192,7 +191,7 @@ const RegisterPage = (_props: PropsI) => {
         }
     };
     // destructuring of state
-    let {
+    const {
         eyeoff,
         password,
         brandName,
@@ -207,7 +206,6 @@ const RegisterPage = (_props: PropsI) => {
         const {
             post: { emailExistsCheck },
         } = urlFetchCalls;
-
         POST(emailExistsCheck, { data: { email: email } }).then((res) => {
             if (res.success) {
                 state.loading = true;

@@ -7,7 +7,7 @@ import {
     TextStyles,
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useRef, useState } from 'react';
-import { urlFetchCalls } from '../../../Constant';
+import { regexValidation, urlFetchCalls } from '../../../Constant';
 import { DI, DIProps } from '../../../Core/DependencyInjection';
 import './OtpPage.css';
 import loaderImage from '../../../Asests/Images/loaderImage.gif';
@@ -31,7 +31,10 @@ const OtpPage = (_props: OtpProps) => {
         setAccountCreate,
         emailResponse: { no_of_attempts_left, success },
         createUser,
+        di: { POST },
     } = _props;
+
+    const { onlyDigit, singleDigit } = regexValidation;
 
     const [otp, setOtp] = useState([
         { value: '' },
@@ -40,10 +43,10 @@ const OtpPage = (_props: OtpProps) => {
         { value: '' },
         { value: '' },
     ]);
-    let inpRef = useRef<any>([]);
-    let timeRef = useRef<any>();
-    let [sec, setSec] = useState(60);
-    let [disable, setDisable] = useState({
+    const inpRef = useRef<any>([]);
+    const timeRef = useRef<any>();
+    const [sec, setSec] = useState(60);
+    const [disable, setDisable] = useState({
         loader: false,
         btnDisable: true,
         msg: '',
@@ -57,7 +60,7 @@ const OtpPage = (_props: OtpProps) => {
             setDisable({ ...disable, btnDisable: false });
         }
     }, [sec]);
-    //
+
     useEffect(() => {
         inpRef.current[0].focus();
 
@@ -78,8 +81,7 @@ const OtpPage = (_props: OtpProps) => {
 
     const timer = () => {
         if (sec > 0) {
-            sec--;
-            setSec(sec);
+            setSec((prev) => prev - 1);
         }
     };
 
@@ -98,7 +100,7 @@ const OtpPage = (_props: OtpProps) => {
         setDisable({ ...disable, msg: '', border: '' });
         let ind = otp.findIndex((ele, i) => i === index);
         if (e !== '') {
-            if (e.match(/^[0-9]{1}$/)) {
+            if (e.match(singleDigit)) {
                 otp[ind].value = e;
                 if (otp[ind].value !== '') {
                     if (inpRef.current[index + 1])
@@ -106,7 +108,7 @@ const OtpPage = (_props: OtpProps) => {
                 }
             } else if (otp[ind].value !== '') {
                 let len = e.split('').length;
-                if (e.split('')[len - 1].match(/^[0-9]$/) !== null) {
+                if (e.split('')[len - 1].match(onlyDigit) !== null) {
                     otp[ind].value = e.split('').slice(len - 1);
                     if (inpRef.current[index + 1])
                         inpRef.current[index + 1].focus();
@@ -129,15 +131,12 @@ const OtpPage = (_props: OtpProps) => {
         }
     };
     const {
-        di: { POST },
-    } = _props;
+        post: { validateOtp },
+    } = urlFetchCalls;
 
     const checkOtp = (arr: any) => {
         setDisable({ ...disable, loader: true });
         let otp = parseInt(arr);
-        const {
-            post: { validateOtp },
-        } = urlFetchCalls;
         POST(validateOtp, { otp: otp, email: email }).then((res) => {
             setDisable({ ...disable, loader: false });
             if (res.success) {

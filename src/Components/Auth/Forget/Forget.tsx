@@ -16,6 +16,12 @@ const Forget = (_props: PropsI) => {
         redirect: { loginPage },
     } = urlFetchCalls;
 
+    const {
+        error,
+        history,
+        di: { POST },
+    } = _props;
+
     const [emailState, setEmailState] = useState({
         value: '',
         showError: false,
@@ -23,8 +29,8 @@ const Forget = (_props: PropsI) => {
         error: true,
     });
     // state for the setting the loading state of button on hitting the Generate link button
-    let [btnLoading, setBtnLoading] = useState(false);
-    let navigate = useNavigate();
+    const [btnLoading, setBtnLoading] = useState(false);
+    const navigate = useNavigate();
     // function handles the state of email on change of the input box
     const emailHandler = (e: any) => {
         emailState.message = '';
@@ -62,22 +68,20 @@ const Forget = (_props: PropsI) => {
             post: { forgotPassword },
         } = urlFetchCalls;
 
-        _props.di
-            .POST(forgotPassword, {
-                email: emailState.value,
-                'reset-link': `${location}/auth/reset`,
-                subject:
-                    'Reset your password for Social Ads on Buy with Prime Account',
-            })
-            .then((res) => {
-                if (res.success) {
-                    navigate('/auth/forgotsuccess');
-                    setBtnLoading(false);
-                } else {
-                    setBtnLoading(false);
-                    _props.error(res.message);
-                }
-            });
+        POST(forgotPassword, {
+            email: emailState.value,
+            'reset-link': `${location}/auth/reset`,
+            subject:
+                'Reset your password for Social Ads on Buy with Prime Account',
+        }).then((res) => {
+            if (res.success) {
+                navigate('/auth/forgotsuccess');
+                setBtnLoading(false);
+            } else {
+                setBtnLoading(false);
+                error(res.message);
+            }
+        });
     };
 
     return (
@@ -108,7 +112,7 @@ const Forget = (_props: PropsI) => {
                         type="Plain"
                         thickness="extraThin"
                         icon={<ArrowLeft />}
-                        onClick={() => _props.history(loginPage)}
+                        onClick={() => history(loginPage)}
                         content="Back To Login"
                     />
                 </div>
