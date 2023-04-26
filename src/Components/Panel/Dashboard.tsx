@@ -18,7 +18,13 @@ import {
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
-import { gridData, newColumns, filterVal, pageArr } from '../ConstantArrays';
+import {
+    gridData,
+    newColumns,
+    filterVal,
+    pageArr,
+    gridHead,
+} from '../ConstantArrays';
 import {
     Download,
     Plus,
@@ -62,9 +68,18 @@ type badgeProps = {
 interface PropsI extends DIProps {}
 let start = 0;
 const Dashboard = (_props: PropsI) => {
+    // destructuring of fetching calls
     const {
         get: { getCampaignsUrl, bulkExportCSV, getCampaignsAutoCompleteUrl },
     } = urlFetchCalls;
+    // const destructuring of props
+    const {
+        di: {
+            GET,
+            globalState: { get },
+        },
+        redux: { current },
+    } = _props;
     const statusArr: badgeProps = [
         { key: 'PENDING', type: 'Neutral-100-Border' },
         { key: 'PAUSED', type: 'Warning-100' },
@@ -78,23 +93,36 @@ const Dashboard = (_props: PropsI) => {
             type: 'Info-100',
         },
     ];
-    const [actionList, setActionList] = useState(false);
+
     const [popOver, setPopOver] = useState({
         addItemPopOver: false,
         filterPopOver: false,
     });
+    const [filtersArr, setFiltersArr] = useState(filterVal);
+    const [showFilter, setShowFilter] = useState<any>({
+        showFilters: [],
+        showFilterBadges: false,
+    });
+    const [gridHeading, setGridheading] = useState({
+        gridHead: gridHead,
+        newColumns: newColumns,
+    });
+    const navigate = useNavigate();
+    const [data, setData] = useState<any>([]);
+    const [page, setPage] = useState({ optionPagination: 5, currentPage: 1 });
     const [searchVal, setSearchVal] = useState('');
-
+    // destructuring of states
+    const { showFilters, showFilterBadges } = showFilter;
+    // function opens the action list on clicking the action option
     const openActionList = (obj: any) => {
-        // let newData = data;
-        // console.log(newData);
-        // data.forEach((ele: any) => {
-        //     if (ele.campaign_id === obj.campaign_id) {
-        //         console.log(newData);
-        //     }
-        // });
+        let newData = [...data];
+        let index = newData.findIndex(
+            (ele: any) => ele.campaign_id === obj.campaign_id
+        );
+        newData[index].action = !newData[index].action;
+        setData([...newData]);
     };
-
+    // function renders the action list
     const renderActionList = (obj: any) => {
         if (
             obj.status === 'PENDING' ||
@@ -103,16 +131,10 @@ const Dashboard = (_props: PropsI) => {
             obj.status === 'ARCHIVED'
         ) {
             return (
-                <ActionList
-                    activator={
-                        <Button
-                            disable
-                            type="TextButton"
-                            icon={<MoreVertical size={20} color="#8C9098" />}
-                        />
-                    }
-                    options={[]}
-                    open={actionList}
+                <Button
+                    disable
+                    type="TextButton"
+                    icon={<MoreVertical size={20} color="#8C9098" />}
                 />
             );
         } else {
@@ -130,62 +152,26 @@ const Dashboard = (_props: PropsI) => {
                         {
                             items: [
                                 {
-                                    content: 'Action 1',
+                                    content: 'Edit',
                                     onClick: function noRefCheck() {},
                                 },
                                 {
-                                    content: 'Action 1',
+                                    content: 'Archive',
                                     onClick: function noRefCheck() {},
                                 },
                                 {
-                                    content: 'Action 1',
+                                    content: 'Pause',
                                     onClick: function noRefCheck() {},
                                 },
                             ],
                         },
                     ]}
-                    open={actionList}
+                    open={obj.action}
                 />
             );
         }
     };
-    const gridHead = [
-        {
-            dataIndex: 'campaign_name',
-            fixed: 'left',
-            key: 'campaign_name',
-            title: 'Campaign',
-        },
-        {
-            dataIndex: 'statusComponent',
-            fixed: 'left',
-            key: 'status',
-            title: 'Status',
-        },
-        {
-            dataIndex: 'campaign_placement',
-            key: 'campaign_placement',
-            title: 'Placement',
-        },
-        { dataIndex: 'start_date', key: 'start_date', title: 'Start Date' },
-        { dataIndex: 'end_date', key: 'end_date', title: 'End Date' },
-        {
-            dataIndex: 'daily_budget',
-            key: 'daily_budget',
-            title: 'Daily Budget',
-        },
-        { dataIndex: 'spend', key: 'spend', title: 'Spend' },
-        { dataIndex: 'sales', key: 'sales', title: 'Sales' },
-        {
-            render: (obj: any) => renderActionList(obj),
-            fixed: 'right',
-            key: 'actions',
-            title: 'Actions',
-        },
-    ];
 
-    const [filtersArr, setFiltersArr] = useState(filterVal);
-    const [showFilter, setShowFilter] = useState<any>([]);
     const filterArr = [
         {
             children: (
@@ -205,21 +191,47 @@ const Dashboard = (_props: PropsI) => {
             name: 'Status',
         },
     ];
+    // check handler function for filtered checkboxes
     const filterHandler = (ele: any, i: number) => {
-        let filterObj = filtersArr.find((item) => item.status === ele.status);
-        const ind = showFilter.findIndex((item: any) => item.checked === true);
-        if (filterObj) {
-            filtersArr[i].checked = !filtersArr[i].checked;
-            setFiltersArr([...filtersArr]);
-            if (filterObj.checked === true) {
-                showFilter.push(filterObj);
-            } else {
-                showFilter.splice(ind, 1);
-            }
-            setShowFilter([...showFilter]);
-        }
+        let index = filtersArr.findIndex((item) => item.status === ele.status);
+        filtersArr[index].checked = !filtersArr[index].checked;
+        setFiltersArr([...filtersArr]);
     };
-
+    // function sets the filter and hits the filter api
+    const applyFilter = () => {
+        let obj: any = {};
+        let n = 0;
+        manageFilter();
+        filtersArr.forEach((ele: any) => {
+            if (ele.checked) {
+                Object.assign(obj, { [`filter[status][${n++}]`]: ele.status });
+            }
+        });
+        let parObj = {
+            shop_id: current?.target._id,
+            'filter[shop_id]': current?.target._id,
+            order: 1,
+            count: 5,
+            activePage: 2,
+        };
+        Object.assign(parObj, obj);
+        GET(getCampaignsUrl, parObj).then((res) => {});
+    };
+    const manageFilter = () => {
+        showFilter.showFilters = [];
+        filtersArr.forEach((ele) => {
+            if (ele.checked) {
+                showFilter.showFilters.push(ele);
+            }
+        });
+        if (showFilter.showFilters.length === 0) {
+            showFilter.showFilterBadges = false;
+        } else {
+            showFilter.showFilterBadges = true;
+        }
+        setShowFilter({ ...showFilter });
+    };
+    // function enables or disables the reset or apply button of advance Filter
     const disableBtn = () => {
         let obj = filtersArr.find((ele) => ele.checked === true);
         if (obj !== undefined) {
@@ -229,36 +241,22 @@ const Dashboard = (_props: PropsI) => {
             return true;
         }
     };
-
-    const applyFilter = () => {
-        let obj = {};
-        showFilter.forEach((ele: any, i: number) => {
-            Object.assign(obj, { [`filter[status][${i}]`]: ele.status });
-        });
-        GET(getCampaignsUrl, {
-            shop_id: current?.target._id,
-            filter: JSON.stringify(obj),
-            order: 1,
-            count: 5,
-            activePage: 2,
-        }).then((res) => {});
-    };
-
+    // function removes filter of particular selected item
     const removeItemFilter = (ele: any) => {
-        let ind = showFilter.findIndex(
+        let ind = filtersArr.findIndex(
             (item: any) => item.status === ele.status
         );
-        let index = filtersArr.findIndex((item) => item.status === ele.status);
-        let removedFilter = [...filtersArr];
-        removedFilter[index].checked = false;
-        setFiltersArr([...removedFilter]);
-        let removedData = [...showFilter];
-        removedData.splice(ind, 1);
-        setShowFilter([...removedData]);
+        filtersArr[ind].checked = false;
+        setFiltersArr([...filtersArr]);
+        applyFilter();
     };
-
+    // function removes all the filters
     const removeAllFilter = () => {
-        setShowFilter([]);
+        setShowFilter({
+            ...showFilter,
+            showFilters: [],
+            showFilterBadges: false,
+        });
         let removedFilters = [...filtersArr];
         removedFilters.forEach((ele) => {
             ele.checked = false;
@@ -266,30 +264,11 @@ const Dashboard = (_props: PropsI) => {
         setFiltersArr([...removedFilters]);
     };
 
-    const [gridHeading, setGridheading] = useState({
-        gridHead: gridHead,
-        newColumns: newColumns,
-    });
-
-    const navigate = useNavigate();
-
-    const [data, setData] = useState<any>([]);
-    const [page, setPage] = useState({ optionPagination: 5, currentPage: 1 });
-    // destructuring of fetching calls
-
-    // const destructuring of props
-    const {
-        di: {
-            GET,
-            globalState: { get },
-        },
-        redux: { current },
-    } = _props;
     // useEffect used to call the function which hits the api of get campaigns data
     useEffect(() => {
         getCampaginsData();
     }, []);
-
+    // useEffect sets the pagination after every change in state of optionpagination
     useEffect(() => {
         // setCurrentPage(1);
         setPage({ ...page, currentPage: 1 });
@@ -298,7 +277,7 @@ const Dashboard = (_props: PropsI) => {
         setData(copyData);
         designGridData(copyData);
     }, [page.optionPagination]);
-
+    // function fetches the data from getCampains api
     const getCampaginsData = () => {
         setData(() => gridData);
         designGridData(gridData);
@@ -321,7 +300,11 @@ const Dashboard = (_props: PropsI) => {
                     children={<TextStyles content={ele.status.toLowerCase()} />}
                 />
             );
-            obj.action = false;
+            if (obj.action) {
+                obj.action = true;
+            } else {
+                obj.action = false;
+            }
             if (ele.status === 'ERRORS') {
                 obj.statusComponent = (
                     <Badge customBgColor="white">
@@ -373,6 +356,7 @@ const Dashboard = (_props: PropsI) => {
         }
     };
     let end = Number(page.optionPagination);
+    // function sets the pagination on clicking of next
     const nextChange = () => {
         let obj = { ...page };
         obj.currentPage = obj.currentPage + 1;
@@ -386,6 +370,7 @@ const Dashboard = (_props: PropsI) => {
         setData(() => newData);
         designGridData(newData);
     };
+    // function sets the pagination on clicking of previous
     const prevChange = () => {
         let copyData = gridData;
         let obj = { ...page };
@@ -398,7 +383,7 @@ const Dashboard = (_props: PropsI) => {
         setData(() => newData);
         setPage({ ...obj });
         designGridData(newData);
-    };
+    }; // function sets the pagination on Enter
     const enterChange = (current: string | number) => {
         let obj = { ...page };
         obj.currentPage = Number(current);
@@ -413,15 +398,15 @@ const Dashboard = (_props: PropsI) => {
         setPage({ ...obj });
         designGridData(newData);
     };
-
+    // function handles the add item popover
     const handlePopOver = () => {
         setPopOver({ ...popOver, addItemPopOver: !popOver.addItemPopOver });
     };
-
+    // function handles the filter popover
     const handleFilterPopOver = () => {
         setPopOver({ ...popOver, filterPopOver: !popOver.filterPopOver });
     };
-
+    // function adds or delets the new column
     const addColumn = (obj: any) => {
         let checked = gridHeading.newColumns.findIndex(
             (ele) => ele.dataIndex === obj.dataIndex
@@ -525,6 +510,8 @@ const Dashboard = (_props: PropsI) => {
                                     heading="Filters"
                                     disableApply={disableBtn()}
                                     onApply={applyFilter}
+                                    disableReset={disableBtn()}
+                                    resetFilter={removeAllFilter}
                                 />
                                 <Popover
                                     onClose={handlePopOver}
@@ -577,9 +564,10 @@ const Dashboard = (_props: PropsI) => {
                         </FlexChild>
                     </FlexLayout>
                     <FlexLayout>
-                        {showFilter.length > 0 ? (
+                        {showFilterBadges === true ? (
                             <Card cardType="Subdued" extraClass="badge--card">
                                 <Popover
+                                    popoverWidth={250}
                                     activator={
                                         <Button
                                             onClick={handleFilterPopOver}
@@ -591,12 +579,12 @@ const Dashboard = (_props: PropsI) => {
                                                 <TextStyles content="Status:" />
                                                 <TextStyles
                                                     content={
-                                                        showFilter[0].status
+                                                        showFilters[0].status
                                                     }
                                                     type="Paragraph"
                                                     paragraphTypes="MD-1.4"
                                                 />
-                                                {showFilter.length > 1 ? (
+                                                {showFilters.length > 1 ? (
                                                     <Badge
                                                         size="small"
                                                         customBgColor="#3B424F"
@@ -613,7 +601,7 @@ const Dashboard = (_props: PropsI) => {
                                                             <TextStyles
                                                                 textcolor="#FAFAFB"
                                                                 content={
-                                                                    showFilter.length -
+                                                                    showFilters.length -
                                                                     1
                                                                 }
                                                                 type="Paragraph"
@@ -647,7 +635,7 @@ const Dashboard = (_props: PropsI) => {
                                     popoverContainer="body"
                                     children={
                                         <FlexLayout spacing="tight">
-                                            {showFilter.map((ele: any) => {
+                                            {showFilters.map((ele: any) => {
                                                 return (
                                                     <Badge
                                                         size="small"
@@ -688,7 +676,15 @@ const Dashboard = (_props: PropsI) => {
                         )}
                     </FlexLayout>
                     <Grid
-                        columns={gridHeading.gridHead}
+                        columns={[
+                            ...gridHeading.gridHead,
+                            {
+                                render: (obj: any) => renderActionList(obj),
+                                fixed: 'right',
+                                key: 'actions',
+                                title: 'Actions',
+                            },
+                        ]}
                         dataSource={data}
                         scrollX={1400}
                     />
