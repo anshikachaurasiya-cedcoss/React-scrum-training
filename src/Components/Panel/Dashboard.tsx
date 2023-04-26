@@ -14,6 +14,7 @@ import {
     PageHeader,
     Pagination,
     Popover,
+    Tag,
     TextStyles,
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useState } from 'react';
@@ -31,8 +32,6 @@ import {
     Filter,
     MoreVertical,
     AlertTriangle,
-    ChevronDown,
-    ChevronUp,
 } from 'react-feather';
 import { DI, DIProps } from '../../Core/DependencyInjection';
 import { urlFetchCalls } from '../../Constant';
@@ -270,7 +269,6 @@ const Dashboard = (_props: PropsI) => {
     }, []);
     // useEffect sets the pagination after every change in state of optionpagination
     useEffect(() => {
-        // setCurrentPage(1);
         setPage({ ...page, currentPage: 1 });
         let copy = gridData;
         let copyData = copy.slice(0, Number(page.optionPagination));
@@ -426,12 +424,20 @@ const Dashboard = (_props: PropsI) => {
         setGridheading({ ...gridHeading, gridHead: newHeadingData });
     };
 
-    const searchHandler = () => {
-        GET(getCampaignsAutoCompleteUrl, {
-            shop_id: current?.target._id,
-            keyword: searchVal,
-        }).then((res) => {});
+    const searchHandler = (e: any) => {
+        setSearchVal(e);
     };
+
+    useEffect(() => {
+        const getSearchedData = setTimeout(() => {
+            GET(getCampaignsAutoCompleteUrl, {
+                shop_id: current?.target._id,
+                keyword: searchVal,
+            }).then((res) => {});
+        }, 2000);
+        return () => clearTimeout(getSearchedData);
+    }, [searchVal]);
+
     // function downloads the camapign Report in a csv format
     const downloadCampaign = () => {
         let url =
@@ -454,7 +460,7 @@ const Dashboard = (_props: PropsI) => {
                     <Button
                         icon={<Plus />}
                         thickness="large"
-                        onClick={() => navigate(`campaign`)}>
+                        onClick={() => navigate('campaign')}>
                         Create Campaign
                     </Button>
                 }
@@ -490,11 +496,12 @@ const Dashboard = (_props: PropsI) => {
                             tabWidth="50">
                             <AutoComplete
                                 value={searchVal}
-                                onEnter={searchHandler}
-                                onChange={(e: any) => setSearchVal(e)}
+                                onChange={(e: any) => searchHandler(e)}
                                 placeHolder="Search Campaign"
                                 thickness="thin"
                                 options={[]}
+                                clearButton
+                                clearFunction={() => setSearchVal('')}
                             />
                         </FlexChild>
                         <FlexChild
@@ -567,103 +574,72 @@ const Dashboard = (_props: PropsI) => {
                         {showFilterBadges === true ? (
                             <Card cardType="Subdued" extraClass="badge--card">
                                 <Popover
-                                    popoverWidth={250}
+                                    popoverWidth={210}
                                     activator={
-                                        <Button
-                                            onClick={handleFilterPopOver}
-                                            type="Secondary">
-                                            <FlexLayout
-                                                spacing="tight"
-                                                halign="center"
-                                                valign="center">
-                                                <TextStyles content="Status:" />
-                                                <TextStyles
-                                                    content={
-                                                        showFilters[0].status
-                                                    }
-                                                    type="Paragraph"
-                                                    paragraphTypes="MD-1.4"
-                                                />
-                                                {showFilters.length > 1 ? (
-                                                    <Badge
-                                                        size="small"
-                                                        customBgColor="#3B424F"
-                                                        badgeTextColor="#FAFAFB">
-                                                        <FlexLayout
-                                                            spacing="extraTight"
-                                                            halign="center"
-                                                            valign="center"
-                                                            wrap="noWrap">
-                                                            <TextStyles
-                                                                content="+"
-                                                                textcolor="#FAFAFB"
-                                                            />
-                                                            <TextStyles
-                                                                textcolor="#FAFAFB"
-                                                                content={
-                                                                    showFilters.length -
-                                                                    1
-                                                                }
-                                                                type="Paragraph"
-                                                                paragraphTypes="XS-1.2"
-                                                            />
-                                                        </FlexLayout>
-                                                    </Badge>
-                                                ) : (
-                                                    <></>
-                                                )}
-                                                {filterPopOver ? (
-                                                    <ChevronUp
-                                                        size={16}
-                                                        color="#3B424F"
+                                        showFilters.length > 1 ? (
+                                            <Tag
+                                                count={`+${
+                                                    showFilters.length - 1
+                                                }`}
+                                                popover
+                                                togglePopup={
+                                                    handleFilterPopOver
+                                                }
+                                                destroy={removeAllFilter}>
+                                                <FlexLayout
+                                                    valign="center"
+                                                    halign="center"
+                                                    wrap="noWrap"
+                                                    spacing="tight">
+                                                    <TextStyles content="Status:" />
+                                                    <TextStyles
+                                                        content={
+                                                            showFilters[0]
+                                                                .status
+                                                        }
+                                                        type="Paragraph"
+                                                        paragraphTypes="MD-1.4"
                                                     />
-                                                ) : (
-                                                    <ChevronDown
-                                                        size={16}
-                                                        color="#3B424F"
+                                                </FlexLayout>
+                                            </Tag>
+                                        ) : (
+                                            <Tag
+                                                destroy={removeAllFilter}
+                                                togglePopup={
+                                                    handleFilterPopOver
+                                                }>
+                                                <FlexLayout
+                                                    valign="center"
+                                                    halign="center"
+                                                    wrap="noWrap"
+                                                    spacing="tight">
+                                                    <TextStyles content="Status:" />
+                                                    <TextStyles
+                                                        content={
+                                                            showFilters[0]
+                                                                .status
+                                                        }
+                                                        type="Paragraph"
+                                                        paragraphTypes="MD-1.4"
                                                     />
-                                                )}
-                                                <Button
-                                                    thickness="extraThin"
-                                                    content="X"
-                                                    type="Secondary"
-                                                    onClick={removeAllFilter}
-                                                />
-                                            </FlexLayout>
-                                        </Button>
+                                                </FlexLayout>
+                                            </Tag>
+                                        )
                                     }
                                     popoverContainer="body"
                                     children={
-                                        <FlexLayout spacing="tight">
+                                        <FlexLayout spacing="extraTight">
                                             {showFilters.map((ele: any) => {
                                                 return (
-                                                    <Badge
-                                                        size="small"
-                                                        type="Neutral-200"
-                                                        key={ele}>
-                                                        <FlexLayout
-                                                            spacing="extraTight"
-                                                            halign="center"
-                                                            valign="center">
-                                                            <TextStyles
-                                                                content={
-                                                                    ele.status
-                                                                }
-                                                                type="Paragraph"
-                                                                paragraphTypes="MD-1.4"
-                                                            />
-                                                            <Button
-                                                                content="X"
-                                                                type="Secondary"
-                                                                thickness="extraThin"
-                                                                onClick={() =>
-                                                                    removeItemFilter(
-                                                                        ele
-                                                                    )
-                                                                }
-                                                            />
-                                                        </FlexLayout>
-                                                    </Badge>
+                                                    <Tag
+                                                        key={ele.staus}
+                                                        destroy={() =>
+                                                            removeItemFilter(
+                                                                ele
+                                                            )
+                                                        }>
+                                                        {ele.status}
+                                                    </Tag>
                                                 );
                                             })}
                                         </FlexLayout>
