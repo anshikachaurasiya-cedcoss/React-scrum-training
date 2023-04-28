@@ -1,0 +1,15 @@
+.underline {
+    text-decoration: underline;
+    color: #D92D20;
+}
+
+.custom--disable_Btn .inte-btnNarrow {
+    border-radius: 50px !important;
+    background: #F3F4F5 !important;
+}
+
+.custom--enable_Btn .inte-btnNarrow {
+    border-radius: 50px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #eeecec !important;
+}

@@ -15,10 +15,12 @@ import Cedcommerce from '../../Asests/Images/svg/Cedcommerce';
 import MobileLogo from '../../Asests/Images/svg/MobileLogo';
 import Dashboard from './Dashboard';
 import Footer from '../Footer/Footer';
-import { Outlet, Route, Routes } from 'react-router-dom';
+import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import CampaignPage from './CampaignPage';
+import ProductPage from './ProductPage/ProductPage';
 
 const Panel = (_props: PropsI) => {
+    let navigate = useNavigate();
     const menu = [
         {
             id: 'dashboard',
@@ -30,7 +32,7 @@ const Panel = (_props: PropsI) => {
             id: 'productlist',
             content: 'Product List',
             icon: <Box />,
-            path: 'productlist',
+            path: 'product',
         },
         {
             id: 'settings',
@@ -52,9 +54,13 @@ const Panel = (_props: PropsI) => {
         },
     ];
 
-    const submenu = [
+    const submenus = [
         { id: 'logout', content: 'Logout', icon: <LogOut />, path: '/logout' },
     ];
+
+    const changeHandler = (e: any) => {
+        navigate(`${e.path}`);
+    };
 
     return (
         <>
@@ -75,7 +81,8 @@ const Panel = (_props: PropsI) => {
                                 logo={<Cedcommerce />}
                                 mobileLogo={<MobileLogo />}
                                 menu={menu}
-                                subMenu={submenu}
+                                subMenu={submenus}
+                                onChange={(e: any) => changeHandler(e)}
                             />
                             <BodyLayout>
                                 <Outlet />
@@ -85,6 +92,7 @@ const Panel = (_props: PropsI) => {
                     }>
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="campaign" element={<CampaignPage />} />
+                    <Route path="product" element={<ProductPage />} />
                 </Route>
             </Routes>
         </>
