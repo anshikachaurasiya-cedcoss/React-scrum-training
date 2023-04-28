@@ -15,7 +15,6 @@ import {
     TextField,
 } from '@cedcommerce/ounce-ui';
 import { regexValidation, urlFetchCalls } from '../../../Constant';
-import OnBoardingSuccessPage from '../OnBoarding/OnBoardingSuccessPage';
 
 interface PropsI extends DIProps {
     loginStatus: () => void;
@@ -47,7 +46,6 @@ function Login(_props: PropsI): JSX.Element {
         email: { error: true, message: '', showError: false },
         password: { error: true, showError: false },
     });
-    const [redirectSuccess, setRedirectSuccess] = useState(false);
     const navigate = useNavigate();
     const dispatcher = useContext(StoreDispatcher);
     // destructuring of props
