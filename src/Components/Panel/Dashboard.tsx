@@ -19,13 +19,7 @@ import {
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
-import {
-    gridData,
-    newColumns,
-    filterVal,
-    pageArr,
-    gridHead,
-} from '../ConstantArrays';
+import { gridData, filterVal, pageArr, searchedData } from '../ConstantArrays';
 import {
     Download,
     Plus,
@@ -67,6 +61,176 @@ type badgeProps = {
 interface PropsI extends DIProps {}
 let start = 0;
 const Dashboard = (_props: PropsI) => {
+    const gridHead = [
+        {
+            dataIndex: 'campaign_name',
+            fixed: 'left',
+            key: 'campaign_name',
+            title: (
+                <TextStyles
+                    content="Campaigns"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+        },
+        {
+            dataIndex: 'statusComponent',
+            fixed: 'left',
+            key: 'status',
+            title: (
+                <TextStyles
+                    content="Status"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+        },
+        {
+            dataIndex: 'campaign_placement',
+            key: 'campaign_placement',
+            title: (
+                <TextStyles
+                    content="Placement"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+        },
+        {
+            dataIndex: 'start_date',
+            key: 'start_date',
+            title: (
+                <TextStyles
+                    content="Start Date"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+        },
+        {
+            dataIndex: 'end_date',
+            key: 'end_date',
+            title: (
+                <TextStyles
+                    content="End Date"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+        },
+        {
+            dataIndex: 'daily_budget',
+            key: 'daily_budget',
+            title: (
+                <TextStyles
+                    content="Daily Budget"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+        },
+        {
+            dataIndex: 'spend',
+            key: 'spend',
+            title: (
+                <TextStyles
+                    content="Spend"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+        },
+        {
+            dataIndex: 'sales',
+            key: 'sales',
+            title: (
+                <TextStyles
+                    content="Sales"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+        },
+    ];
+    const newColumns = [
+        {
+            dataIndex: 'impressions',
+            key: 'impressions',
+            title: (
+                <TextStyles
+                    content="Impressions"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+            heading: 'Impressions',
+            checked: false,
+        },
+        {
+            dataIndex: 'clicks',
+            key: 'clicks',
+            title: (
+                <TextStyles
+                    content="Clicks"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+            heading: 'Clicks',
+            checked: false,
+        },
+        {
+            dataIndex: 'orders',
+            key: 'orders',
+            title: (
+                <TextStyles
+                    content="Orders"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+            heading: 'Orders',
+            checked: false,
+        },
+        {
+            dataIndex: 'roas',
+            key: 'roas',
+            title: (
+                <TextStyles
+                    content="ROAS"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+            ),
+            heading: 'ROAS',
+            checked: false,
+        },
+    ];
     // destructuring of fetching calls
     const {
         get: { getCampaignsUrl, bulkExportCSV, getCampaignsAutoCompleteUrl },
@@ -101,6 +265,7 @@ const Dashboard = (_props: PropsI) => {
     const [showFilter, setShowFilter] = useState<any>({
         showFilters: [],
         showFilterBadges: false,
+        searchedValues: [],
     });
     const [gridHeading, setGridheading] = useState({
         gridHead: gridHead,
@@ -111,7 +276,7 @@ const Dashboard = (_props: PropsI) => {
     const [page, setPage] = useState({ optionPagination: 5, currentPage: 1 });
     const [searchVal, setSearchVal] = useState('');
     // destructuring of states
-    const { showFilters, showFilterBadges } = showFilter;
+    const { showFilters, showFilterBadges, searchedValues } = showFilter;
     // function opens the action list on clicking the action option
     const openActionList = (obj: any) => {
         let newData = [...data];
@@ -433,10 +598,28 @@ const Dashboard = (_props: PropsI) => {
             GET(getCampaignsAutoCompleteUrl, {
                 shop_id: current?.target._id,
                 keyword: searchVal,
-            }).then((res) => {});
-        }, 2000);
+            }).then((res) => {
+                renderSearchedData();
+            });
+        }, 1000);
         return () => clearTimeout(getSearchedData);
     }, [searchVal]);
+
+    const renderSearchedData = () => {
+        let searched: any = [];
+        let newSearch = searchedData.map((ele) => {
+            let searchedObj: any = { ...ele };
+            searchedObj.value = ele.campaign_name;
+            searchedObj.label = ele.campaign_name;
+            return searchedObj;
+        });
+        newSearch.forEach((ele) => {
+            if (ele.value.includes(searchVal)) {
+                searched.push(ele);
+            }
+        });
+        setShowFilter({ ...showFilter, searchedValues: searched });
+    };
 
     // function downloads the camapign Report in a csv format
     const downloadCampaign = () => {
@@ -467,7 +650,15 @@ const Dashboard = (_props: PropsI) => {
             />
             <Card
                 cardType="Default"
-                title={'Campaigns'}
+                title={
+                    <TextStyles
+                        content="Campaigns"
+                        utility="dashedLine"
+                        type="SubHeading"
+                        subheadingTypes="XS-1.6"
+                        fontweight="extraBold"
+                    />
+                }
                 action={
                     <Button
                         icon={<Download size={16} color="#3B424F" />}
@@ -476,9 +667,10 @@ const Dashboard = (_props: PropsI) => {
                         onClick={downloadCampaign}>
                         <TextStyles
                             content="Download Report"
+                            utility="dashedLine"
                             type="Paragraph"
                             paragraphTypes="MD-1.4"
-                            textcolor="dark"
+                            fontweight="bold"
                         />
                     </Button>
                 }>
@@ -499,8 +691,9 @@ const Dashboard = (_props: PropsI) => {
                                 onChange={(e: any) => searchHandler(e)}
                                 placeHolder="Search Campaign"
                                 thickness="thin"
-                                options={[]}
+                                options={searchedValues}
                                 clearButton
+                                setHiglighted
                                 clearFunction={() => setSearchVal('')}
                             />
                         </FlexChild>
@@ -559,7 +752,9 @@ const Dashboard = (_props: PropsI) => {
                                                             checked={
                                                                 ele.checked
                                                             }
-                                                            labelVal={ele.title}
+                                                            labelVal={
+                                                                ele.heading
+                                                            }
                                                         />
                                                     </FlexLayout>
                                                 );
@@ -658,7 +853,15 @@ const Dashboard = (_props: PropsI) => {
                                 render: (obj: any) => renderActionList(obj),
                                 fixed: 'right',
                                 key: 'actions',
-                                title: 'Actions',
+                                title: (
+                                    <TextStyles
+                                        content="Actions"
+                                        utility="dashedLine dashedLine--block"
+                                        type="Paragraph"
+                                        paragraphTypes="MD-1.4"
+                                        fontweight="bold"
+                                    />
+                                ),
                             },
                         ]}
                         dataSource={data}

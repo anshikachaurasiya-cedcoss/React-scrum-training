@@ -1,4 +1,5 @@
 import {
+    Accordion,
     ActionList,
     AdvanceFilter,
     AutoComplete,
@@ -10,6 +11,7 @@ import {
     FormElement,
     Grid,
     Image,
+    Modal,
     PageHeader,
     Pagination,
     Popover,
@@ -30,9 +32,10 @@ interface PropsI extends DIProps {}
 const ProductPage = (_props: PropsI) => {
     const {
         get: { getRefineProductsUrl, getRefineProductsCountsUrl },
+        post: { solutionsUrl },
     } = urlFetchCalls;
     const {
-        di: { GET },
+        di: { GET, POST },
     } = _props;
     const { rows } = productData;
     const [productsData, setProductsData] = useState<any>([]);
@@ -45,9 +48,15 @@ const ProductPage = (_props: PropsI) => {
         showFilterBadges: [],
         showBadges: false,
         searchVal: '',
+        searchedValues: [],
     });
-    const [managePopOver, setManagePopover] = useState(false);
-    const { showFilterBadges, showBadges, searchVal } = showFilters;
+    const [open, setOpen] = useState({
+        filterPopOver: false,
+        errorModal: false,
+    });
+    const { filterPopOver, errorModal } = open;
+    const { showFilterBadges, showBadges, searchVal, searchedValues } =
+        showFilters;
     const { totalPageRead, currentPage } = pagination;
     useEffect(() => {
         getProductsData();
@@ -110,6 +119,10 @@ const ProductPage = (_props: PropsI) => {
                     );
                 }
             }
+            if (ele.items[0].visibility === 'Catalog and Search') {
+                obj.value = ele.items[0].title;
+                obj.label = ele.items[0].title;
+            }
             if (
                 ele.items.length === 1 &&
                 ele.items[0].visibility === 'Catalog and Search'
@@ -160,21 +173,23 @@ const ProductPage = (_props: PropsI) => {
             obj.items.map((ele: any) => {
                 if (ele.status && ele.status === 'error') {
                     error = (
-                        <FlexLayout spacing="tight" valign="center">
-                            <AlertTriangle color="#C4281C" size={20} />
-                            <TextStyles
-                                utility="underline"
-                                content={`${
-                                    obj.status_arr.error < 10
-                                        ? '0' + obj.status_arr.error
-                                        : obj.status_arr.error
-                                } Errors`}
-                                textcolor="negative"
-                                type="Paragraph"
-                                paragraphTypes="MD-1.4"
-                                fontweight="bold"
-                            />
-                        </FlexLayout>
+                        <div onClick={() => showError(obj)}>
+                            <FlexLayout spacing="tight" valign="center">
+                                <AlertTriangle color="#C4281C" size={20} />
+                                <TextStyles
+                                    utility="underline"
+                                    content={`${
+                                        obj.status_arr.error < 10
+                                            ? '0' + obj.status_arr.error
+                                            : obj.status_arr.error
+                                    } Errors`}
+                                    textcolor="negative"
+                                    type="Paragraph"
+                                    paragraphTypes="MD-1.4"
+                                    fontweight="bold"
+                                />
+                            </FlexLayout>
+                        </div>
                     );
                 } else if (ele.status && ele.status === 'active') {
                     active = (
@@ -220,9 +235,53 @@ const ProductPage = (_props: PropsI) => {
             );
         }
     };
+
+    const [modalErrors, setModalErrors] = useState<any>([]);
+
+    const showError = (obj: any) => {
+        let ParamsArr: any = [];
+        let errorArr: any = [];
+        let apiArr: any = [];
+        let newObj: {};
+        let objData: {};
+        obj.items.forEach((ele: any) => {
+            if (ele.status === 'error') {
+                if (ele.errors) {
+                    ele.errors.forEach((innerEle: any) => {
+                        let obj = {
+                            title: innerEle.title,
+                            marketplace: 'meta',
+                        };
+                        newObj = {
+                            sku: ele.sku,
+                            title: innerEle.title,
+                            description: innerEle.description,
+                        };
+                        Object.assign(objData, newObj);
+                        // errorArr.push(newObj);
+                        ParamsArr.push(obj);
+                    });
+                }
+            }
+        });
+        let eleObj: any = {};
+        POST(solutionsUrl, ParamsArr).then((res) => {
+            res.data.forEach((ele: any) => {
+                Object.assign(objData, ele);
+                // apiArr.push(ele);
+            });
+            modalErrors.push(objData);
+            setModalErrors([...modalErrors]);
+        });
+        openModal();
+    };
+    console.log(modalErrors);
+    const openModal = () => {
+        setOpen({ ...open, errorModal: !errorModal });
+    };
     // function renders the action list
     const renderActionList = (obj: any) => {
-        if (obj.status_arr.error === 0 && obj.status_arr.active === 0) {
+        if (obj.items.length === 1) {
             return (
                 <div className="custom--disable_Btn">
                     <Button
@@ -250,20 +309,7 @@ const ProductPage = (_props: PropsI) => {
             );
         }
     };
-    // function sets the state on change of pagination
-    const countChange = (page: any) => {
-        setPagination({ ...pagination, totalPageRead: page });
-    };
-    // function sets the state on click of next button in pagination
-    const nextPage = () => {
-        let nextPage = currentPage + 1;
-        setPagination({ ...pagination, currentPage: nextPage });
-    };
-    // function sets the state on click of the previous button in pagination
-    const prevPage = () => {
-        let prevPage = currentPage - 1;
-        setPagination({ ...pagination, currentPage: prevPage });
-    };
+
     const filterArr = [
         {
             children: (
@@ -340,10 +386,6 @@ const ProductPage = (_props: PropsI) => {
             return true;
         }
     };
-    const handleFilterPopOver = () => {
-        let open = !managePopOver;
-        setManagePopover(open);
-    };
     const removeItemFilter = (ele: any) => {
         let ind = filtersArr.findIndex(
             (item: any) => item.status === ele.status
@@ -364,17 +406,34 @@ const ProductPage = (_props: PropsI) => {
         });
         setFiltersArr([...removedFilters]);
     };
-    const searchHandler = (e: string) => {
-        setShowFilters({ ...showFilters, searchVal: e });
-    };
+
     useEffect(() => {
-        let search = setTimeout(() => {
-            GET(getRefineProductsUrl, {
-                'filter[title][3]': searchVal,
-            }).then((res) => {});
-        }, 1000);
-        return () => clearTimeout(search);
+        if (productsData.length > 0) {
+            let search = setTimeout(() => {
+                GET(getRefineProductsUrl, {
+                    'filter[title][3]': searchVal,
+                }).then((res) => {
+                    renderSearchedData();
+                });
+            }, 1000);
+
+            return () => clearTimeout(search);
+        }
     }, [searchVal]);
+
+    const renderSearchedData = () => {
+        let search: any = [];
+        productsData.map((ele: any) => {
+            if (ele.value.toLowerCase().includes(searchVal.toLowerCase())) {
+                search.push(ele);
+            }
+        });
+        setShowFilters({ ...showFilters, searchedValues: search });
+    };
+    const selectSearch = (val: any) => {
+        // setProductsData(val);
+        // designProductsData(val);
+    };
     return (
         <>
             <PageHeader
@@ -394,18 +453,22 @@ const ProductPage = (_props: PropsI) => {
                     desktopWidth="100">
                     <FlexLayout valign="center" halign="fill">
                         <AutoComplete
-                            options={[]}
+                            options={searchedValues}
                             placeHolder="Search Products"
                             thickness="thin"
-                            onChange={(e: any) => searchHandler(e)}
+                            onChange={(e: any) =>
+                                setShowFilters({ ...showFilters, searchVal: e })
+                            }
                             value={searchVal}
                             clearButton
+                            setHiglighted
                             clearFunction={() =>
                                 setShowFilters({
                                     ...showFilters,
                                     searchVal: '',
                                 })
                             }
+                            onClick={(val: any) => selectSearch(val)}
                         />
                         <AdvanceFilter
                             filters={filterArr}
@@ -431,8 +494,12 @@ const ProductPage = (_props: PropsI) => {
                                                     showFilterBadges.length - 1
                                                 }`}
                                                 popover
-                                                togglePopup={
-                                                    handleFilterPopOver
+                                                togglePopup={() =>
+                                                    setOpen({
+                                                        ...open,
+                                                        filterPopOver:
+                                                            !filterPopOver,
+                                                    })
                                                 }
                                                 destroy={removeAllFilter}>
                                                 <FlexLayout
@@ -454,8 +521,12 @@ const ProductPage = (_props: PropsI) => {
                                         ) : (
                                             <Tag
                                                 destroy={removeAllFilter}
-                                                togglePopup={
-                                                    handleFilterPopOver
+                                                togglePopup={() =>
+                                                    setOpen({
+                                                        ...open,
+                                                        filterPopOver:
+                                                            !filterPopOver,
+                                                    })
                                                 }>
                                                 <FlexLayout
                                                     valign="center"
@@ -495,7 +566,7 @@ const ProductPage = (_props: PropsI) => {
                                             )}
                                         </FlexLayout>
                                     }
-                                    open={managePopOver}
+                                    open={filterPopOver}
                                 />
                             </Card>
                         ) : (
@@ -523,12 +594,62 @@ const ProductPage = (_props: PropsI) => {
                         currentPage={currentPage}
                         optionPerPage={pageArr}
                         totalitem={productsData.length}
-                        onCountChange={(page) => countChange(page)}
-                        onNext={nextPage}
-                        onPrevious={prevPage}
+                        onCountChange={(page) =>
+                            setPagination({
+                                ...pagination,
+                                totalPageRead: page,
+                            })
+                        }
+                        onNext={() =>
+                            setPagination({
+                                ...pagination,
+                                currentPage: currentPage + 1,
+                            })
+                        }
+                        onPrevious={() =>
+                            setPagination({
+                                ...pagination,
+                                currentPage: currentPage - 1,
+                            })
+                        }
                     />
                 </FlexLayout>
             </Card>
+
+            {errorModal ? (
+                <Modal open={errorModal} close={openModal} heading="Errors">
+                    <FlexLayout direction="vertical" spacing="loose">
+                        {modalErrors.map((ele: any) => {
+                            return;
+
+                            // <Accordian />;
+                        })}
+
+                        <FlexLayout wrap="noWrap" spacing="loose">
+                            <AlertTriangle size={20} color="#C4281C" />
+                            <FlexLayout direction="vertical" spacing="tight">
+                                <TextStyles
+                                    content="Product Error"
+                                    type="Paragraph"
+                                    paragraphTypes="MD-1.4"
+                                    fontweight="bold"
+                                />
+                                <TextStyles
+                                    type="Paragraph"
+                                    paragraphTypes="MD-1.4"
+                                    fontweight="normal"
+                                    textcolor="#4E4F52"
+                                    content="Error description dolor sit amet, consectetur adipiscing elit. Dui placerat commodo purus proin cras malesuada amet. Faucibus odio id sit varius eleifend. "
+                                />
+                                <Accordion title="Resolutions" />
+                            </FlexLayout>
+                        </FlexLayout>
+                        <hr />
+                    </FlexLayout>
+                </Modal>
+            ) : (
+                <></>
+            )}
         </>
     );
 };

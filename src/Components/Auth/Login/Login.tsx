@@ -70,29 +70,44 @@ function Login(_props: PropsI): JSX.Element {
     } = urlFetchCalls;
     const [searchParams] = useSearchParams();
     useEffect(() => {
-        let myToken = localStorage.getItem('user_token');
-
-        if (myToken) {
+        let bearerToken = searchParams.get('bearer');
+        let status = searchParams.get('connection_status');
+        console.log(bearerToken, status);
+        if (bearerToken) {
             dispatcher({
                 type: 'user_id',
-                state: { user_id: parseJwt(myToken).user_id },
+                state: { user_id: parseJwt(bearerToken).user_id },
             });
+            console.log(_props, parseJwt(bearerToken).user_id);
             syncConnectorInfo(_props);
             setTimeout(() => syncNecessaryInfo(), 1000);
-            let status = searchParams.get('connection_status');
-            if (status) {
-                localStorage.removeItem('user_token');
-                navigate('/success/message');
-            }
+            navigate('/success/message');
         }
+        // if (sessionToken) localStorage.setItem('user_token', sessionToken);
+        // let myToken = localStorage.getItem('user_token');
+        // console.log(myToken);
+        // if (myToken) {
+        //     dispatcher({
+        //         type: 'user_id',
+        //         state: { user_id: parseJwt(myToken).user_id },
+        //     });
+        //     syncConnectorInfo(_props);
+        //     setTimeout(() => syncNecessaryInfo(), 1000);
+        //     let status = searchParams.get('connection_status');
+        //     if (status) {
+        //         // localStorage.removeItem('user_token');
+        //         navigate('/success/message');
+        //     }
+        // }
 
-        let token = get('auth_token');
-        if (token) {
-            dispatcher({
-                type: 'user_id',
-                state: { user_id: parseJwt(token).user_id },
-            });
-        }
+        // let token = get('auth_token');
+        // console.log(token, 'new wala');
+        // if (token) {
+        //     dispatcher({
+        //         type: 'user_id',
+        //         state: { user_id: parseJwt(token).user_id },
+        //     });
+        // }
     });
 
     // function handles the state on blur of input boxes

@@ -54,6 +54,7 @@ const OnBoardingPage = (_props: PropsI) => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        console.log('onboardingPage');
         let success = searchParams.get('success');
         let message = searchParams.get('message');
         if (success) {

@@ -1,6 +1,7 @@
 .underline {
     text-decoration: underline;
     color: #D92D20;
+    cursor: pointer;
 }
 
 .custom--disable_Btn .inte-btnNarrow {
