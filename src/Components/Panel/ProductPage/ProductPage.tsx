@@ -40,8 +40,9 @@ const ProductPage = (_props: PropsI) => {
     const { rows } = productData;
     const [productsData, setProductsData] = useState<any>([]);
     const [pagination, setPagination] = useState({
-        totalPageRead: 2,
+        countPerPage: 5,
         currentPage: 1,
+        totalItems: 1,
     });
     const [filtersArr, setFiltersArr] = useState(productFilterData);
     const [showFilters, setShowFilters] = useState<any>({
@@ -57,23 +58,25 @@ const ProductPage = (_props: PropsI) => {
     const { filterPopOver, errorModal } = open;
     const { showFilterBadges, showBadges, searchVal, searchedValues } =
         showFilters;
-    const { totalPageRead, currentPage } = pagination;
+    const { countPerPage, currentPage, totalItems } = pagination;
     useEffect(() => {
         getProductsData();
-    }, []);
+    }, [currentPage]);
+
     // function hits the api of getting the products data
-    const getProductsData = () => {
-        setProductsData(rows);
-        designProductsData(rows);
-        GET(getRefineProductsUrl, { activePage: 1, count: 5 }).then((res) => {
-            // setPagination({
-            //     ...pagination,
-            //     totalPageRead: res.data.totalPageRead,
-            // });
+    const getProductsData = async () => {
+        let paramsObj = { activePage: currentPage, count: countPerPage };
+        await GET(getRefineProductsUrl, paramsObj).then((res) => {
+            GET(getRefineProductsCountsUrl, paramsObj).then((response) => {
+                setPagination({
+                    ...pagination,
+                    totalItems: response.data.count,
+                    currentPage: res.data.totalPageRead,
+                    countPerPage: res.data.current_count,
+                });
+                designProductsData(res.data.rows);
+            });
         });
-        GET(getRefineProductsCountsUrl, { activePage: 2, count: 5 }).then(
-            (res) => {}
-        );
     };
     // function formats the data and renders the data in UI
     const designProductsData = (rows: any) => {
@@ -101,7 +104,7 @@ const ProductPage = (_props: PropsI) => {
             } else {
                 if (ele.items.length > 0) {
                     obj.item_title = (
-                        <FlexLayout direction="vertical">
+                        <FlexLayout direction="vertical" valign="start">
                             <TextStyles
                                 content={ele.items[0].title}
                                 type="Paragraph"
@@ -160,7 +163,7 @@ const ProductPage = (_props: PropsI) => {
         let pending: any;
         if (obj.items.length === 1) {
             return (
-                <FlexLayout spacing="tight" valign="center">
+                <FlexLayout spacing="tight" valign="center" wrap="noWrap">
                     <Dots status="none" />
                     <TextStyles
                         type="Paragraph"
@@ -174,7 +177,10 @@ const ProductPage = (_props: PropsI) => {
                 if (ele.status && ele.status === 'error') {
                     error = (
                         <div onClick={() => showError(obj)}>
-                            <FlexLayout spacing="tight" valign="center">
+                            <FlexLayout
+                                spacing="tight"
+                                valign="center"
+                                wrap="noWrap">
                                 <AlertTriangle color="#C4281C" size={20} />
                                 <TextStyles
                                     utility="underline"
@@ -193,7 +199,10 @@ const ProductPage = (_props: PropsI) => {
                     );
                 } else if (ele.status && ele.status === 'active') {
                     active = (
-                        <FlexLayout spacing="tight" valign="center">
+                        <FlexLayout
+                            spacing="tight"
+                            valign="center"
+                            wrap="noWrap">
                             <Dots status="completed" />
                             <TextStyles
                                 type="Paragraph"
@@ -206,12 +215,12 @@ const ProductPage = (_props: PropsI) => {
                             />
                         </FlexLayout>
                     );
-                } else if (
-                    (ele.status && ele.status === 'pending') ||
-                    ele.status === undefined
-                ) {
+                } else if (ele.status && ele.status === 'pending') {
                     pending = (
-                        <FlexLayout spacing="mediumTight" valign="center">
+                        <FlexLayout
+                            spacing="mediumTight"
+                            valign="center"
+                            wrap="noWrap">
                             <Dots status="none" />
                             <TextStyles
                                 type="Paragraph"
@@ -240,15 +249,14 @@ const ProductPage = (_props: PropsI) => {
 
     const showError = (obj: any) => {
         let ParamsArr: any = [];
+        let newObj: any = {};
         let errorArr: any = [];
-        let apiArr: any = [];
-        let newObj: {};
-        let objData: {};
+        let array: any = [];
         obj.items.forEach((ele: any) => {
             if (ele.status === 'error') {
                 if (ele.errors) {
                     ele.errors.forEach((innerEle: any) => {
-                        let obj = {
+                        let paramObj = {
                             title: innerEle.title,
                             marketplace: 'meta',
                         };
@@ -256,28 +264,41 @@ const ProductPage = (_props: PropsI) => {
                             sku: ele.sku,
                             title: innerEle.title,
                             description: innerEle.description,
+                            source_product_id: ele.source_product_id,
+                            errorAction: false,
+                            solutionAction: false,
                         };
-                        Object.assign(objData, newObj);
-                        // errorArr.push(newObj);
-                        ParamsArr.push(obj);
+                        errorArr.push(newObj);
+                        ParamsArr.push(paramObj);
                     });
                 }
             }
         });
-        let eleObj: any = {};
         POST(solutionsUrl, ParamsArr).then((res) => {
             res.data.forEach((ele: any) => {
-                Object.assign(objData, ele);
-                // apiArr.push(ele);
+                errorArr.forEach((innerEle: any) => {
+                    if (innerEle && array.length < errorArr.length) {
+                        Object.assign(innerEle, ele);
+                        array.push(innerEle);
+                    }
+                });
             });
-            modalErrors.push(objData);
-            setModalErrors([...modalErrors]);
+            openModal();
+            setModalErrors(array);
         });
-        openModal();
     };
-    console.log(modalErrors);
+
     const openModal = () => {
         setOpen({ ...open, errorModal: !errorModal });
+    };
+
+    const openErrorAccordian = (ele: any, i: number) => {
+        let index = modalErrors.findIndex(
+            (innerEle: any) =>
+                innerEle.source_product_id === ele.source_product_id
+        );
+        modalErrors[index].errorAction = !modalErrors[index].errorAction;
+        setModalErrors([...modalErrors]);
     };
     // function renders the action list
     const renderActionList = (obj: any) => {
@@ -343,17 +364,31 @@ const ProductPage = (_props: PropsI) => {
         filtersArr.forEach((ele: any) => {
             if (ele.checked) {
                 Object.assign(obj, {
-                    [`filter[items.status][10][${n++}]`]: ele.status,
+                    [`filter[items.status][10][${n++}]`]:
+                        ele.status.toLowerCase(),
                 });
             }
         });
         let parObj = {
             is_only_parent_allow: false,
-            count: 5,
-            activePage: 2,
+            activePage: currentPage,
+            count: countPerPage,
         };
         Object.assign(parObj, obj);
-        GET(getRefineProductsUrl, parObj).then((res) => {});
+        GET(getRefineProductsUrl, parObj).then((res) => {
+            GET(getRefineProductsCountsUrl, {
+                activePage: currentPage,
+                count: countPerPage,
+            }).then((response) => {
+                console.log(response, 'response');
+            });
+            designProductsData(res.data.rows);
+            setPagination({
+                ...pagination,
+                currentPage: res.data.totalPageRead,
+                countPerPage: res.data.current_count,
+            });
+        });
     };
     const manageFilter = () => {
         showFilters.showFilterBadges = [];
@@ -422,17 +457,61 @@ const ProductPage = (_props: PropsI) => {
     }, [searchVal]);
 
     const renderSearchedData = () => {
-        let search: any = [];
-        productsData.map((ele: any) => {
-            if (ele.value.toLowerCase().includes(searchVal.toLowerCase())) {
-                search.push(ele);
-            }
-        });
-        setShowFilters({ ...showFilters, searchedValues: search });
+        if (searchVal === '') {
+            setPagination({
+                ...pagination,
+                currentPage: 1,
+                countPerPage: 5,
+            });
+            getProductsData();
+        } else {
+            let search: any = [];
+            productsData.map((ele: any) => {
+                if (ele.value.toLowerCase().includes(searchVal.toLowerCase())) {
+                    search.push(ele);
+                }
+            });
+            setShowFilters({ ...showFilters, searchedValues: search });
+        }
     };
     const selectSearch = (val: any) => {
-        // setProductsData(val);
-        // designProductsData(val);
+        let obj = searchedValues.find((ele: any) => ele.item_title === val);
+        let arr = [];
+        arr.push(obj);
+        setPagination({
+            ...pagination,
+            currentPage: 1,
+            countPerPage: 1,
+        });
+        designProductsData(arr);
+    };
+    const nextPage = () => {
+        if (productsData.length > 0) {
+            setProductsData([]);
+            setPagination({
+                ...pagination,
+                currentPage: Number(currentPage) + 1,
+            });
+        }
+    };
+
+    const prevPage = () => {
+        if (currentPage > 1) {
+            setProductsData([]);
+            setPagination({
+                ...pagination,
+                currentPage: Number(currentPage) - 1,
+            });
+        }
+    };
+    const openSolutionAccordian = (ele: any, i: number) => {
+        let index = modalErrors.findIndex(
+            (innerEle: any) =>
+                innerEle.source_product_id === ele.source_product_id &&
+                innerEle.sku === ele.sku
+        );
+        modalErrors[index].solutionAction = !modalErrors[index].solutionAction;
+        setModalErrors([...modalErrors]);
     };
     return (
         <>
@@ -574,82 +653,115 @@ const ProductPage = (_props: PropsI) => {
                         )}
                     </FlexLayout>
                     <Grid
+                        loading={productsData.length > 0 ? false : true}
                         columns={[
                             ...productsHead,
                             {
                                 render: (obj: any) => renderStatusList(obj),
                                 key: 'item_status',
                                 title: 'Status',
+                                width: 200,
                             },
                             {
                                 render: (obj: any) => renderActionList(obj),
                                 key: 'actions',
                                 title: 'Actions',
+                                width: 100,
                             },
                         ]}
                         dataSource={productsData}
                     />
                     <Pagination
-                        countPerPage={totalPageRead}
+                        countPerPage={countPerPage}
                         currentPage={currentPage}
                         optionPerPage={pageArr}
-                        totalitem={productsData.length}
+                        totalitem={totalItems}
                         onCountChange={(page) =>
                             setPagination({
                                 ...pagination,
-                                totalPageRead: page,
+                                countPerPage: page,
+                                currentPage: 1,
                             })
                         }
-                        onNext={() =>
+                        onEnter={(page) =>
                             setPagination({
                                 ...pagination,
-                                currentPage: currentPage + 1,
+                                currentPage: Number(page),
                             })
                         }
-                        onPrevious={() =>
-                            setPagination({
-                                ...pagination,
-                                currentPage: currentPage - 1,
-                            })
-                        }
+                        onNext={nextPage}
+                        onPrevious={prevPage}
                     />
                 </FlexLayout>
             </Card>
-
-            {errorModal ? (
-                <Modal open={errorModal} close={openModal} heading="Errors">
-                    <FlexLayout direction="vertical" spacing="loose">
-                        {modalErrors.map((ele: any) => {
-                            return;
-
-                            // <Accordian />;
-                        })}
-
-                        <FlexLayout wrap="noWrap" spacing="loose">
-                            <AlertTriangle size={20} color="#C4281C" />
-                            <FlexLayout direction="vertical" spacing="tight">
-                                <TextStyles
-                                    content="Product Error"
-                                    type="Paragraph"
-                                    paragraphTypes="MD-1.4"
-                                    fontweight="bold"
-                                />
-                                <TextStyles
-                                    type="Paragraph"
-                                    paragraphTypes="MD-1.4"
-                                    fontweight="normal"
-                                    textcolor="#4E4F52"
-                                    content="Error description dolor sit amet, consectetur adipiscing elit. Dui placerat commodo purus proin cras malesuada amet. Faucibus odio id sit varius eleifend. "
-                                />
-                                <Accordion title="Resolutions" />
-                            </FlexLayout>
-                        </FlexLayout>
-                        <hr />
-                    </FlexLayout>
-                </Modal>
-            ) : (
-                <></>
-            )}
+            <Modal open={errorModal} close={openModal} heading="Errors">
+                <FlexLayout direction="vertical" spacing="loose">
+                    {modalErrors.map((ele: any, i: number) => {
+                        return (
+                            <Accordion
+                                key={ele.sku}
+                                title={
+                                    <TextStyles
+                                        content={`Variants sku: ${ele.sku}`}
+                                        textcolor="negative"
+                                    />
+                                }
+                                iconAlign="right"
+                                onClick={() => openErrorAccordian(ele, i)}
+                                active={ele.errorAction}>
+                                <Card cardType="Default">
+                                    <FlexLayout wrap="noWrap" spacing="loose">
+                                        <AlertTriangle
+                                            size={20}
+                                            color="#C4281C"
+                                        />
+                                        <FlexLayout
+                                            direction="vertical"
+                                            spacing="tight">
+                                            <TextStyles
+                                                content={ele.title}
+                                                type="Paragraph"
+                                                paragraphTypes="MD-1.4"
+                                                fontweight="bold"
+                                            />
+                                            <TextStyles
+                                                type="Paragraph"
+                                                paragraphTypes="MD-1.4"
+                                                fontweight="normal"
+                                                textcolor="#4E4F52"
+                                                content={ele.description}
+                                            />
+                                            {ele.solution_exists === true ? (
+                                                <Accordion
+                                                    title="Resolutions"
+                                                    onClick={() =>
+                                                        openSolutionAccordian(
+                                                            ele,
+                                                            i
+                                                        )
+                                                    }
+                                                    active={ele.solutionAction}
+                                                    children={
+                                                        <TextStyles
+                                                            content={ele.answer}
+                                                            type="Paragraph"
+                                                            paragraphTypes="MD-1.4"
+                                                            lineHeight="LH-2.0"
+                                                            textcolor="#4E4F52"
+                                                        />
+                                                    }
+                                                />
+                                            ) : (
+                                                <></>
+                                            )}
+                                        </FlexLayout>
+                                    </FlexLayout>
+                                </Card>
+                            </Accordion>
+                        );
+                    })}
+                </FlexLayout>
+            </Modal>
         </>
     );
 };

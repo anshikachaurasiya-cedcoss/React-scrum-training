@@ -1,0 +1,12 @@
+.text--underline {
+    border-bottom: 1px dashed;
+    display: inline-block;
+}
+
+.text--imp {
+    color: #D62C20 !important;
+}
+
+.custom--tooltip_style {
+    margin-left: 60px !important;
+}

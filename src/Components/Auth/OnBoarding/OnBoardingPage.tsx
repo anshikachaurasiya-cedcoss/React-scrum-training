@@ -7,7 +7,6 @@ import {
     Image,
     List,
     Loader,
-    SessionExpired,
     TextLink,
     TextStyles,
 } from '@cedcommerce/ounce-ui';
@@ -22,7 +21,7 @@ import { syncNecessaryInfo, syncConnectorInfo } from '../../../Actions';
 import { urlFetchCalls } from '../../../Constant';
 import { parseJwt } from '../../../Core';
 import { StoreDispatcher } from '../../../';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import Panel from '../../Panel/Panel';
 import OnBoardingErrorModal from './OnBoardingErrorModal';
 
@@ -51,12 +50,11 @@ const OnBoardingPage = (_props: PropsI) => {
 
     let dispatcher = useContext(StoreDispatcher);
     let [searchParams] = useSearchParams();
-    const navigate = useNavigate();
 
     useEffect(() => {
-        console.log('onboardingPage');
         let success = searchParams.get('success');
         let message = searchParams.get('message');
+        let auth_token = get('auth_token');
         if (success) {
             let obj = {
                 success: false,
@@ -65,16 +63,12 @@ const OnBoardingPage = (_props: PropsI) => {
             localStorage.removeItem('user_token');
             setFbResponse({ ...obj });
         }
-        let auth_token = get('auth_token');
         if (auth_token) {
-            let obj = parseJwt(auth_token);
             dispatcher({
                 type: 'user_id',
-                state: { user_id: obj.user_id },
+                state: { user_id: parseJwt(auth_token).user_id },
             });
             syncConnectorInfo(_props);
-        } else {
-            navigate('/auth/login');
         }
     }, []);
 
@@ -327,21 +321,17 @@ const OnBoardingPage = (_props: PropsI) => {
                                                                     />
                                                                 }
                                                             />
-                                                            {errorModal ? (
-                                                                <OnBoardingErrorModal
-                                                                    fbResponse={
-                                                                        fbResponse
-                                                                    }
-                                                                    errorModal={
-                                                                        errorModal
-                                                                    }
-                                                                    openModalFunc={
-                                                                        openModalFunc
-                                                                    }
-                                                                />
-                                                            ) : (
-                                                                <></>
-                                                            )}
+                                                            <OnBoardingErrorModal
+                                                                fbResponse={
+                                                                    fbResponse
+                                                                }
+                                                                errorModal={
+                                                                    errorModal
+                                                                }
+                                                                openModalFunc={
+                                                                    openModalFunc
+                                                                }
+                                                            />
                                                         </>
                                                     ) : (
                                                         <></>

@@ -31,8 +31,9 @@ import { DI, DIProps } from '../../Core/DependencyInjection';
 import { urlFetchCalls } from '../../Constant';
 import Facebook from '../../Asests/Images/svg/Facebook';
 import Instagram from '../../Asests/Images/svg/Instagram';
-import { useNavigate } from 'react-router-dom';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import { environment } from '../../environments/environment';
+import CampaignPage from './CampaignPage/CampaignPage';
 
 type typeProps =
     | 'Neutral-100-Border'
@@ -242,6 +243,7 @@ const Dashboard = (_props: PropsI) => {
             globalState: { get },
         },
         redux: { current },
+        match,
     } = _props;
     const statusArr: badgeProps = [
         { key: 'PENDING', type: 'Neutral-100-Border' },
@@ -643,7 +645,9 @@ const Dashboard = (_props: PropsI) => {
                     <Button
                         icon={<Plus />}
                         thickness="large"
-                        onClick={() => navigate('campaign')}>
+                        onClick={() =>
+                            navigate(`/panel/${match.uId}/campaign`)
+                        }>
                         Create Campaign
                     </Button>
                 }

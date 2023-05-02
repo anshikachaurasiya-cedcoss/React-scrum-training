@@ -261,11 +261,11 @@ export const productData = {
                 {
                     shop_id: '376',
 
-                    source_product_id: '67cuy5i7zmurm2',
+                    source_product_id: '67cuy5i7zmurm',
 
                     title: '',
 
-                    sku: 'q4',
+                    sku: 'q456',
 
                     quantity: 1,
 

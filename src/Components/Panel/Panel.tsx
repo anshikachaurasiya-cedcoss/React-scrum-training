@@ -16,7 +16,7 @@ import MobileLogo from '../../Asests/Images/svg/MobileLogo';
 import Dashboard from './Dashboard';
 import Footer from '../Footer/Footer';
 import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
-import CampaignPage from './CampaignPage';
+import CampaignPage from './CampaignPage/CampaignPage';
 import ProductPage from './ProductPage/ProductPage';
 
 const Panel = (_props: PropsI) => {
@@ -91,8 +91,8 @@ const Panel = (_props: PropsI) => {
                         </>
                     }>
                     <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="campaign" element={<CampaignPage />} />
                     <Route path="product" element={<ProductPage />} />
+                    <Route path="campaign" element={<CampaignPage />} />
                 </Route>
             </Routes>
         </>
