@@ -21,16 +21,14 @@ import { AlertCircle, CheckCircle } from 'react-feather';
 import { DI, DIProps } from '../../../Core';
 import { urlFetchCalls } from '../../../Constant';
 import './CampaignPage.css';
+import moment from 'moment';
 
 const CampaignPage = (_props: DIProps) => {
     const {
         get: { initCampaignUrl },
     } = urlFetchCalls;
     const {
-        di: {
-            GET,
-            globalState: { get },
-        },
+        di: { GET },
         redux: { current },
     } = _props;
     const [products, setProducts] = useState({
@@ -42,6 +40,28 @@ const CampaignPage = (_props: DIProps) => {
         { checked: false, val: 'Prospective Audience' },
         { checked: false, val: 'Retargeting Audience' },
     ]);
+    const [value, setValue] = useState({
+        campaign: { campaign_value: '', campaign_error: false },
+        start_date: { start_value: '' },
+        end_date: { end_value: '' },
+        daily_budget: { budget_value: '', budget_error: false },
+        Ad_text: {
+            ad_value:
+                'Get fast, free delivery when you check out using Buy with Product',
+            ad_error: false,
+        },
+        facebook: { checked: true },
+        instagram: { checked: false },
+    });
+    const {
+        campaign: { campaign_value, campaign_error },
+        facebook: { checked: fb_checked },
+        instagram: { checked: insta_checked },
+        Ad_text: { ad_value, ad_error },
+        daily_budget: { budget_value, budget_error },
+        start_date: { start_value },
+        end_date: { end_value },
+    } = value;
     const { products_count, is_instagram_connected, audience_str } = products;
     const [{ checked: prospective_checked }, { checked: retargeting_checked }] =
         audience;
@@ -66,6 +86,103 @@ const CampaignPage = (_props: DIProps) => {
                 ele.checked = false;
             }
         });
+        setAudience([...audience]);
+    };
+
+    const changeHandler = (e: any, str: string) => {
+        if (str === 'Enter Campaign Name') {
+            value.campaign.campaign_error = false;
+            value.campaign.campaign_value = e;
+        } else if (str === 'Daily Budget') {
+            if (e.match(/^[0-9]*$/)) {
+                value.daily_budget.budget_error = false;
+                value.daily_budget.budget_value = e;
+            } else {
+                value.daily_budget.budget_error = true;
+            }
+        } else if (str === 'Ad Text') {
+            value.Ad_text.ad_error = false;
+            value.Ad_text.ad_value = e;
+        }
+        setValue({ ...value });
+    };
+
+    const blurHandler = (str: string) => {
+        if (str === 'Enter Campaign Name') {
+            if (campaign_value === '' || campaign_value.length > 394) {
+                value.campaign.campaign_error = true;
+            } else {
+                value.campaign.campaign_error = false;
+            }
+        } else if (str === 'Daily Budget') {
+            if (budget_value === '' || Number(budget_value) < 5) {
+                value.daily_budget.budget_error = true;
+            } else {
+                value.daily_budget.budget_error = false;
+            }
+        } else if (str === 'Ad Text') {
+            if (ad_value === '') {
+                value.Ad_text.ad_error = true;
+            } else {
+                value.Ad_text.ad_error = false;
+            }
+        }
+        setValue({ ...value });
+    };
+
+    const disabledStart = (current: any) => {
+        if (end_value !== '') {
+            return current > moment(end_value).add(-1, 'day');
+        }
+        const start_Date = current < moment().add(-1, 'day');
+        return start_Date;
+    };
+    const disabledEnd = (current: any) => {
+        if (start_value !== '') {
+            const end_Date = current < moment(start_value).add(+1, 'day');
+            return end_Date;
+        }
+    };
+    const checkHandler = (str: string) => {
+        if (str === 'Facebook') {
+            value.facebook.checked = !value.facebook.checked;
+        }
+        if (str === 'Instagram') {
+            value.instagram.checked = !value.instagram.checked;
+        }
+        setValue({ ...value });
+    };
+
+    const dateHandler = (str: string, val: any) => {
+        if (str === 'Start Date') {
+            if (val === null) {
+                value.start_date.start_value = '';
+            }
+            value.start_date.start_value = val;
+        } else if (str === 'End Date') {
+            if (val === null) {
+                value.end_date.end_value = '';
+            }
+            value.end_date.end_value = val;
+        }
+        setValue({ ...value });
+    };
+
+    const campIcon = () => {
+        if (
+            campaign_value === '' ||
+            budget_value === '' ||
+            ad_value === '' ||
+            start_value === '' ||
+            campaign_error ||
+            budget_error ||
+            ad_error ||
+            start_value === null
+        ) {
+            return '#70747E';
+        } else {
+            return '#027A48';
+        }
     };
 
     return (
@@ -84,7 +201,7 @@ const CampaignPage = (_props: DIProps) => {
                                 spacing="loose"
                                 halign="center"
                                 wrap="noWrap">
-                                <CheckCircle color="#70747E" size={20} />
+                                <CheckCircle size={20} color={campIcon()} />
                                 <TextStyles
                                     content="Campaign Details"
                                     type="SubHeading"
@@ -104,10 +221,23 @@ const CampaignPage = (_props: DIProps) => {
                                         required
                                         placeHolder="Enter Campaign Name"
                                         showHelp="Campaign name limited to 394 characters."
+                                        value={campaign_value}
+                                        error={campaign_error}
+                                        onChange={(e) =>
+                                            changeHandler(
+                                                e,
+                                                'Enter Campaign Name'
+                                            )
+                                        }
+                                        onblur={() =>
+                                            blurHandler('Enter Campaign Name')
+                                        }
                                     />
                                     <FlexLayout spacing="loose" wrap="noWrap">
                                         <FlexChild desktopWidth="50">
                                             <Datepicker
+                                                format="MM/DD/YYYY"
+                                                placeholder="MM/DD/YYYY"
                                                 showHelp="Campaign starts at 12 am(EST time zone) "
                                                 name={
                                                     <FlexLayout spacing="extraTight">
@@ -118,16 +248,45 @@ const CampaignPage = (_props: DIProps) => {
                                                         />
                                                     </FlexLayout>
                                                 }
+                                                value={start_value}
+                                                onChange={(val: any) =>
+                                                    dateHandler(
+                                                        'Start Date',
+                                                        val
+                                                    )
+                                                }
+                                                disabledDate={disabledStart}
                                             />
                                         </FlexChild>
                                         <FlexChild desktopWidth="50">
                                             <Datepicker
+                                                onChange={(val: any) =>
+                                                    dateHandler('End Date', val)
+                                                }
+                                                disabled={
+                                                    start_value === '' ||
+                                                    start_value === null
+                                                        ? true
+                                                        : false
+                                                }
+                                                value={end_value}
+                                                disabledDate={disabledEnd}
+                                                format="MM/DD/YYYY"
+                                                placeholder="MM/DD/YYYY"
                                                 name="End Date "
                                                 showHelp="Campaign remains active until paused or til the end date."
                                             />
                                         </FlexChild>
                                     </FlexLayout>
                                     <TextField
+                                        value={budget_value}
+                                        onChange={(e) =>
+                                            changeHandler(e, 'Daily Budget')
+                                        }
+                                        onblur={() =>
+                                            blurHandler('Daily Budget')
+                                        }
+                                        error={budget_error}
                                         name={
                                             <ToolTip
                                                 open={false}
@@ -161,6 +320,12 @@ const CampaignPage = (_props: DIProps) => {
                                     <TextField
                                         name="Ad Text "
                                         required
+                                        value={ad_value}
+                                        onChange={(e) =>
+                                            changeHandler(e, 'Ad Text')
+                                        }
+                                        error={ad_error}
+                                        onblur={() => blurHandler('Ad Text')}
                                         placeHolder="Insert the Suitable Ad Text"
                                         showHelp={
                                             <FlexLayout
@@ -170,6 +335,7 @@ const CampaignPage = (_props: DIProps) => {
                                                     type="Paragraph"
                                                     paragraphTypes="MD-1.4"
                                                     textcolor="#4E4F52"
+                                                    utility="helpText--style"
                                                     content="To know more about high performing and quality content for Ads refer to our"
                                                 />
                                                 <TextLink
@@ -278,7 +444,12 @@ const CampaignPage = (_props: DIProps) => {
                                         halign="center"
                                         wrap="noWrap">
                                         <CheckCircle
-                                            color="#027A48"
+                                            color={
+                                                retargeting_checked ||
+                                                prospective_checked
+                                                    ? '#027A48'
+                                                    : '#70747E'
+                                            }
                                             size={20}
                                         />
                                         <TextStyles
@@ -323,10 +494,11 @@ const CampaignPage = (_props: DIProps) => {
                                             }
                                         />
                                     </FlexLayout>
-                                    {audience_str === 'Prospective Audience' ? (
+                                    {audience_str ===
+                                        'Prospective Audience' && (
                                         <FlexLayout
                                             direction="vertical"
-                                            spacing="loose">
+                                            spacing="tight">
                                             <TextStyles
                                                 content="Define the group of people who will see your Ads based on their demographics, interests, behavior, and more."
                                                 type="Paragraph"
@@ -365,13 +537,12 @@ const CampaignPage = (_props: DIProps) => {
                                                 </FlexLayout>
                                             </Card>
                                         </FlexLayout>
-                                    ) : (
-                                        <></>
                                     )}
-                                    {audience_str === 'Retargeting Audience' ? (
+                                    {audience_str ===
+                                        'Retargeting Audience' && (
                                         <FlexLayout
                                             direction="vertical"
-                                            spacing="loose">
+                                            spacing="tight">
                                             <TextStyles
                                                 content="Target customers who either viewed your product or added it to their cart, but did not purchase."
                                                 type="Paragraph"
@@ -388,8 +559,6 @@ const CampaignPage = (_props: DIProps) => {
                                                 </FlexLayout>
                                             </Card>
                                         </FlexLayout>
-                                    ) : (
-                                        <></>
                                     )}
                                 </FlexLayout>
                             </Card>
@@ -401,7 +570,11 @@ const CampaignPage = (_props: DIProps) => {
                                         halign="center"
                                         wrap="noWrap">
                                         <CheckCircle
-                                            color="#027A48"
+                                            color={
+                                                fb_checked || insta_checked
+                                                    ? '#027A48'
+                                                    : '#70747E'
+                                            }
                                             size={20}
                                         />
                                         <TextStyles
@@ -417,31 +590,59 @@ const CampaignPage = (_props: DIProps) => {
                                 <FlexLayout
                                     direction="vertical"
                                     spacing="extraTight"
-                                    valign="start">
-                                    <CheckBox labelVal="Facebook" />
-                                    {is_instagram_connected === true ? (
-                                        <CheckBox labelVal="Instagram" />
+                                    desktopWidth="100">
+                                    {fb_checked === false &&
+                                    insta_checked === false ? (
+                                        <Alert
+                                            type="info"
+                                            destroy={false}
+                                            children={
+                                                <TextStyles content="Atleast one platform should be selected." />
+                                            }
+                                        />
                                     ) : (
-                                        <FlexLayout
-                                            spacing="extraTight"
-                                            halign="center">
+                                        <></>
+                                    )}
+                                    <FlexLayout
+                                        direction="vertical"
+                                        valign="start">
+                                        <CheckBox
+                                            labelVal="Facebook"
+                                            checked={fb_checked}
+                                            onClick={() =>
+                                                checkHandler('Facebook')
+                                            }
+                                        />
+                                        {is_instagram_connected === true ? (
                                             <CheckBox
                                                 labelVal="Instagram"
-                                                disabled
+                                                checked={insta_checked}
+                                                onClick={() =>
+                                                    checkHandler('Instagram')
+                                                }
                                             />
-
-                                            <ToolTip
-                                                helpText="Connect your Instagram Account to place ads on Instagram"
-                                                position="top"
-                                                open={false}
-                                                type="light">
-                                                <AlertCircle
-                                                    color="#70747E"
-                                                    size={20}
+                                        ) : (
+                                            <FlexLayout
+                                                spacing="extraTight"
+                                                halign="center">
+                                                <CheckBox
+                                                    labelVal="Instagram"
+                                                    disabled
                                                 />
-                                            </ToolTip>
-                                        </FlexLayout>
-                                    )}
+
+                                                <ToolTip
+                                                    helpText="Connect your Instagram Account to place ads on Instagram"
+                                                    position="top"
+                                                    open={false}
+                                                    type="light">
+                                                    <AlertCircle
+                                                        color="#70747E"
+                                                        size={20}
+                                                    />
+                                                </ToolTip>
+                                            </FlexLayout>
+                                        )}
+                                    </FlexLayout>
                                 </FlexLayout>
                             </Card>
                         </FlexLayout>
