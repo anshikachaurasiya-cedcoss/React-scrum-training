@@ -103,35 +103,6 @@ export const gridData = [
     },
 ];
 
-export const gridHead = [
-    {
-        dataIndex: 'campaign_name',
-        fixed: 'left',
-        key: 'campaign_name',
-        title: 'Campaign',
-    },
-    {
-        dataIndex: 'statusComponent',
-        fixed: 'left',
-        key: 'status',
-        title: 'Status',
-    },
-    {
-        dataIndex: 'campaign_placement',
-        key: 'campaign_placement',
-        title: 'Placement',
-    },
-    { dataIndex: 'start_date', key: 'start_date', title: 'Start Date' },
-    { dataIndex: 'end_date', key: 'end_date', title: 'End Date' },
-    {
-        dataIndex: 'daily_budget',
-        key: 'daily_budget',
-        title: 'Daily Budget',
-    },
-    { dataIndex: 'spend', key: 'spend', title: 'Spend' },
-    { dataIndex: 'sales', key: 'sales', title: 'Sales' },
-];
-
 export const pageArr = [
     {
         label: '5',
@@ -155,18 +126,6 @@ export const pageArr = [
     },
 ];
 
-export const newColumns = [
-    {
-        dataIndex: 'impressions',
-        key: 'impressions',
-        title: 'Impressions',
-        checked: false,
-    },
-    { dataIndex: 'clicks', key: 'clicks', title: 'Clicks', checked: false },
-    { dataIndex: 'orders', key: 'orders', title: 'Orders', checked: false },
-    { dataIndex: 'roas', key: 'roas', title: 'ROAS', checked: false },
-];
-
 export const filterVal = [
     { status: 'Archived', checked: false },
     { status: 'Active', checked: false },
@@ -176,4 +135,30 @@ export const filterVal = [
     { status: 'Paused', checked: false },
     { status: 'Pending', checked: false },
     { status: 'Scheduled', checked: false },
+];
+
+export const searchedData = [
+    {
+        campaign_name: 'arfah campaign',
+
+        campaign_id: '23854582774900431',
+    },
+
+    {
+        campaign_name: 'syed campaign',
+
+        campaign_id: '23854594122030431',
+    },
+
+    {
+        campaign_name: 'retargeting campaign',
+
+        campaign_id: '23854594149590431',
+    },
+
+    {
+        campaign_name: 'Pre Eid campaign',
+
+        campaign_id: '23854612241780431',
+    },
 ];

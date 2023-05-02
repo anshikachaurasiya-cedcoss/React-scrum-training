@@ -1,10 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { DI, DIProps, parseJwt } from '../../../Core';
-import {
-    loginStatus,
-    syncConnectorInfo,
-    syncNecessaryInfo,
-} from '../../../Actions';
+import { loginStatus } from '../../../Actions';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { StoreDispatcher } from '../../..';
 import { Eye, EyeOff } from 'react-feather';
@@ -18,8 +14,6 @@ import { regexValidation, urlFetchCalls } from '../../../Constant';
 
 interface PropsI extends DIProps {
     loginStatus: () => void;
-    syncConnectorInfo: (_props: DIProps) => void;
-    syncNecessaryInfo: () => void;
 }
 interface objIErrorValidate {
     error?: boolean;
@@ -52,11 +46,9 @@ function Login(_props: PropsI): JSX.Element {
     const {
         di: {
             POST,
-            globalState: { set, get },
+            globalState: { set },
         },
         error,
-        syncConnectorInfo,
-        syncNecessaryInfo,
     } = _props;
     // destructuring of states
     const { username, password, loading, eyeoff } = state;
@@ -70,30 +62,19 @@ function Login(_props: PropsI): JSX.Element {
     } = urlFetchCalls;
     const [searchParams] = useSearchParams();
     useEffect(() => {
-        let myToken = localStorage.getItem('user_token');
-
-        if (myToken) {
+        let bearerToken = searchParams.get('bearer');
+        let status = searchParams.get('connection_status');
+        if (bearerToken) {
             dispatcher({
                 type: 'user_id',
-                state: { user_id: parseJwt(myToken).user_id },
+                state: { user_id: parseJwt(bearerToken).user_id },
             });
-            syncConnectorInfo(_props);
-            setTimeout(() => syncNecessaryInfo(), 1000);
-            let status = searchParams.get('connection_status');
-            if (status) {
-                localStorage.removeItem('user_token');
+            set(`${parseJwt(bearerToken).user_id}_auth_token`, bearerToken);
+            if (status && Number(status) === 1) {
                 navigate('/success/message');
             }
         }
-
-        let token = get('auth_token');
-        if (token) {
-            dispatcher({
-                type: 'user_id',
-                state: { user_id: parseJwt(token).user_id },
-            });
-        }
-    });
+    }, []);
 
     // function handles the state on blur of input boxes
     const blurHandler = (name: string) => {
@@ -249,5 +230,5 @@ function Login(_props: PropsI): JSX.Element {
 }
 
 export default DI(Login, {
-    func: { loginStatus, syncConnectorInfo, syncNecessaryInfo },
+    func: { loginStatus },
 });

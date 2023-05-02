@@ -12,3 +12,11 @@
 .badge--card {
     padding: 0 !important;
 }
+
+.dashedLine {
+    border-bottom: 1px dashed #3B424F;
+}
+
+.dashedLine--block {
+    display: inline-block;
+}

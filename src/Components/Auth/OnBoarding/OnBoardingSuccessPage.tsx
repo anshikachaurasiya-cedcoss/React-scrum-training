@@ -3,7 +3,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DI, DIProps } from '../../../Core';
 
-interface PropsI extends DIProps {}
+interface PropsI extends DIProps {
+    syncNecessaryInfo: () => void;
+}
 
 const OnBoardingSuccessPage = (_props: PropsI) => {
     const [sec, setSec] = useState(3);
