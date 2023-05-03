@@ -23,13 +23,31 @@ import React, { useEffect, useState } from 'react';
 import { AlertTriangle, Filter, MoreVertical, RefreshCcw } from 'react-feather';
 import { DI, DIProps } from '../../../Core';
 import { urlFetchCalls } from '../../../Constant';
-import { productsHead, productData, productFilterData } from './ProductsData';
 import imageNotFound from '../../../Asests/Images/Image_not_found.png';
 import { pageArr } from '../../ConstantArrays';
 
 interface PropsI extends DIProps {}
 
 const ProductPage = (_props: PropsI) => {
+    const productsHead = [
+        {
+            dataIndex: 'main_image',
+            key: 'main_image',
+            title: 'Image',
+        },
+        {
+            dataIndex: 'item_title',
+            key: 'item_title',
+            title: 'Title',
+        },
+    ];
+
+    const productFilterData = [
+        { status: 'Active', checked: false },
+        { status: 'Error', checked: false },
+        { status: 'Pending', checked: false },
+    ];
+
     const {
         get: { getRefineProductsUrl, getRefineProductsCountsUrl },
         post: { solutionsUrl },
@@ -37,7 +55,6 @@ const ProductPage = (_props: PropsI) => {
     const {
         di: { GET, POST },
     } = _props;
-    const { rows } = productData;
     const [productsData, setProductsData] = useState<any>([]);
     const [pagination, setPagination] = useState({
         countPerPage: 5,
@@ -162,14 +179,66 @@ const ProductPage = (_props: PropsI) => {
         let active: any;
         let pending: any;
         if (obj.items.length === 1) {
+            obj.items.map((ele: any) => {
+                if (ele.status && ele.status === 'error') {
+                    error = (
+                        <div onClick={() => showError(obj)} key={ele.status}>
+                            <FlexLayout
+                                spacing="tight"
+                                valign="center"
+                                wrap="noWrap">
+                                <AlertTriangle color="#C4281C" size={20} />
+                                <TextStyles
+                                    utility="underline"
+                                    content={` Errors`}
+                                    textcolor="negative"
+                                    type="Paragraph"
+                                    paragraphTypes="MD-1.4"
+                                    fontweight="bold"
+                                />
+                            </FlexLayout>
+                        </div>
+                    );
+                } else if (ele.status && ele.status === 'active') {
+                    active = (
+                        <FlexLayout
+                            key={ele.status}
+                            spacing="tight"
+                            valign="center"
+                            wrap="noWrap">
+                            <Dots status="completed" />
+                            <TextStyles
+                                type="Paragraph"
+                                paragraphTypes="MD-1.4"
+                                content={' Active'}
+                            />
+                        </FlexLayout>
+                    );
+                } else if (
+                    (ele.status && ele.status === 'pending') ||
+                    !ele.status
+                ) {
+                    pending = (
+                        <FlexLayout
+                            key={ele.status}
+                            spacing="tight"
+                            valign="center"
+                            wrap="noWrap">
+                            <Dots status="none" />
+                            <TextStyles
+                                type="Paragraph"
+                                paragraphTypes="SM-1.3"
+                                content="Pending"
+                            />
+                        </FlexLayout>
+                    );
+                }
+            });
             return (
-                <FlexLayout spacing="tight" valign="center" wrap="noWrap">
-                    <Dots status="none" />
-                    <TextStyles
-                        type="Paragraph"
-                        paragraphTypes="SM-1.3"
-                        content="Pending"
-                    />
+                <FlexLayout direction="vertical" valign="start">
+                    {error}
+                    {pending}
+                    {active}
                 </FlexLayout>
             );
         } else if (obj.items.length > 1) {
@@ -277,6 +346,7 @@ const ProductPage = (_props: PropsI) => {
         POST(solutionsUrl, ParamsArr).then((res) => {
             res.data.forEach((ele: any) => {
                 errorArr.forEach((innerEle: any) => {
+                    console.log(innerEle);
                     if (innerEle && array.length < errorArr.length) {
                         Object.assign(innerEle, ele);
                         array.push(innerEle);
@@ -295,7 +365,8 @@ const ProductPage = (_props: PropsI) => {
     const openErrorAccordian = (ele: any, i: number) => {
         let index = modalErrors.findIndex(
             (innerEle: any) =>
-                innerEle.source_product_id === ele.source_product_id
+                innerEle.source_product_id === ele.source_product_id &&
+                innerEle.sku === ele.sku
         );
         modalErrors[index].errorAction = !modalErrors[index].errorAction;
         setModalErrors([...modalErrors]);

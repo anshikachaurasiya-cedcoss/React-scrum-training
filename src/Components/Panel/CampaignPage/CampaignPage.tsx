@@ -23,14 +23,135 @@ import { urlFetchCalls } from '../../../Constant';
 import './CampaignPage.css';
 import moment from 'moment';
 
+interface selectedObj {
+    minValue: { value: string };
+    maxValue: { value: string };
+    genderValue: { value: string };
+    reTargetValue: { value: string };
+    reTarget: { label: string; value: string }[];
+}
+
+interface searchedObj {
+    searchedvalue: string;
+    searchedArr: {}[];
+    selectedSearchedArr: any;
+    searchLoading: boolean;
+}
+
 const CampaignPage = (_props: DIProps) => {
     const {
-        get: { initCampaignUrl },
+        get: { initCampaignUrl, getAudience },
     } = urlFetchCalls;
     const {
         di: { GET },
         redux: { current },
     } = _props;
+    const minAge = [
+        { label: '18', value: '18' },
+        { label: '19', value: '19' },
+        { label: '20', value: '20' },
+        { label: '21', value: '21' },
+        { label: '22', value: '22' },
+        { label: '23', value: '23' },
+        { label: '24', value: '24' },
+        { label: '25', value: '25' },
+        { label: '26', value: '26' },
+        { label: '27', value: '27' },
+        { label: '28', value: '28' },
+        { label: '29', value: '29' },
+        { label: '30', value: '30' },
+        { label: '31', value: '31' },
+        { label: '32', value: '32' },
+        { label: '33', value: '33' },
+        { label: '34', value: '34' },
+        { label: '35', value: '35' },
+        { label: '36', value: '36' },
+        { label: '37', value: '37' },
+        { label: '38', value: '38' },
+        { label: '39', value: '39' },
+        { label: '40', value: '40' },
+        { label: '41', value: '41' },
+        { label: '42', value: '42' },
+        { label: '43', value: '43' },
+        { label: '44', value: '44' },
+        { label: '45', value: '45' },
+        { label: '46', value: '46' },
+        { label: '47', value: '47' },
+        { label: '48', value: '48' },
+        { label: '49', value: '49' },
+        { label: '50', value: '50' },
+        { label: '51', value: '51' },
+        { label: '52', value: '52' },
+        { label: '53', value: '53' },
+        { label: '54', value: '54' },
+        { label: '55', value: '55' },
+        { label: '56', value: '56' },
+        { label: '57', value: '57' },
+        { label: '58', value: '58' },
+        { label: '59', value: '59' },
+        { label: '60', value: '60' },
+        { label: '61', value: '61' },
+        { label: '62', value: '62' },
+        { label: '63', value: '63' },
+        { label: '64', value: '64' },
+        { label: '65', value: '65' },
+    ];
+    const maxAge = [
+        { label: '18', value: '18' },
+        { label: '19', value: '19' },
+        { label: '20', value: '20' },
+        { label: '21', value: '21' },
+        { label: '22', value: '22' },
+        { label: '23', value: '23' },
+        { label: '24', value: '24' },
+        { label: '25', value: '25' },
+        { label: '26', value: '26' },
+        { label: '27', value: '27' },
+        { label: '28', value: '28' },
+        { label: '29', value: '29' },
+        { label: '30', value: '30' },
+        { label: '31', value: '31' },
+        { label: '32', value: '32' },
+        { label: '33', value: '33' },
+        { label: '34', value: '34' },
+        { label: '35', value: '35' },
+        { label: '36', value: '36' },
+        { label: '37', value: '37' },
+        { label: '38', value: '38' },
+        { label: '39', value: '39' },
+        { label: '40', value: '40' },
+        { label: '41', value: '41' },
+        { label: '42', value: '42' },
+        { label: '43', value: '43' },
+        { label: '44', value: '44' },
+        { label: '45', value: '45' },
+        { label: '46', value: '46' },
+        { label: '47', value: '47' },
+        { label: '48', value: '48' },
+        { label: '49', value: '49' },
+        { label: '50', value: '50' },
+        { label: '51', value: '51' },
+        { label: '52', value: '52' },
+        { label: '53', value: '53' },
+        { label: '54', value: '54' },
+        { label: '55', value: '55' },
+        { label: '56', value: '56' },
+        { label: '57', value: '57' },
+        { label: '58', value: '58' },
+        { label: '59', value: '59' },
+        { label: '60', value: '60' },
+        { label: '61', value: '61' },
+        { label: '62', value: '62' },
+        { label: '63', value: '63' },
+        { label: '64', value: '64' },
+        { label: '65', value: '65' },
+    ];
+    const gender = [
+        { label: 'male', value: 'male', selected: 'male' },
+        { label: 'female', value: 'female' },
+        { label: 'all', value: 'all' },
+    ];
+
     const [products, setProducts] = useState({
         products_count: 0,
         is_instagram_connected: false,
@@ -47,12 +168,39 @@ const CampaignPage = (_props: DIProps) => {
         daily_budget: { budget_value: '', budget_error: false },
         Ad_text: {
             ad_value:
-                'Get fast, free delivery when you check out using Buy with Product',
+                'Get fast, free delivery when you check out using Buy with ProductGet fast, free delivery when you check out using Buy with Prime. Just look for the Buy with Prime badge and start shopping.',
             ad_error: false,
         },
         facebook: { checked: true },
         instagram: { checked: false },
     });
+
+    const [searched, setSearched] = useState<searchedObj>({
+        searchedvalue: '',
+        searchedArr: [],
+        selectedSearchedArr: [],
+        searchLoading: false,
+    });
+
+    const { searchedvalue, searchedArr, selectedSearchedArr, searchLoading } =
+        searched;
+
+    const [selectedValues, setSelectedValues] = useState<selectedObj>({
+        minValue: { value: minAge[0].value },
+        maxValue: { value: maxAge[maxAge.length - 1].value },
+        genderValue: { value: gender[0].value },
+        reTargetValue: { value: '' },
+        reTarget: [],
+    });
+
+    const {
+        minValue: { value: minSelectedValue },
+        maxValue: { value: maxSelectedValue },
+        genderValue: { value: genderSelectedValue },
+        reTargetValue: { value: reTargetSelectedValue },
+        reTarget,
+    } = selectedValues;
+
     const {
         campaign: { campaign_value, campaign_error },
         facebook: { checked: fb_checked },
@@ -70,6 +218,16 @@ const CampaignPage = (_props: DIProps) => {
     }, []);
     const getInitCampaigns = () => {
         GET(initCampaignUrl, { shop_id: current?.target._id }).then((res) => {
+            Object.values(res.data.audience).forEach((ele: any) => {
+                let obj: any = {
+                    label: ele,
+                    value: ele,
+                };
+                selectedValues.reTarget.push(obj);
+            });
+            selectedValues.reTargetValue.value =
+                selectedValues.reTarget[0].value;
+            setSelectedValues({ ...selectedValues });
             setProducts({
                 ...products,
                 products_count: res.data.products_count,
@@ -185,6 +343,132 @@ const CampaignPage = (_props: DIProps) => {
         }
     };
 
+    const selectHandler = (str: string, ele: any) => {
+        if (str === 'Min Age') {
+            if (ele < maxSelectedValue) {
+                selectedValues.minValue.value = ele;
+            }
+        } else if (str === 'Max Age') {
+            if (ele > minSelectedValue) {
+                selectedValues.maxValue.value = ele;
+            }
+        } else if (str === 'Gender') {
+            selectedValues.genderValue.value = ele;
+        } else if (str === 'Retargeting Groups') {
+            selectedValues.reTargetValue.value = ele;
+        }
+        setSelectedValues({ ...selectedValues });
+    };
+    const searchHandler = (val: string) => {
+        searched.searchedvalue = val;
+        setSearched({ ...searched });
+    };
+    useEffect(() => {
+        if (searchedvalue !== '') {
+            setSearched({ ...searched, searchLoading: true });
+            let search = setTimeout(() => {
+                GET(getAudience, {
+                    query: searchedvalue,
+                    shop_id: _props.redux.current?.target._id,
+                }).then((res) => {
+                    console.log(res);
+                    searched.searchLoading = false;
+                    res.data.forEach((ele: any) => {
+                        let obj: any = {
+                            value: ele.name,
+                            label: ele.name,
+                            lname: ele.path[0],
+                            popoverContent: (
+                                <FlexLayout
+                                    direction="vertical"
+                                    spacing="tight">
+                                    <FlexLayout spacing="tight" wrap="noWrap">
+                                        <TextStyles
+                                            fontweight="extraBolder"
+                                            content=" Size :"
+                                            type="Paragraph"
+                                            paragraphTypes="MD-1.4"
+                                            utility="helpText--style"
+                                        />
+                                        <TextStyles
+                                            textcolor="light"
+                                            content={`
+                                            ${ele.audience_size_lower_bound}-
+                                            ${ele.audience_size_upper_bound}`}
+                                            type="Paragraph"
+                                            paragraphTypes="MD-1.4"
+                                            utility="helpText--style"
+                                        />
+                                    </FlexLayout>
+                                    <FlexLayout spacing="tight" wrap="noWrap">
+                                        <TextStyles
+                                            textcolor="#1C2433"
+                                            content={`${ele.path[0]} > `}
+                                        />
+                                        <TextStyles textcolor="light">
+                                            {ele.path
+                                                .slice(1, ele.path.length)
+                                                .map(
+                                                    (
+                                                        innerEle: any,
+                                                        i: number
+                                                    ) => {
+                                                        return `${innerEle} ${
+                                                            i <
+                                                            ele.path.length - 1
+                                                                ? '>'
+                                                                : ''
+                                                        }`;
+                                                    }
+                                                )}
+                                        </TextStyles>
+                                    </FlexLayout>
+                                    {ele.description && (
+                                        <FlexLayout
+                                            spacing="tight"
+                                            wrap="noWrap">
+                                            <TextStyles
+                                                content={'Description:'}
+                                            />
+                                            <TextStyles
+                                                content={ele.description}
+                                            />
+                                        </FlexLayout>
+                                    )}
+                                    <Alert destroy={false} type="info">
+                                        The audience size for the selected
+                                        interest group is shown as a range.
+                                        These numbers are subject to change over
+                                        time.
+                                    </Alert>
+                                </FlexLayout>
+                            ),
+                        };
+                        Object.assign(obj, ele);
+                        searched.searchedArr.push(obj);
+                    });
+                    setSearched({ ...searched, searchLoading: false });
+                });
+            }, 2000);
+            return () => clearTimeout(search);
+        }
+    }, [searchedvalue]);
+    let arr: any = [];
+    const selectSearched = (val: any) => {
+        let obj: any = searchedArr.find((ele: any) => ele.name === val);
+        // let temp = arr.includes(obj.path[0]);
+        // if(temp===false){
+        //     let innerVal ={newObj:obj.path[0]}
+        // }
+        searched.selectedSearchedArr.push(obj);
+        setSearched({ ...searched });
+    };
+    let newArr: any = [];
+    const selectedGroupRender = (ele: any) => {
+        if (newArr.includes(ele.path[0]) === false) {
+            let newLine = <FlexLayout></FlexLayout>;
+        }
+    };
     return (
         <>
             <PageHeader
@@ -211,8 +495,14 @@ const CampaignPage = (_props: DIProps) => {
                                 />
                             </FlexLayout>
                         }
-                        primaryAction={<Button content="Create Campaign" />}
-                        secondaryAction={<Button content="Cancel" />}>
+                        primaryAction={{
+                            content: 'Create Campaign',
+                            type: 'Primary',
+                        }}
+                        secondaryAction={{
+                            content: 'Cancel',
+                            type: 'Outlined',
+                        }}>
                         <FlexLayout spacing="loose" direction="vertical">
                             <Card>
                                 <FormElement>
@@ -512,23 +802,108 @@ const CampaignPage = (_props: DIProps) => {
                                                     <FlexLayout
                                                         spacing="loose"
                                                         wrap="noWrap">
-                                                        <Select
-                                                            name="Min Age "
-                                                            required
-                                                        />
-                                                        <Select
-                                                            name="Max Age "
-                                                            required
-                                                        />
-                                                        <Select
-                                                            name="Gender"
-                                                            required
-                                                        />
+                                                        <div className="custom--selectStyle">
+                                                            <Select
+                                                                name="Min Age "
+                                                                required
+                                                                options={minAge.map(
+                                                                    (ele) => {
+                                                                        return ele;
+                                                                    }
+                                                                )}
+                                                                value={
+                                                                    minSelectedValue
+                                                                }
+                                                                onChange={(
+                                                                    ele
+                                                                ) =>
+                                                                    selectHandler(
+                                                                        'Min Age',
+                                                                        ele
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
+                                                        <div className="custom--selectStyle">
+                                                            <Select
+                                                                name="Max Age "
+                                                                required
+                                                                options={maxAge.map(
+                                                                    (ele) => {
+                                                                        return ele;
+                                                                    }
+                                                                )}
+                                                                value={
+                                                                    maxSelectedValue
+                                                                }
+                                                                onChange={(
+                                                                    ele
+                                                                ) =>
+                                                                    selectHandler(
+                                                                        'Max Age',
+                                                                        ele
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
+                                                        <div className="custom--selectStyle">
+                                                            <Select
+                                                                name="Gender"
+                                                                required
+                                                                options={gender.map(
+                                                                    (ele) => {
+                                                                        return ele;
+                                                                    }
+                                                                )}
+                                                                value={
+                                                                    genderSelectedValue
+                                                                }
+                                                                onChange={(
+                                                                    ele
+                                                                ) =>
+                                                                    selectHandler(
+                                                                        'Gender',
+                                                                        ele
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
                                                     </FlexLayout>
                                                     <Card cardType="Subdued">
+                                                        {selectedSearchedArr.map(
+                                                            (ele: any) => {
+                                                                selectedGroupRender(
+                                                                    ele
+                                                                );
+                                                            }
+                                                        )}
                                                         <AutoComplete
+                                                            loading={
+                                                                searchLoading
+                                                            }
+                                                            setHiglighted
+                                                            showPopover
                                                             name="Search and Select Groups"
-                                                            options={[]}
+                                                            value={
+                                                                searchedvalue
+                                                            }
+                                                            onChange={(
+                                                                val: any
+                                                            ) =>
+                                                                searchHandler(
+                                                                    val
+                                                                )
+                                                            }
+                                                            options={
+                                                                searchedArr
+                                                            }
+                                                            onClick={(
+                                                                val: any
+                                                            ) =>
+                                                                selectSearched(
+                                                                    val
+                                                                )
+                                                            }
                                                             placeHolder=" Search for demographics, interests, behaviors, etc."
                                                         />
                                                     </Card>
@@ -553,7 +928,23 @@ const CampaignPage = (_props: DIProps) => {
                                                 <FlexLayout
                                                     direction="vertical"
                                                     spacing="loose">
-                                                    <Select name="Retargeting Groups" />
+                                                    <Select
+                                                        name="Retargeting Groups"
+                                                        options={reTarget.map(
+                                                            (ele: any) => {
+                                                                return ele;
+                                                            }
+                                                        )}
+                                                        value={
+                                                            reTargetSelectedValue
+                                                        }
+                                                        onChange={(ele) =>
+                                                            selectHandler(
+                                                                'Retargeting Groups',
+                                                                ele
+                                                            )
+                                                        }
+                                                    />
                                                     <hr />
                                                     <CheckBox labelVal="Reach people apart from your detailed targeting selections when its expected to improve performance." />
                                                 </FlexLayout>
@@ -594,7 +985,7 @@ const CampaignPage = (_props: DIProps) => {
                                     {fb_checked === false &&
                                     insta_checked === false ? (
                                         <Alert
-                                            type="info"
+                                            type="warning"
                                             destroy={false}
                                             children={
                                                 <TextStyles content="Atleast one platform should be selected." />
