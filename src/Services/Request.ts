@@ -13,7 +13,7 @@ const message = `Sorry, the request was unsuccessful. Please try again later.`;
 
 type ReduxI = ThunkDispatch<any, unknown, Action<string>>;
 
-function getAdditionalParams(StateProps: any) {
+export const getAdditionalParams=(StateProps: any)=> {
     const marketplace =
         globalState.get(StateProps)('target_marketplace') || 'all';
     const params: any = {

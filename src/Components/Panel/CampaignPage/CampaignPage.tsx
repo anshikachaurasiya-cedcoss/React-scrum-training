@@ -1,8 +1,9 @@
 import {
     Alert,
     AutoComplete,
-    Button,
+    Avatar,
     Card,
+    Carousel,
     CheckBox,
     Datepicker,
     FlexChild,
@@ -10,18 +11,24 @@ import {
     FormElement,
     PageHeader,
     Radio,
+    RangeSlider,
     Select,
+    Tabs,
     TextField,
     TextLink,
     TextStyles,
     ToolTip,
+    Image,
+    Breadcrumb,
+    Tag,
 } from '@cedcommerce/ounce-ui';
-import React, { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle } from 'react-feather';
+import React, { useEffect, useRef, useState } from 'react';
+import { AlertCircle, CheckCircle, Play } from 'react-feather';
 import { DI, DIProps } from '../../../Core';
 import { urlFetchCalls } from '../../../Constant';
 import './CampaignPage.css';
-import moment from 'moment';
+import images from '../../../Asests/Images/images.png';
+import { getAdditionalParams, prepareheaders } from '../../../Services';
 
 interface selectedObj {
     minValue: { value: string };
@@ -36,6 +43,7 @@ interface searchedObj {
     searchedArr: {}[];
     selectedSearchedArr: any;
     searchLoading: boolean;
+    selectedObj: any;
 }
 
 const CampaignPage = (_props: DIProps) => {
@@ -45,6 +53,7 @@ const CampaignPage = (_props: DIProps) => {
     const {
         di: { GET },
         redux: { current },
+        error,
     } = _props;
     const minAge = [
         { label: '18', value: '18' },
@@ -151,7 +160,11 @@ const CampaignPage = (_props: DIProps) => {
         { label: 'female', value: 'female' },
         { label: 'all', value: 'all' },
     ];
-
+    const tabArr = [
+        { id: 'facebook', content: 'Facebook' },
+        { id: 'instagram', content: 'Instagram' },
+    ];
+    const controller = useRef<any>(null);
     const [products, setProducts] = useState({
         products_count: 0,
         is_instagram_connected: false,
@@ -179,11 +192,17 @@ const CampaignPage = (_props: DIProps) => {
         searchedvalue: '',
         searchedArr: [],
         selectedSearchedArr: [],
+        selectedObj: {},
         searchLoading: false,
     });
 
-    const { searchedvalue, searchedArr, selectedSearchedArr, searchLoading } =
-        searched;
+    const {
+        searchedvalue,
+        searchedArr,
+        selectedSearchedArr,
+        searchLoading,
+        selectedObj,
+    } = searched;
 
     const [selectedValues, setSelectedValues] = useState<selectedObj>({
         minValue: { value: minAge[0].value },
@@ -363,112 +382,138 @@ const CampaignPage = (_props: DIProps) => {
         searched.searchedvalue = val;
         setSearched({ ...searched });
     };
+
     useEffect(() => {
         if (searchedvalue !== '') {
             setSearched({ ...searched, searchLoading: true });
+            controller.current = new AbortController();
+            const { signal } = controller.current;
             let search = setTimeout(() => {
-                GET(getAudience, {
-                    query: searchedvalue,
-                    shop_id: _props.redux.current?.target._id,
-                }).then((res) => {
-                    console.log(res);
-                    searched.searchLoading = false;
-                    res.data.forEach((ele: any) => {
-                        let obj: any = {
-                            value: ele.name,
-                            label: ele.name,
-                            lname: ele.path[0],
-                            popoverContent: (
-                                <FlexLayout
-                                    direction="vertical"
-                                    spacing="tight">
-                                    <FlexLayout spacing="tight" wrap="noWrap">
-                                        <TextStyles
-                                            fontweight="extraBolder"
-                                            content=" Size :"
-                                            type="Paragraph"
-                                            paragraphTypes="MD-1.4"
-                                            utility="helpText--style"
-                                        />
-                                        <TextStyles
-                                            textcolor="light"
-                                            content={`
+                fetch(
+                    `https://testing-app-backend.bwpapps.com/meta/campaign/getAudience?target_marketplace=${
+                        getAdditionalParams(_props.redux).target_marketplace
+                    }&query=${searchedvalue}&shop_id=${
+                        _props.redux.current?.target._id
+                    }`,
+                    {
+                        method: 'GET',
+                        headers: prepareheaders(_props.redux),
+                        signal,
+                    }
+                )
+                    .then((res) => res.json())
+                    .then((res) => {
+                        searched.searchLoading = false;
+                        if (res.success) {
+                            res.data.forEach((ele: any) => {
+                                let obj: any = {
+                                    value: ele.name,
+                                    label: ele.name,
+                                    lname: ele.path[0],
+                                    popoverContent: (
+                                        <FlexLayout
+                                            direction="vertical"
+                                            spacing="tight">
+                                            <FlexLayout
+                                                spacing="tight"
+                                                wrap="noWrap">
+                                                <TextStyles
+                                                    fontweight="extraBolder"
+                                                    content=" Size :"
+                                                    type="Paragraph"
+                                                    paragraphTypes="MD-1.4"
+                                                    utility="helpText--style"
+                                                />
+                                                <TextStyles
+                                                    textcolor="light"
+                                                    content={`
                                             ${ele.audience_size_lower_bound}-
                                             ${ele.audience_size_upper_bound}`}
-                                            type="Paragraph"
-                                            paragraphTypes="MD-1.4"
-                                            utility="helpText--style"
-                                        />
-                                    </FlexLayout>
-                                    <FlexLayout spacing="tight" wrap="noWrap">
-                                        <TextStyles
-                                            textcolor="#1C2433"
-                                            content={`${ele.path[0]} > `}
-                                        />
-                                        <TextStyles textcolor="light">
-                                            {ele.path
-                                                .slice(1, ele.path.length)
-                                                .map(
-                                                    (
-                                                        innerEle: any,
-                                                        i: number
-                                                    ) => {
-                                                        return `${innerEle} ${
-                                                            i <
-                                                            ele.path.length - 1
-                                                                ? '>'
-                                                                : ''
-                                                        }`;
-                                                    }
-                                                )}
-                                        </TextStyles>
-                                    </FlexLayout>
-                                    {ele.description && (
-                                        <FlexLayout
-                                            spacing="tight"
-                                            wrap="noWrap">
-                                            <TextStyles
-                                                content={'Description:'}
-                                            />
-                                            <TextStyles
-                                                content={ele.description}
-                                            />
+                                                    type="Paragraph"
+                                                    paragraphTypes="MD-1.4"
+                                                    utility="helpText--style"
+                                                />
+                                            </FlexLayout>
+                                            <FlexLayout
+                                                spacing="tight"
+                                                wrap="noWrap">
+                                                <TextStyles
+                                                    textcolor="#1C2433"
+                                                    content={`${ele.path[0]} > `}
+                                                />
+                                                <TextStyles textcolor="light">
+                                                    {ele.path
+                                                        .slice(
+                                                            1,
+                                                            ele.path.length
+                                                        )
+                                                        .map(
+                                                            (
+                                                                innerEle: any,
+                                                                i: number
+                                                            ) => {
+                                                                return `${innerEle} ${
+                                                                    i <
+                                                                    ele.path
+                                                                        .length -
+                                                                        1
+                                                                        ? '>'
+                                                                        : ''
+                                                                }`;
+                                                            }
+                                                        )}
+                                                </TextStyles>
+                                            </FlexLayout>
+                                            {ele.description && (
+                                                <FlexLayout
+                                                    spacing="tight"
+                                                    wrap="noWrap">
+                                                    <TextStyles
+                                                        content={'Description:'}
+                                                    />
+                                                    <TextStyles
+                                                        content={
+                                                            ele.description
+                                                        }
+                                                    />
+                                                </FlexLayout>
+                                            )}
+                                            <Alert destroy={false} type="info">
+                                                The audience size for the
+                                                selected interest group is shown
+                                                as a range. These numbers are
+                                                subject to change over time.
+                                            </Alert>
                                         </FlexLayout>
-                                    )}
-                                    <Alert destroy={false} type="info">
-                                        The audience size for the selected
-                                        interest group is shown as a range.
-                                        These numbers are subject to change over
-                                        time.
-                                    </Alert>
-                                </FlexLayout>
-                            ),
-                        };
-                        Object.assign(obj, ele);
-                        searched.searchedArr.push(obj);
+                                    ),
+                                };
+                                Object.assign(obj, ele);
+                                searched.searchedArr.push(obj);
+                            });
+                        } else {
+                            error(res.message);
+                        }
+                        setSearched({ ...searched, searchLoading: false });
                     });
-                    setSearched({ ...searched, searchLoading: false });
-                });
             }, 2000);
-            return () => clearTimeout(search);
+            return () => {
+                clearTimeout(search);
+                controller.current.abort();
+            };
         }
     }, [searchedvalue]);
-    let arr: any = [];
+
     const selectSearched = (val: any) => {
         let obj: any = searchedArr.find((ele: any) => ele.name === val);
-        // let temp = arr.includes(obj.path[0]);
-        // if(temp===false){
-        //     let innerVal ={newObj:obj.path[0]}
-        // }
-        searched.selectedSearchedArr.push(obj);
+        const keyName = JSON.stringify(obj.path.slice(0, obj.path.length - 1));
+        if (!Object.keys(selectedObj).includes(keyName)) {
+            searched.selectedObj[keyName] = [obj];
+        } else {
+            searched.selectedObj[keyName].push(obj);
+        }
         setSearched({ ...searched });
     };
-    let newArr: any = [];
-    const selectedGroupRender = (ele: any) => {
-        if (newArr.includes(ele.path[0]) === false) {
-            let newLine = <FlexLayout></FlexLayout>;
-        }
-    };
+
     return (
         <>
             <PageHeader
@@ -476,8 +521,12 @@ const CampaignPage = (_props: DIProps) => {
                 description="Facebook Dynamic Ads automatically target the audience based on their interest, intent, and actions."
                 reverseNavigation
             />
-            <FlexLayout spacing="loose" wrap="noWrap" wrapMob="wrap">
-                <FlexChild desktopWidth="66">
+            <FlexLayout
+                spacing="loose"
+                wrap="noWrap"
+                wrapTab="noWrap"
+                wrapMob="wrap">
+                <FlexChild desktopWidth="66" tabWidth="66" mobileWidth="100">
                     <Card
                         cardType="Default"
                         title={
@@ -870,13 +919,68 @@ const CampaignPage = (_props: DIProps) => {
                                                         </div>
                                                     </FlexLayout>
                                                     <Card cardType="Subdued">
-                                                        {selectedSearchedArr.map(
-                                                            (ele: any) => {
-                                                                selectedGroupRender(
-                                                                    ele
-                                                                );
-                                                            }
-                                                        )}
+                                                        {Object.keys(
+                                                            selectedObj
+                                                        ).map((ele: any, i) => {
+                                                            return (
+                                                                <FlexLayout
+                                                                    key={ele}
+                                                                    direction="vertical"
+                                                                    spacing="tight">
+                                                                    <FlexLayout
+                                                                        key={
+                                                                            ele
+                                                                        }>
+                                                                        <TextStyles
+                                                                            content={JSON.parse(
+                                                                                ele
+                                                                            ).map(
+                                                                                (
+                                                                                    innerEle: any
+                                                                                ) => {
+                                                                                    return `${innerEle} ${
+                                                                                        i <
+                                                                                        JSON.parse(
+                                                                                            ele
+                                                                                        )
+                                                                                            .length -
+                                                                                            1
+                                                                                            ? '>'
+                                                                                            : ''
+                                                                                    }`;
+                                                                                }
+                                                                            )}
+                                                                        />
+                                                                    </FlexLayout>
+                                                                    <Card>
+                                                                        {console.log(
+                                                                            Object.values(
+                                                                                selectedObj
+                                                                            )
+                                                                        )}
+                                                                        {Object.values(
+                                                                            selectedObj
+                                                                        ).map(
+                                                                            (
+                                                                                tempEle: any
+                                                                            ) => {
+                                                                                return (
+                                                                                    <Tag
+                                                                                        key={
+                                                                                            tempEle
+                                                                                        }>
+                                                                                        {
+                                                                                            tempEle.name
+                                                                                        }
+                                                                                    </Tag>
+                                                                                );
+                                                                            }
+                                                                        )}
+                                                                    </Card>
+                                                                </FlexLayout>
+                                                            );
+                                                        })}
+
                                                         <AutoComplete
                                                             loading={
                                                                 searchLoading
@@ -1039,13 +1143,92 @@ const CampaignPage = (_props: DIProps) => {
                         </FlexLayout>
                     </Card>
                 </FlexChild>
-                <FlexChild desktopWidth="33">
+                <FlexChild desktopWidth="33" tabWidth="33" mobileWidth="100">
                     <FlexLayout direction="vertical" spacing="loose">
-                        <Card cardType="Default">
-                            <TextStyles content="Preview Section" />
+                        <Card
+                            cardType="Default"
+                            title="Preview"
+                            subTitle="This is how your Ad will appear">
+                            <FlexLayout
+                                direction="vertical"
+                                spacing="extraTight"
+                                valign="start">
+                                <Tabs
+                                    alignment="horizontal"
+                                    value={tabArr}
+                                    selected={tabArr[0].id}
+                                />
+                                <FlexLayout
+                                    spacing="tight"
+                                    halign="start"
+                                    valign="center">
+                                    <Avatar />
+                                    <TextStyles
+                                        content="Peter Fingers"
+                                        type="Paragraph"
+                                        paragraphTypes="MD-1.4"
+                                        fontweight="bold"
+                                    />
+                                </FlexLayout>
+                                <TextStyles
+                                    content="Place your ad text here"
+                                    type="Paragraph"
+                                    paragraphTypes="MD-1.4"
+                                    fontweight="light"
+                                    textcolor="#4E4F52"
+                                />
+                                {/* <Card>
+                                    <Carousel
+                                        slidesToShow={1.2}
+                                        autoplay
+                                        slidesToScroll={1}>
+                                        {[1, 2, 3, 4, 5].map((ele) => {
+                                            return (
+                                                <Card
+                                                    key={ele}
+                                                    cardType="Bordered"
+                                                    secondaryAction={{
+                                                        content: 'Shop Now',
+                                                        type: 'Outlined',
+                                                    }}
+                                                    media={images}>
+                                                    <TextStyles content="Fingers mouse with areao grip " />
+                                                    <TextStyles content="$24.90" />
+                                                </Card>
+                                            );
+                                        })}
+                                    </Carousel>
+                                </Card> */}
+                            </FlexLayout>
                         </Card>
                         <Card cardType="Default">
-                            <TextStyles content="Preview Section" />
+                            <FlexLayout spacing="tight" direction="vertical">
+                                <TextStyles
+                                    content="Need assistance creating a campaign? Please see this video guide for help"
+                                    type="Paragraph"
+                                    paragraphTypes="MD-1.4"
+                                    textcolor="#4E4F52"
+                                    fontweight="light"
+                                    lineHeight="LH-2.0"
+                                />
+                                <TextLink
+                                    label={
+                                        <FlexLayout
+                                            halign="start"
+                                            wrap="noWrap"
+                                            spacing="extraTight">
+                                            <Play size={16} color="#2E90FA" />
+                                            <TextStyles
+                                                content="Campaign Guide"
+                                                textcolor="#4E4F52"
+                                                paragraphTypes="MD-1.4"
+                                                type="Paragraph"
+                                                fontweight="light"
+                                            />
+                                        </FlexLayout>
+                                    }
+                                />
+                            </FlexLayout>
                         </Card>
                     </FlexLayout>
                 </FlexChild>
