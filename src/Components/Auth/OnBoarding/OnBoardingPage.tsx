@@ -21,7 +21,7 @@ import { syncNecessaryInfo, syncConnectorInfo } from '../../../Actions';
 import { urlFetchCalls } from '../../../Constant';
 import { parseJwt } from '../../../Core';
 import { StoreDispatcher } from '../../../';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Panel from '../../Panel/Panel';
 import OnBoardingErrorModal from './OnBoardingErrorModal';
 

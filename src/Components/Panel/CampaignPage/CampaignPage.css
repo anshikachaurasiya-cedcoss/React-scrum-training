@@ -14,3 +14,11 @@
 .helpText--style {
     color: #4E4F52 !important;
 }
+
+.custom--selectStyle .inte-select--thick {
+    width: 200px !important;
+}
+
+.extra--spaceStyle .slick-track {
+    padding-left: 70px !important;
+}
