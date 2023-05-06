@@ -11,16 +11,14 @@ import {
     FormElement,
     PageHeader,
     Radio,
-    RangeSlider,
     Select,
     Tabs,
     TextField,
     TextLink,
     TextStyles,
     ToolTip,
-    Image,
-    Breadcrumb,
     Tag,
+    Button,
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useRef, useState } from 'react';
 import { AlertCircle, CheckCircle, Play } from 'react-feather';
@@ -29,6 +27,7 @@ import { urlFetchCalls } from '../../../Constant';
 import './CampaignPage.css';
 import images from '../../../Asests/Images/images.png';
 import { getAdditionalParams, prepareheaders } from '../../../Services';
+import moment from 'moment';
 
 interface selectedObj {
     minValue: { value: string };
@@ -41,7 +40,6 @@ interface selectedObj {
 interface searchedObj {
     searchedvalue: string;
     searchedArr: {}[];
-    selectedSearchedArr: any;
     searchLoading: boolean;
     selectedObj: any;
 }
@@ -55,7 +53,7 @@ const CampaignPage = (_props: DIProps) => {
         redux: { current },
         error,
     } = _props;
-    const minAge = [
+    const age = [
         { label: '18', value: '18' },
         { label: '19', value: '19' },
         { label: '20', value: '20' },
@@ -103,58 +101,9 @@ const CampaignPage = (_props: DIProps) => {
         { label: '62', value: '62' },
         { label: '63', value: '63' },
         { label: '64', value: '64' },
-        { label: '65', value: '65' },
+        { label: '65+', value: '65+' },
     ];
-    const maxAge = [
-        { label: '18', value: '18' },
-        { label: '19', value: '19' },
-        { label: '20', value: '20' },
-        { label: '21', value: '21' },
-        { label: '22', value: '22' },
-        { label: '23', value: '23' },
-        { label: '24', value: '24' },
-        { label: '25', value: '25' },
-        { label: '26', value: '26' },
-        { label: '27', value: '27' },
-        { label: '28', value: '28' },
-        { label: '29', value: '29' },
-        { label: '30', value: '30' },
-        { label: '31', value: '31' },
-        { label: '32', value: '32' },
-        { label: '33', value: '33' },
-        { label: '34', value: '34' },
-        { label: '35', value: '35' },
-        { label: '36', value: '36' },
-        { label: '37', value: '37' },
-        { label: '38', value: '38' },
-        { label: '39', value: '39' },
-        { label: '40', value: '40' },
-        { label: '41', value: '41' },
-        { label: '42', value: '42' },
-        { label: '43', value: '43' },
-        { label: '44', value: '44' },
-        { label: '45', value: '45' },
-        { label: '46', value: '46' },
-        { label: '47', value: '47' },
-        { label: '48', value: '48' },
-        { label: '49', value: '49' },
-        { label: '50', value: '50' },
-        { label: '51', value: '51' },
-        { label: '52', value: '52' },
-        { label: '53', value: '53' },
-        { label: '54', value: '54' },
-        { label: '55', value: '55' },
-        { label: '56', value: '56' },
-        { label: '57', value: '57' },
-        { label: '58', value: '58' },
-        { label: '59', value: '59' },
-        { label: '60', value: '60' },
-        { label: '61', value: '61' },
-        { label: '62', value: '62' },
-        { label: '63', value: '63' },
-        { label: '64', value: '64' },
-        { label: '65', value: '65' },
-    ];
+
     const gender = [
         { label: 'male', value: 'male', selected: 'male' },
         { label: 'female', value: 'female' },
@@ -191,22 +140,15 @@ const CampaignPage = (_props: DIProps) => {
     const [searched, setSearched] = useState<searchedObj>({
         searchedvalue: '',
         searchedArr: [],
-        selectedSearchedArr: [],
         selectedObj: {},
         searchLoading: false,
     });
 
-    const {
-        searchedvalue,
-        searchedArr,
-        selectedSearchedArr,
-        searchLoading,
-        selectedObj,
-    } = searched;
+    const { searchedvalue, searchedArr, searchLoading, selectedObj } = searched;
 
     const [selectedValues, setSelectedValues] = useState<selectedObj>({
-        minValue: { value: minAge[0].value },
-        maxValue: { value: maxAge[maxAge.length - 1].value },
+        minValue: { value: age[0].value },
+        maxValue: { value: age[age.length - 1].value },
         genderValue: { value: gender[0].value },
         reTargetValue: { value: '' },
         reTarget: [],
@@ -574,28 +516,28 @@ const CampaignPage = (_props: DIProps) => {
                                     />
                                     <FlexLayout spacing="loose" wrap="noWrap">
                                         <FlexChild desktopWidth="50">
-                                            <Datepicker
-                                                format="MM/DD/YYYY"
-                                                placeholder="MM/DD/YYYY"
-                                                showHelp="Campaign starts at 12 am(EST time zone) "
-                                                name={
-                                                    <FlexLayout spacing="extraTight">
-                                                        <TextStyles content="Start Date" />
-                                                        <TextStyles
-                                                            content="*"
-                                                            utility="text--imp"
-                                                        />
-                                                    </FlexLayout>
-                                                }
-                                                value={start_value}
-                                                onChange={(val: any) =>
-                                                    dateHandler(
-                                                        'Start Date',
-                                                        val
-                                                    )
-                                                }
-                                                disabledDate={disabledStart}
-                                            />
+                                            <FlexLayout direction="vertical">
+                                                <FlexLayout spacing="extraTight">
+                                                    <TextStyles content="Start Date" />
+                                                    <TextStyles
+                                                        content="*"
+                                                        utility="text--imp"
+                                                    />
+                                                </FlexLayout>
+                                                <Datepicker
+                                                    format="MM/DD/YYYY"
+                                                    placeholder="MM/DD/YYYY"
+                                                    showHelp="Campaign starts at 12 am(EST time zone) "
+                                                    value={start_value}
+                                                    onChange={(val: any) =>
+                                                        dateHandler(
+                                                            'Start Date',
+                                                            val
+                                                        )
+                                                    }
+                                                    disabledDate={disabledStart}
+                                                />
+                                            </FlexLayout>
                                         </FlexChild>
                                         <FlexChild desktopWidth="50">
                                             <Datepicker
@@ -656,34 +598,38 @@ const CampaignPage = (_props: DIProps) => {
                                         placeHolder="$"
                                         showHelp="Minimum daily budget is $5. You are charged only when shopper clicks on the Ad.."
                                     />
-                                    <TextField
-                                        name="Ad Text "
-                                        required
-                                        value={ad_value}
-                                        onChange={(e) =>
-                                            changeHandler(e, 'Ad Text')
-                                        }
-                                        error={ad_error}
-                                        onblur={() => blurHandler('Ad Text')}
-                                        placeHolder="Insert the Suitable Ad Text"
-                                        showHelp={
-                                            <FlexLayout
-                                                wrap="noWrap"
-                                                spacing="extraTight">
-                                                <TextStyles
-                                                    type="Paragraph"
-                                                    paragraphTypes="MD-1.4"
-                                                    textcolor="#4E4F52"
-                                                    utility="helpText--style"
-                                                    content="To know more about high performing and quality content for Ads refer to our"
-                                                />
-                                                <TextLink
-                                                    label="Content guide"
-                                                    extraClass="link--style"
-                                                />
-                                            </FlexLayout>
-                                        }
-                                    />
+                                    <FlexLayout
+                                        direction="vertical"
+                                        spacing="extraTight">
+                                        <TextField
+                                            name="Ad Text "
+                                            required
+                                            value={ad_value}
+                                            onChange={(e) =>
+                                                changeHandler(e, 'Ad Text')
+                                            }
+                                            error={ad_error}
+                                            onblur={() =>
+                                                blurHandler('Ad Text')
+                                            }
+                                            placeHolder="Insert the Suitable Ad Text"
+                                        />
+                                        <FlexLayout
+                                            wrap="noWrap"
+                                            spacing="extraTight">
+                                            <TextStyles
+                                                type="Paragraph"
+                                                paragraphTypes="MD-1.4"
+                                                textcolor="#4E4F52"
+                                                utility="helpText--style"
+                                                content="To know more about high performing and quality content for Ads refer to our"
+                                            />
+                                            <TextLink
+                                                label="Content guide"
+                                                extraClass="link--style"
+                                            />
+                                        </FlexLayout>
+                                    </FlexLayout>
                                 </FormElement>
                             </Card>
                             <hr />
@@ -855,7 +801,7 @@ const CampaignPage = (_props: DIProps) => {
                                                             <Select
                                                                 name="Min Age "
                                                                 required
-                                                                options={minAge.map(
+                                                                options={age.map(
                                                                     (ele) => {
                                                                         return ele;
                                                                     }
@@ -877,7 +823,7 @@ const CampaignPage = (_props: DIProps) => {
                                                             <Select
                                                                 name="Max Age "
                                                                 required
-                                                                options={maxAge.map(
+                                                                options={age.map(
                                                                     (ele) => {
                                                                         return ele;
                                                                     }
@@ -1144,7 +1090,12 @@ const CampaignPage = (_props: DIProps) => {
                     </Card>
                 </FlexChild>
                 <FlexChild desktopWidth="33" tabWidth="33" mobileWidth="100">
-                    <FlexLayout direction="vertical" spacing="loose">
+                    <FlexLayout
+                        direction="vertical"
+                        spacing="loose"
+                        desktopWidth="100"
+                        mobileWidth="100"
+                        tabWidth="100">
                         <Card
                             cardType="Default"
                             title="Preview"
@@ -1152,7 +1103,10 @@ const CampaignPage = (_props: DIProps) => {
                             <FlexLayout
                                 direction="vertical"
                                 spacing="extraTight"
-                                valign="start">
+                                valign="start"
+                                desktopWidth="100"
+                                tabWidth="100"
+                                mobileWidth="100">
                                 <Tabs
                                     alignment="horizontal"
                                     value={tabArr}
@@ -1171,34 +1125,46 @@ const CampaignPage = (_props: DIProps) => {
                                     />
                                 </FlexLayout>
                                 <TextStyles
-                                    content="Place your ad text here"
+                                    content={ad_value}
                                     type="Paragraph"
                                     paragraphTypes="MD-1.4"
                                     fontweight="light"
                                     textcolor="#4E4F52"
                                 />
-                                {/* <Card>
+                                <div className="extra--spaceStyle">
                                     <Carousel
                                         slidesToShow={1.2}
                                         autoplay
+                                        infinite
+                                        autoplaySpeed={2000}
                                         slidesToScroll={1}>
                                         {[1, 2, 3, 4, 5].map((ele) => {
                                             return (
                                                 <Card
                                                     key={ele}
-                                                    cardType="Bordered"
-                                                    secondaryAction={{
-                                                        content: 'Shop Now',
-                                                        type: 'Outlined',
-                                                    }}
+                                                    cardType="Subdued"
                                                     media={images}>
-                                                    <TextStyles content="Fingers mouse with areao grip " />
-                                                    <TextStyles content="$24.90" />
+                                                    <FlexLayout
+                                                        spacing="tight"
+                                                        direction="vertical"
+                                                        valign="start">
+                                                        <TextStyles
+                                                            fontweight="extraBold"
+                                                            type="Paragraph"
+                                                            paragraphTypes="MD-1.4"
+                                                            content="Fingers mouse with areao grip "
+                                                        />
+                                                        <TextStyles content="$24.90" />
+                                                        <Button
+                                                            type="Outlined"
+                                                            content=" Shop Now"
+                                                        />
+                                                    </FlexLayout>
                                                 </Card>
                                             );
                                         })}
                                     </Carousel>
-                                </Card> */}
+                                </div>
                             </FlexLayout>
                         </Card>
                         <Card cardType="Default">

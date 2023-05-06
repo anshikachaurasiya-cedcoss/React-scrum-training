@@ -19,3 +19,6 @@
     width: 200px !important;
 }
 
+.extra--spaceStyle .slick-track {
+    padding-left: 70px !important;
+}

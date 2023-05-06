@@ -71,7 +71,7 @@ function App(Props: PropsI): JSX.Element {
                         path="/success/message"
                         element={<OnBoardingSuccessPage />}
                     />
-                    <Route path="/campaign" element={<CampaignPage />} />
+                    <Route path="campaign" element={<CampaignPage />} />
                     <Route path="*" element={<Navigate to={'/auth/login'} />} />
                 </Routes>
                 <RenderToasts {...Props} />
