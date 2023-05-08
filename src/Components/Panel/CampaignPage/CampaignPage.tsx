@@ -21,7 +21,7 @@ import {
     Button,
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useRef, useState } from 'react';
-import { AlertCircle, CheckCircle, Play } from 'react-feather';
+import { AlertCircle, CheckCircle, Play, X } from 'react-feather';
 import { DI, DIProps } from '../../../Core';
 import { urlFetchCalls } from '../../../Constant';
 import './CampaignPage.css';
@@ -46,7 +46,7 @@ interface searchedObj {
 
 const CampaignPage = (_props: DIProps) => {
     const {
-        get: { initCampaignUrl, getAudience },
+        get: { initCampaignUrl },
     } = urlFetchCalls;
     const {
         di: { GET },
@@ -54,13 +54,12 @@ const CampaignPage = (_props: DIProps) => {
         error,
     } = _props;
 
-    Array.from({ length: 10 }, (_, i) => i + 1);
+    // dynamic filling of age inside the prospective audience
     const age = new Array(48).fill('*').map((ele, i) => {
         if (i < 47)
             return { value: (i + 18).toString(), label: (i + 18).toString() };
         else return { value: `${i + 18}+`, label: `${i + 18}+` };
     });
-    console.log(age);
 
     const gender = [
         { label: 'male', value: 'male', selected: 'male' },
@@ -71,6 +70,7 @@ const CampaignPage = (_props: DIProps) => {
         { id: 'facebook', content: 'Facebook' },
         { id: 'instagram', content: 'Instagram' },
     ];
+    // created ref for aborting the previous call
     const controller = useRef<any>(null);
     const [products, setProducts] = useState({
         products_count: 0,
@@ -102,8 +102,6 @@ const CampaignPage = (_props: DIProps) => {
         searchLoading: false,
     });
 
-    const { searchedvalue, searchedArr, searchLoading, selectedObj } = searched;
-
     const [selectedValues, setSelectedValues] = useState<selectedObj>({
         minValue: { value: age[0].value },
         maxValue: { value: age[age.length - 1].value },
@@ -111,7 +109,8 @@ const CampaignPage = (_props: DIProps) => {
         reTargetValue: { value: '' },
         reTarget: [],
     });
-
+    // destructuring of states
+    const { searchedvalue, searchedArr, searchLoading, selectedObj } = searched;
     const {
         minValue: { value: minSelectedValue },
         maxValue: { value: maxSelectedValue },
@@ -132,9 +131,11 @@ const CampaignPage = (_props: DIProps) => {
     const { products_count, is_instagram_connected, audience_str } = products;
     const [{ checked: prospective_checked }, { checked: retargeting_checked }] =
         audience;
+
     useEffect(() => {
         getInitCampaigns();
     }, []);
+    // function calls the gitInit API
     const getInitCampaigns = () => {
         GET(initCampaignUrl, { shop_id: current?.target._id }).then((res) => {
             Object.values(res.data.audience).forEach((ele: any) => {
@@ -154,6 +155,7 @@ const CampaignPage = (_props: DIProps) => {
             });
         });
     };
+    // function handles the radio box
     const radioHandler = (str: string) => {
         setProducts({ ...products, audience_str: str });
         audience.forEach((ele) => {
@@ -165,7 +167,7 @@ const CampaignPage = (_props: DIProps) => {
         });
         setAudience([...audience]);
     };
-
+    // function handles the input fields boxes
     const changeHandler = (e: any, str: string) => {
         if (str === 'Enter Campaign Name') {
             value.campaign.campaign_error = false;
@@ -183,7 +185,7 @@ const CampaignPage = (_props: DIProps) => {
         }
         setValue({ ...value });
     };
-
+    // function handles the validations on blur of the input field
     const blurHandler = (str: string) => {
         if (str === 'Enter Campaign Name') {
             if (campaign_value === '' || campaign_value.length > 394) {
@@ -206,7 +208,7 @@ const CampaignPage = (_props: DIProps) => {
         }
         setValue({ ...value });
     };
-
+    // function disables the start date of the calender
     const disabledStart = (current: any) => {
         if (end_value !== '') {
             return current > moment(end_value).add(-1, 'day');
@@ -214,12 +216,14 @@ const CampaignPage = (_props: DIProps) => {
         const start_Date = current < moment().add(-1, 'day');
         return start_Date;
     };
+    // function disables the end date of the calender
     const disabledEnd = (current: any) => {
         if (start_value !== '') {
             const end_Date = current < moment(start_value).add(+1, 'day');
             return end_Date;
         }
     };
+    // function handles the checkbox
     const checkHandler = (str: string) => {
         if (str === 'Facebook') {
             value.facebook.checked = !value.facebook.checked;
@@ -229,7 +233,7 @@ const CampaignPage = (_props: DIProps) => {
         }
         setValue({ ...value });
     };
-
+    // function handles the datepicker component
     const dateHandler = (str: string, val: any) => {
         if (str === 'Start Date') {
             if (val === null) {
@@ -261,7 +265,7 @@ const CampaignPage = (_props: DIProps) => {
             return '#027A48';
         }
     };
-
+    // function handles the select boxes
     const selectHandler = (str: string, ele: any) => {
         if (str === 'Min Age') {
             if (ele < maxSelectedValue) {
@@ -282,7 +286,7 @@ const CampaignPage = (_props: DIProps) => {
         searched.searchedvalue = val;
         setSearched({ ...searched });
     };
-
+    // in this useEffect we are aborting the last api call and also used the debouncing
     useEffect(() => {
         if (searchedvalue !== '') {
             setSearched({ ...searched, searchLoading: true });
@@ -822,98 +826,125 @@ const CampaignPage = (_props: DIProps) => {
                                                             />
                                                         </div>
                                                     </FlexLayout>
-                                                    <Card cardType="Subdued">
-                                                        {Object.keys(
-                                                            selectedObj
-                                                        ).map((ele: any, i) => {
-                                                            return (
-                                                                <FlexLayout
-                                                                    key={ele}
-                                                                    direction="vertical"
-                                                                    spacing="tight">
-                                                                    <FlexLayout
-                                                                        key={
-                                                                            ele
-                                                                        }>
-                                                                        <TextStyles
-                                                                            content={JSON.parse(
-                                                                                ele
-                                                                            ).map(
-                                                                                (
-                                                                                    innerEle: any
-                                                                                ) => {
-                                                                                    return `${innerEle} ${
-                                                                                        i <
-                                                                                        JSON.parse(
-                                                                                            ele
-                                                                                        )
-                                                                                            .length -
-                                                                                            1
-                                                                                            ? '>'
-                                                                                            : ''
-                                                                                    }`;
-                                                                                }
-                                                                            )}
-                                                                        />
-                                                                    </FlexLayout>
-                                                                    <Card>
-                                                                        {console.log(
-                                                                            Object.values(
-                                                                                selectedObj
-                                                                            )
-                                                                        )}
-                                                                        {Object.values(
-                                                                            selectedObj
-                                                                        ).map(
-                                                                            (
-                                                                                tempEle: any
-                                                                            ) => {
-                                                                                return (
-                                                                                    <Tag
-                                                                                        key={
-                                                                                            tempEle
-                                                                                        }>
-                                                                                        {
-                                                                                            tempEle.name
-                                                                                        }
-                                                                                    </Tag>
-                                                                                );
-                                                                            }
-                                                                        )}
-                                                                    </Card>
-                                                                </FlexLayout>
-                                                            );
-                                                        })}
 
-                                                        <AutoComplete
-                                                            loading={
-                                                                searchLoading
-                                                            }
-                                                            setHiglighted
-                                                            showPopover
-                                                            name="Search and Select Groups"
-                                                            value={
-                                                                searchedvalue
-                                                            }
-                                                            onChange={(
-                                                                val: any
-                                                            ) =>
-                                                                searchHandler(
-                                                                    val
-                                                                )
-                                                            }
-                                                            options={
-                                                                searchedArr
-                                                            }
-                                                            onClick={(
-                                                                val: any
-                                                            ) =>
-                                                                selectSearched(
-                                                                    val
-                                                                )
-                                                            }
-                                                            placeHolder=" Search for demographics, interests, behaviors, etc."
-                                                        />
+                                                    <Card cardType="Subdued">
+                                                        <FlexLayout
+                                                            direction="vertical"
+                                                            spacing="tight">
+                                                            {Object.entries(
+                                                                selectedObj
+                                                            ).map(
+                                                                ([
+                                                                    ele,
+                                                                    val,
+                                                                ]: any) => {
+                                                                    return (
+                                                                        <FlexLayout
+                                                                            key={
+                                                                                ele
+                                                                            }
+                                                                            direction="vertical"
+                                                                            spacing="tight">
+                                                                            <FlexLayout>
+                                                                                <TextStyles
+                                                                                    utility="helpText--style"
+                                                                                    content={JSON.parse(
+                                                                                        ele
+                                                                                    ).map(
+                                                                                        (
+                                                                                            innerEle: any,
+                                                                                            index: number
+                                                                                        ) => {
+                                                                                            return `${innerEle} ${
+                                                                                                index <
+                                                                                                JSON.parse(
+                                                                                                    ele
+                                                                                                )
+                                                                                                    .length -
+                                                                                                    1
+                                                                                                    ? '  >  '
+                                                                                                    : ''
+                                                                                            }`;
+                                                                                        }
+                                                                                    )}
+                                                                                />
+                                                                            </FlexLayout>
+                                                                            <Card>
+                                                                                <FlexLayout
+                                                                                    wrap="noWrap"
+                                                                                    halign="fill">
+                                                                                    <FlexLayout spacing="loose">
+                                                                                        {val.map(
+                                                                                            (
+                                                                                                tempEle: any,
+                                                                                                i: number
+                                                                                            ) => {
+                                                                                                return (
+                                                                                                    <Tag
+                                                                                                        destroy={() =>
+                                                                                                            ''
+                                                                                                        }
+                                                                                                        key={
+                                                                                                            tempEle.name +
+                                                                                                            ele
+                                                                                                        }
+                                                                                                        children={
+                                                                                                            tempEle.name
+                                                                                                        }
+                                                                                                    />
+                                                                                                );
+                                                                                            }
+                                                                                        )}
+                                                                                    </FlexLayout>
+                                                                                    <div className="btn--custom_border">
+                                                                                        <Button
+                                                                                            type="Outlined"
+                                                                                            icon={
+                                                                                                <X
+                                                                                                    size={
+                                                                                                        20
+                                                                                                    }
+                                                                                                />
+                                                                                            }
+                                                                                        />
+                                                                                    </div>
+                                                                                </FlexLayout>
+                                                                            </Card>
+                                                                        </FlexLayout>
+                                                                    );
+                                                                }
+                                                            )}
+
+                                                            <AutoComplete
+                                                                loading={
+                                                                    searchLoading
+                                                                }
+                                                                setHiglighted
+                                                                showPopover
+                                                                name="Search and Select Groups"
+                                                                value={
+                                                                    searchedvalue
+                                                                }
+                                                                onChange={(
+                                                                    val: any
+                                                                ) =>
+                                                                    searchHandler(
+                                                                        val
+                                                                    )
+                                                                }
+                                                                options={
+                                                                    searchedArr
+                                                                }
+                                                                onClick={(
+                                                                    val: any
+                                                                ) =>
+                                                                    selectSearched(
+                                                                        val
+                                                                    )
+                                                                }
+                                                                placeHolder=" Search for demographics, interests, behaviors, etc."
+                                                            />
+                                                        </FlexLayout>
                                                     </Card>
                                                     <hr />
                                                     <CheckBox labelVal="Reach people apart from your detailed targeting selections when its expected to improve performance." />
