@@ -22,3 +22,7 @@
 .extra--spaceStyle .slick-track {
     padding-left: 70px !important;
 }
+
+.btn--custom_border .inte-btn--Outlined {
+    border: none !important;
+}
