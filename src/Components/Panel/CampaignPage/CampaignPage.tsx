@@ -19,6 +19,7 @@ import {
     ToolTip,
     Tag,
     Button,
+    Image,
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useRef, useState } from 'react';
 import { AlertCircle, CheckCircle, Play, X } from 'react-feather';
@@ -66,16 +67,15 @@ const CampaignPage = (_props: DIProps) => {
         { label: 'female', value: 'female' },
         { label: 'all', value: 'all' },
     ];
-    const tabArr = [
-        { id: 'facebook', content: 'Facebook' },
-        { id: 'instagram', content: 'Instagram' },
-    ];
+
     // created ref for aborting the previous call
     const controller = useRef<any>(null);
     const [products, setProducts] = useState({
         products_count: 0,
         is_instagram_connected: false,
         audience_str: '',
+        max_Fb_Preview: [],
+        max_Insta_Preview: [],
     });
     const [audience, setAudience] = useState([
         { checked: false, val: 'Prospective Audience' },
@@ -128,9 +128,38 @@ const CampaignPage = (_props: DIProps) => {
         start_date: { start_value },
         end_date: { end_value },
     } = value;
-    const { products_count, is_instagram_connected, audience_str } = products;
+    const {
+        products_count,
+        is_instagram_connected,
+        audience_str,
+        max_Fb_Preview,
+        max_Insta_Preview,
+    } = products;
     const [{ checked: prospective_checked }, { checked: retargeting_checked }] =
         audience;
+
+    const tabArr: any = [
+        { id: 'facebook', content: 'Facebook', disable: true },
+    ];
+
+    const [selectTab, setSelectTab] = useState({
+        tabSelectArray: tabArr,
+        selectedTab: tabArr[0].id,
+        maxFb: [],
+        maxInsta: [],
+    });
+
+    const { tabSelectArray, selectedTab } = selectTab;
+
+    useEffect(() => {
+        if (is_instagram_connected === true) {
+            selectTab.tabSelectArray.push({
+                id: 'instagram',
+                content: 'Instagram',
+            });
+            setSelectTab({ ...selectTab });
+        }
+    }, [is_instagram_connected]);
 
     useEffect(() => {
         getInitCampaigns();
@@ -148,6 +177,19 @@ const CampaignPage = (_props: DIProps) => {
             selectedValues.reTargetValue.value =
                 selectedValues.reTarget[0].value;
             setSelectedValues({ ...selectedValues });
+            if (res.data.products_preview.length > 30) {
+                products.max_Fb_Preview = res.data.products_preview.splice(
+                    0,
+                    30
+                );
+                products.max_Insta_Preview = res.data.products_preview.splice(
+                    0,
+                    10
+                );
+            } else {
+                products.max_Fb_Preview = res.data.products_preview;
+                products.max_Insta_Preview = res.data.products_preview;
+            }
             setProducts({
                 ...products,
                 products_count: res.data.products_count,
@@ -416,6 +458,10 @@ const CampaignPage = (_props: DIProps) => {
             searched.selectedObj[keyName].push(obj);
         }
         setSearched({ ...searched });
+    };
+
+    const imageError = (value: any, i: number) => {
+        console.log(value, i, 'chal gaya function');
     };
 
     return (
@@ -718,7 +764,10 @@ const CampaignPage = (_props: DIProps) => {
                                 }>
                                 <FlexLayout
                                     spacing="loose"
-                                    direction="vertical">
+                                    direction="vertical"
+                                    desktopWidth="100"
+                                    mobileWidth="100"
+                                    tabWidth="100">
                                     <FlexLayout spacing="loose" wrap="noWrap">
                                         <Radio
                                             labelVal="Prospective Audience"
@@ -956,38 +1005,57 @@ const CampaignPage = (_props: DIProps) => {
                                         'Retargeting Audience' && (
                                         <FlexLayout
                                             direction="vertical"
-                                            spacing="tight">
-                                            <TextStyles
-                                                content="Target customers who either viewed your product or added it to their cart, but did not purchase."
-                                                type="Paragraph"
-                                                paragraphTypes="MD-1.4"
-                                                textcolor="#4E4F52"
-                                            />
-                                            <Card cardType="Bordered">
-                                                <FlexLayout
-                                                    direction="vertical"
-                                                    spacing="loose">
-                                                    <Select
-                                                        name="Retargeting Groups"
-                                                        options={reTarget.map(
-                                                            (ele: any) => {
-                                                                return ele;
-                                                            }
-                                                        )}
-                                                        value={
-                                                            reTargetSelectedValue
-                                                        }
-                                                        onChange={(ele) =>
-                                                            selectHandler(
-                                                                'Retargeting Groups',
-                                                                ele
-                                                            )
-                                                        }
-                                                    />
-                                                    <hr />
-                                                    <CheckBox labelVal="Reach people apart from your detailed targeting selections when its expected to improve performance." />
-                                                </FlexLayout>
-                                            </Card>
+                                            spacing="tight"
+                                            desktopWidth="100"
+                                            mobileWidth="100"
+                                            tabWidth="100">
+                                            <FlexChild childWidth="fullWidth">
+                                                <TextStyles
+                                                    content="Target customers who either viewed your product or added it to their cart, but did not purchase."
+                                                    type="Paragraph"
+                                                    paragraphTypes="MD-1.4"
+                                                    textcolor="#4E4F52"
+                                                />
+                                            </FlexChild>
+                                            <FlexChild childWidth="fullWidth">
+                                                <Card cardType="Bordered">
+                                                    <FlexLayout
+                                                        direction="vertical"
+                                                        spacing="loose"
+                                                        desktopWidth="100"
+                                                        mobileWidth="100"
+                                                        tabWidth="100">
+                                                        <FlexChild childWidth="fullWidth">
+                                                            <div className="custom--retargeting--select">
+                                                                <Select
+                                                                    customClass="select--style"
+                                                                    name="Retargeting Groups"
+                                                                    options={reTarget.map(
+                                                                        (
+                                                                            ele: any
+                                                                        ) => {
+                                                                            return ele;
+                                                                        }
+                                                                    )}
+                                                                    value={
+                                                                        reTargetSelectedValue
+                                                                    }
+                                                                    onChange={(
+                                                                        ele
+                                                                    ) =>
+                                                                        selectHandler(
+                                                                            'Retargeting Groups',
+                                                                            ele
+                                                                        )
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        </FlexChild>
+                                                        <hr />
+                                                        <CheckBox labelVal="Reach people apart from your detailed targeting selections when its expected to improve performance." />
+                                                    </FlexLayout>
+                                                </Card>
+                                            </FlexChild>
                                         </FlexLayout>
                                     )}
                                 </FlexLayout>
@@ -1098,8 +1166,12 @@ const CampaignPage = (_props: DIProps) => {
                                 mobileWidth="100">
                                 <Tabs
                                     alignment="horizontal"
-                                    value={tabArr}
-                                    selected={tabArr[0].id}
+                                    value={tabSelectArray}
+                                    selected={selectedTab}
+                                    onChange={(val) => {
+                                        selectTab.selectedTab = val;
+                                        setSelectTab({ ...selectTab });
+                                    }}
                                 />
                                 <FlexLayout
                                     spacing="tight"
@@ -1122,36 +1194,88 @@ const CampaignPage = (_props: DIProps) => {
                                 />
                                 <div className="extra--spaceStyle">
                                     <Carousel
+                                        responsive={[
+                                            {
+                                                breakpoint: 1115,
+                                                settings: {
+                                                    slidesToShow: 1.2,
+                                                },
+                                            },
+                                            {
+                                                breakpoint: 983,
+                                                settings: {
+                                                    slidesToShow: 2.5,
+                                                },
+                                            },
+                                            {
+                                                breakpoint: 726,
+                                                settings: {
+                                                    slidesToShow: 2.2,
+                                                },
+                                            },
+
+                                            {
+                                                breakpoint: 660,
+                                                settings: {
+                                                    slidesToShow: 1,
+                                                },
+                                            },
+                                        ]}
                                         slidesToShow={1.2}
                                         autoplay
                                         infinite
                                         autoplaySpeed={2000}
                                         slidesToScroll={1}>
-                                        {[1, 2, 3, 4, 5].map((ele) => {
-                                            return (
-                                                <Card
-                                                    key={ele}
-                                                    cardType="Subdued"
-                                                    media={images}>
-                                                    <FlexLayout
-                                                        spacing="tight"
-                                                        direction="vertical"
-                                                        valign="start">
-                                                        <TextStyles
-                                                            fontweight="extraBold"
-                                                            type="Paragraph"
-                                                            paragraphTypes="MD-1.4"
-                                                            content="Fingers mouse with areao grip "
-                                                        />
-                                                        <TextStyles content="$24.90" />
-                                                        <Button
-                                                            type="Outlined"
-                                                            content=" Shop Now"
-                                                        />
-                                                    </FlexLayout>
-                                                </Card>
-                                            );
-                                        })}
+                                        {max_Fb_Preview.map(
+                                            (ele: any, i: number) => {
+                                                return (
+                                                    <div
+                                                        className="crousel--block"
+                                                        key={ele.title}>
+                                                        <Card
+                                                            key={ele}
+                                                            cardType="Subdued">
+                                                            <FlexLayout
+                                                                spacing="tight"
+                                                                direction="vertical"
+                                                                valign="start">
+                                                                <Image
+                                                                    height={284}
+                                                                    width={265}
+                                                                    onError={() =>
+                                                                        imageError(
+                                                                            ele.main_image,
+                                                                            i
+                                                                        )
+                                                                    }
+                                                                    src={
+                                                                        ele.main_image
+                                                                    }
+                                                                />
+                                                                <div className="crousel--div">
+                                                                    <TextStyles
+                                                                        fontweight="extraBold"
+                                                                        type="Paragraph"
+                                                                        paragraphTypes="MD-1.4"
+                                                                        content={ele.title.substring(
+                                                                            0,
+                                                                            20
+                                                                        )}
+                                                                    />
+                                                                    <TextStyles
+                                                                        content={`$ ${ele.price}`}
+                                                                    />
+                                                                    <Button
+                                                                        type="Outlined"
+                                                                        content=" Shop Now"
+                                                                    />
+                                                                </div>
+                                                            </FlexLayout>
+                                                        </Card>
+                                                    </div>
+                                                );
+                                            }
+                                        )}
                                     </Carousel>
                                 </div>
                             </FlexLayout>

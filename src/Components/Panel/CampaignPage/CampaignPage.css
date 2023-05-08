@@ -20,9 +20,32 @@
 }
 
 .extra--spaceStyle .slick-track {
-    padding-left: 70px !important;
+    padding-left: 48px !important;
 }
 
 .btn--custom_border .inte-btn--Outlined {
     border: none !important;
+}
+
+
+.extra--spaceStyle .slick-slide {
+    height: 260px !important;
+    margin: 0px 5px !important;
+}
+
+
+.crousel--block .inte-card--subdued {
+    border: 1px solid #D7D9DB !important;
+    width: 265px !important;
+    padding: 0 !important;
+    text-overflow: ellipsis !important;
+}
+
+.custom--retargeting--select .inte--Textfield__thick .inte-formElement.inte-formElementTextfield,
+.inte-select--thick .inte-select.inte-formElement {
+    height: 4.4rem !important;
+}
+
+.crousel--div {
+    padding: 10px !important;
 }
