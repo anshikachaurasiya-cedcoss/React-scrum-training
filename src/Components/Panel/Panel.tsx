@@ -18,6 +18,7 @@ import Footer from '../Footer/Footer';
 import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import CampaignPage from './CampaignPage/CampaignPage';
 import ProductPage from './ProductPage/ProductPage';
+import SettingsPage from './SettingPage/SettingsPage';
 
 const Panel = (_props: PropsI) => {
     let navigate = useNavigate();
@@ -93,6 +94,7 @@ const Panel = (_props: PropsI) => {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="product" element={<ProductPage />} />
                     <Route path="campaign" element={<CampaignPage />} />
+                    <Route path="settings/*" element={<SettingsPage />} />
                 </Route>
             </Routes>
         </>
