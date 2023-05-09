@@ -5,17 +5,130 @@ import {
     Card,
     FlexChild,
     FlexLayout,
+    Loader,
+    Modal,
+    Select,
     TextStyles,
 } from '@cedcommerce/ounce-ui';
-import React from 'react';
+import { syncConnectorInfo } from '../../../Actions';
+import React, { useEffect, useState } from 'react';
 import { Edit, Plus } from 'react-feather';
 import FbDisabled from '../../../Asests/Images/svg/FbDisabled';
 import FbEnable from '../../../Asests/Images/svg/FbEnable';
 import InstaEnable from '../../../Asests/Images/svg/InstaEnable';
 import { DI, DIProps } from '../../../Core';
 import './SettingsPage.css';
+import { urlFetchCalls } from '../../../Constant';
 
-const AccountSettings = (_props: DIProps) => {
+interface PropsI extends DIProps {
+    syncConnectorInfo: (_props: DIProps) => void;
+}
+
+const AccountSettings = (_props: PropsI) => {
+    const {
+        di: { GET, POST },
+        error,
+        success,
+        redux: { current },
+        syncConnectorInfo,
+    } = _props;
+
+    const {
+        get: { getDisconnectedAccountUrl, getPixelsUrl },
+        post: { updatePixelUrl },
+    } = urlFetchCalls;
+
+    const [account, setAccount] = useState({
+        disconnected: [],
+        modal: false,
+        pixelData: [],
+        selectedPixel: '',
+        primaryBtnDisable: true,
+        pixels: '',
+        btnLoading: false,
+        updateModal: false,
+    });
+    const {
+        disconnected,
+        modal,
+        pixelData,
+        selectedPixel,
+        primaryBtnDisable,
+        pixels,
+        btnLoading,
+        updateModal,
+    } = account;
+    useEffect(() => {
+        getDisconnected();
+    }, []);
+
+    const getDisconnected = () => {
+        GET(getDisconnectedAccountUrl, { shop_id: current?.target._id }).then(
+            (res) => {
+                if (res.success) {
+                    account.disconnected = res.data;
+                    setAccount({ ...account });
+                } else {
+                    error(res.message);
+                }
+            }
+        );
+    };
+    const openModal = () => {
+        account.modal = !account.modal;
+        setAccount({ ...account, pixelData: [], primaryBtnDisable: true });
+    };
+    const openUpdateModal = () => {
+        account.updateModal = !account.updateModal;
+        setAccount({ ...account });
+    };
+    const editPixel = () => {
+        GET(getPixelsUrl, { shop_id: current?.target._id }).then((res) => {
+            if (res.success) {
+                let response = res.data.map((ele: any) => {
+                    let obj = { ...ele };
+                    let newObj = {
+                        label: `${ele.name} - (${ele.id})`,
+                        value: `${ele.name} - (${ele.id})`,
+                    };
+                    return Object.assign(obj, newObj);
+                });
+                let index = res.data.findIndex(
+                    (ele: any) => ele.id === current?.target.data.pixel_id
+                );
+                account.selectedPixel = response[index].value;
+                account.pixelData = response;
+                setAccount({ ...account });
+            }
+        });
+        openModal();
+    };
+    const selectHandler = (value: any, obj: any) => {
+        setAccount({
+            ...account,
+            primaryBtnDisable: false,
+            selectedPixel: obj.value,
+            pixels: obj.id,
+        });
+    };
+    const savePixel = () => {
+        setAccount({ ...account, btnLoading: true });
+        let data = {
+            shop_id: current?.target._id,
+            pixel: pixels,
+        };
+        POST(updatePixelUrl, data).then((res) => {
+            account.btnLoading = false;
+            if (res.success) {
+                success(res.message);
+                syncConnectorInfo(_props);
+                openModal();
+            } else {
+                error(res.message);
+            }
+        });
+    };
+    const redirectFb = () => {};
     return (
         <Card cardType="Default" title="Accounts">
             <FlexLayout spacing="loose" direction="vertical">
@@ -30,30 +143,89 @@ const AccountSettings = (_props: DIProps) => {
                                     <FlexLayout
                                         wrap="noWrap"
                                         halign="fill"
-                                        valign="center">
+                                        valign="baseline">
                                         <FlexLayout
                                             spacing="extraTight"
                                             direction="vertical">
                                             <TextStyles
-                                                content="FB Account Name "
+                                                content={
+                                                    current?.target.data
+                                                        .user_name
+                                                }
                                                 type="Paragraph"
                                                 paragraphTypes="MD-1.4"
                                                 fontweight="extraBold"
                                             />
                                             <TextStyles
-                                                content="Ads account name"
+                                                content={
+                                                    current?.target.data
+                                                        .account_name
+                                                }
                                                 type="Paragraph"
                                                 paragraphTypes="MD-1.4"
                                                 utility="light--text"
                                             />
                                             <Badge
                                                 type="Positive-100"
-                                                size="small">
-                                                Active Account
+                                                size="regular">
+                                                {current?.target.data
+                                                    .account_status ===
+                                                    'ACTIVE' &&
+                                                    'Active Account'}
                                             </Badge>
                                         </FlexLayout>
-                                        <Button type="Outlined">Update</Button>
+                                        <Button
+                                            type="Outlined"
+                                            onClick={openUpdateModal}>
+                                            Update
+                                        </Button>
                                     </FlexLayout>
+                                    <Modal
+                                        heading="Update Facebook Account Settings"
+                                        open={updateModal}
+                                        close={openUpdateModal}
+                                        primaryAction={{
+                                            content: 'Continue',
+                                            type: 'Primary',
+                                            onClick: redirectFb,
+                                        }}
+                                        secondaryAction={{
+                                            content: 'Cancel',
+                                            type: 'Outlined',
+                                            onClick: openUpdateModal,
+                                        }}>
+                                        <p>
+                                            Your Facebook account
+                                            <span className="update--textStyle">
+                                                {current?.target.data.user_name}
+                                            </span>
+                                            is currently connected to the Social
+                                            Ads for Buy with Prime account. Use
+                                            the same Facebook account, Business
+                                            Manager
+                                            <span className="update--textStyle">
+                                                {
+                                                    current?.target.data
+                                                        .business_name
+                                                }
+                                            </span>
+                                            , and Facebook Ads account
+                                            <span className="update--textStyle">
+                                                {
+                                                    current?.target.data
+                                                        .account_name
+                                                }
+                                            </span>
+                                        </p>
+                                        <p>
+                                            If any of the conditions do not
+                                            meet. Your accounts’ catalogs get
+                                            deleted on ads manager. Existing
+                                            campaigns will be deleted on the ads
+                                            manager and get disconnected in the
+                                            app.
+                                        </p>
+                                    </Modal>
                                     <FlexLayout
                                         wrap="noWrap"
                                         valign="center"
@@ -67,13 +239,17 @@ const AccountSettings = (_props: DIProps) => {
                                                 paragraphTypes="MD-1.4"
                                             />
                                             <TextStyles
-                                                content="277632452644288"
+                                                content={
+                                                    current?.target.data
+                                                        .pixel_id
+                                                }
                                                 type="Paragraph"
                                                 paragraphTypes="MD-1.4"
                                                 utility="light--text"
                                             />
                                         </FlexLayout>
                                         <Button
+                                            onClick={editPixel}
                                             type="Outlined"
                                             icon={<Edit size={20} />}>
                                             Edit
@@ -85,6 +261,59 @@ const AccountSettings = (_props: DIProps) => {
                                 </FlexLayout>
                             </FlexChild>
                         </FlexLayout>
+                        <Modal
+                            modalSize="large"
+                            open={modal}
+                            heading="Edit Pixel"
+                            primaryAction={{
+                                content: 'Save Changes',
+                                type: 'Primary',
+                                disable: primaryBtnDisable,
+                                onClick: savePixel,
+                                loading: btnLoading,
+                            }}
+                            secondaryAction={{
+                                content: 'Cancel',
+                                type: 'Outlined',
+                                onClick: openModal,
+                            }}
+                            close={openModal}>
+                            <FlexLayout>
+                                {pixelData.length === 0 ? (
+                                    <div className="loader--position">
+                                        <Loader type="Loader2" />
+                                    </div>
+                                ) : (
+                                    <FlexLayout
+                                        direction="vertical"
+                                        spacing="loose">
+                                        <Alert type="warning">
+                                            <FlexLayout>
+                                                <TextStyles
+                                                    type="Paragraph"
+                                                    fontweight="bold"
+                                                    paragraphTypes="MD-1.4"
+                                                    content="Are you sure you want to change the Pixel ID?"
+                                                />
+                                                <TextStyles
+                                                    type="Paragraph"
+                                                    fontweight="normal"
+                                                    paragraphTypes="MD-1.4"
+                                                    content="Changing the pixel Id might result in tracking metrics inconsistency. For a smooth tracking experience, please ensure your DTC website has the same pixel Id as your Buy With Prime pixel Id."
+                                                />
+                                            </FlexLayout>
+                                        </Alert>
+                                        <Select
+                                            options={pixelData}
+                                            value={selectedPixel}
+                                            onChange={(value: any, obj: any) =>
+                                                selectHandler(value, obj)
+                                            }
+                                        />
+                                    </FlexLayout>
+                                )}
+                            </FlexLayout>
+                        </Modal>
                         <FlexLayout wrap="noWrap" spacing="tight">
                             <InstaEnable />
                             <FlexLayout
@@ -102,8 +331,11 @@ const AccountSettings = (_props: DIProps) => {
                                     type="Paragraph"
                                     paragraphTypes="MD-1.4"
                                 />
-                                <Badge type="Neutral-200" size="small">
-                                    Not Connected
+                                <Badge type="Neutral-200" size="regular">
+                                    {current?.target.data.instagram_data
+                                        .length === 0
+                                        ? 'Not Connected'
+                                        : ''}
                                 </Badge>
                             </FlexLayout>
                         </FlexLayout>
@@ -114,84 +346,46 @@ const AccountSettings = (_props: DIProps) => {
                         spacing="loose"
                         direction="vertical"
                         valign="start">
-                        <Alert destroy={false} type="info">
-                            <TextStyles
-                                utility="light--text"
-                                content="We are currently retrieving information regarding your disconnected account. The details will be available shortly."
-                                type="Paragraph"
-                                paragraphTypes="MD-1.4"
-                                textcolor="#4E4F52"
-                            />
-                        </Alert>
-                        <FlexLayout
-                            spacing="loose"
-                            halign="center"
-                            wrap="noWrap"
-                            valign="center">
-                            <FbDisabled />
-                            <FlexLayout
-                                spacing="extraTight"
-                                direction="vertical">
-                                <TextStyles
-                                    content="FB Account Name "
-                                    type="Paragraph"
-                                    paragraphTypes="MD-1.4"
-                                    fontweight="extraBold"
-                                />
+                        {disconnected.length === 0 ? (
+                            <Alert destroy={false} type="info">
                                 <TextStyles
                                     utility="light--text"
-                                    content="Ads account name"
+                                    content="We are currently retrieving information regarding your disconnected account. The details will be available shortly."
                                     type="Paragraph"
                                     paragraphTypes="MD-1.4"
+                                    textcolor="#4E4F52"
                                 />
-                            </FlexLayout>
-                        </FlexLayout>
-                        <FlexLayout
-                            spacing="loose"
-                            halign="center"
-                            wrap="noWrap"
-                            valign="center">
-                            <FbDisabled />
-                            <FlexLayout
-                                spacing="extraTight"
-                                direction="vertical">
-                                <TextStyles
-                                    content="FB Account Name "
-                                    type="Paragraph"
-                                    paragraphTypes="MD-1.4"
-                                    fontweight="extraBold"
-                                />
-                                <TextStyles
-                                    content="Ads account name"
-                                    type="Paragraph"
-                                    paragraphTypes="MD-1.4"
-                                    utility="light--text"
-                                />
-                            </FlexLayout>
-                        </FlexLayout>
-                        <FlexLayout
-                            spacing="loose"
-                            halign="center"
-                            wrap="noWrap"
-                            valign="center">
-                            <FbDisabled />
-                            <FlexLayout
-                                spacing="extraTight"
-                                direction="vertical">
-                                <TextStyles
-                                    content="FB Account Name "
-                                    type="Paragraph"
-                                    paragraphTypes="MD-1.4"
-                                    fontweight="extraBold"
-                                />
-                                <TextStyles
-                                    content="Ads account name"
-                                    type="Paragraph"
-                                    paragraphTypes="MD-1.4"
-                                    utility="light--text"
-                                />
-                            </FlexLayout>
-                        </FlexLayout>
+                            </Alert>
+                        ) : (
+                            disconnected.map((ele: any) => {
+                                return (
+                                    <FlexLayout
+                                        key={ele.user_id}
+                                        spacing="loose"
+                                        halign="center"
+                                        wrap="noWrap"
+                                        valign="center">
+                                        <FbDisabled />
+                                        <FlexLayout
+                                            spacing="extraTight"
+                                            direction="vertical">
+                                            <TextStyles
+                                                content={ele.username}
+                                                type="Paragraph"
+                                                paragraphTypes="MD-1.4"
+                                                fontweight="extraBold"
+                                            />
+                                            <TextStyles
+                                                utility="light--text"
+                                                content={ele.account_name}
+                                                type="Paragraph"
+                                                paragraphTypes="MD-1.4"
+                                            />
+                                        </FlexLayout>
+                                    </FlexLayout>
+                                );
+                            })
+                        )}
                     </FlexLayout>
                 </Card>
                 <hr />
@@ -206,4 +400,6 @@ const AccountSettings = (_props: DIProps) => {
     );
 };
 
-export default DI(AccountSettings);
+export default DI(AccountSettings, {
+    func: { syncConnectorInfo },
+});

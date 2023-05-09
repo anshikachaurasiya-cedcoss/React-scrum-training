@@ -1,5 +1,5 @@
 import { BodyLayout, Button, NewSidebar, Topbar } from '@cedcommerce/ounce-ui';
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Bell,
     Box,
@@ -59,6 +59,11 @@ const Panel = (_props: PropsI) => {
         { id: 'logout', content: 'Logout', icon: <LogOut />, path: '/logout' },
     ];
 
+    const [selectedTab, setSelectedTab] = useState({
+        selectedVal: '',
+        selectedStyle: '',
+    });
+
     const changeHandler = (e: any) => {
         navigate(`${e.path}`);
     };
@@ -94,7 +99,7 @@ const Panel = (_props: PropsI) => {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="product" element={<ProductPage />} />
                     <Route path="campaign" element={<CampaignPage />} />
-                    <Route path="settings/*" element={<SettingsPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
                 </Route>
             </Routes>
         </>

@@ -514,16 +514,18 @@ const ProductPage = (_props: PropsI) => {
     };
 
     useEffect(() => {
-        if (productsData.length > 0) {
-            let search = setTimeout(() => {
-                GET(getRefineProductsUrl, {
-                    'filter[title][3]': searchVal,
-                }).then((res) => {
-                    renderSearchedData();
-                });
-            }, 1000);
+        if (searchVal !== '') {
+            if (productsData.length > 0) {
+                let search = setTimeout(() => {
+                    GET(getRefineProductsUrl, {
+                        'filter[title][3]': searchVal,
+                    }).then((res) => {
+                        renderSearchedData();
+                    });
+                }, 1000);
 
-            return () => clearTimeout(search);
+                return () => clearTimeout(search);
+            }
         }
     }, [searchVal]);
 
@@ -600,7 +602,9 @@ const ProductPage = (_props: PropsI) => {
                 <FlexLayout
                     spacing="loose"
                     direction="vertical"
-                    desktopWidth="100">
+                    desktopWidth="100"
+                    mobileWidth="100"
+                    tabWidth="100">
                     <FlexLayout valign="center" halign="fill">
                         <AutoComplete
                             options={searchedValues}
@@ -724,6 +728,7 @@ const ProductPage = (_props: PropsI) => {
                         )}
                     </FlexLayout>
                     <Grid
+                        scrollX={700}
                         loading={productsData.length > 0 ? false : true}
                         columns={[
                             ...productsHead,

@@ -578,7 +578,6 @@ const Dashboard = (_props: PropsI) => {
         );
         gridHeading.newColumns[checked].checked =
             !gridHeading.newColumns[checked].checked;
-
         let newHeadingData = [...gridHeading.gridHead];
         let cond = gridHeading.gridHead.findIndex(
             (item) => item.dataIndex === obj.dataIndex

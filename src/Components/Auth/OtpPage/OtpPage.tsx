@@ -203,13 +203,13 @@ const OtpPage = (_props: OtpProps) => {
                             paragraphTypes="MD-1.4"
                             fontweight="normal"
                         />
-                        <div className="custom--style">
-                            <FlexLayout
-                                wrap="noWrap"
-                                spacing="tight"
-                                valign="center">
-                                {otp.map((item: any, i: number) => {
-                                    return (
+                        <FlexLayout
+                            wrap="noWrap"
+                            spacing="tight"
+                            valign="center">
+                            {otp.map((item: any, i: number) => {
+                                return (
+                                    <div className="custom--style" key={item}>
                                         <TextField
                                             controlStates={disable.border}
                                             key={item}
@@ -225,20 +225,20 @@ const OtpPage = (_props: OtpProps) => {
                                                 backspaceHandler(i, item)
                                             }
                                         />
-                                    );
-                                })}
-                                {loader ? (
-                                    <Image
-                                        src={loaderImage}
-                                        alt=""
-                                        width={20}
-                                        height={20}
-                                    />
-                                ) : (
-                                    <></>
-                                )}
-                            </FlexLayout>
-                        </div>
+                                    </div>
+                                );
+                            })}
+                            {loader ? (
+                                <Image
+                                    src={loaderImage}
+                                    alt=""
+                                    width={20}
+                                    height={20}
+                                />
+                            ) : (
+                                <></>
+                            )}
+                        </FlexLayout>
                         <TextStyles
                             content={disable.msg}
                             type="Paragraph"
