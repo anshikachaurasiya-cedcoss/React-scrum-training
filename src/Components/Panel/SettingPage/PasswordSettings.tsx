@@ -18,6 +18,7 @@ interface pwdObj {
             | 'tel'
             | undefined;
         placeholder: string;
+        error: boolean;
     };
     new_pwd: {
         value: string;
@@ -32,8 +33,15 @@ interface pwdObj {
             | 'tel'
             | undefined;
         placeholder: string;
+        error: boolean;
     };
-    confirm_pwd: { value: string; name: string; placeholder: string };
+    confirm_pwd: {
+        value: string;
+        name: string;
+        placeholder: string;
+        error: boolean;
+        type: 'password';
+    };
 }
 
 const PasswordSettings = () => {
@@ -44,6 +52,7 @@ const PasswordSettings = () => {
             eyeOfOn: false,
             type: 'password',
             placeholder: 'Enter Old Password',
+            error: false,
         },
         new_pwd: {
             value: '',
@@ -51,11 +60,14 @@ const PasswordSettings = () => {
             eyeOfOn: false,
             type: 'password',
             placeholder: 'Enter New Password',
+            error: false,
         },
         confirm_pwd: {
             value: '',
             name: 'Confirm Password',
             placeholder: 'Confirm New Password',
+            error: false,
+            type: 'password',
         },
     });
     const {
@@ -65,6 +77,7 @@ const PasswordSettings = () => {
             eyeOfOn: current_pwd_eye,
             type: current_pwd_type,
             placeholder: current_pwd_placeholder,
+            error: current_pwd_error,
         },
         new_pwd: {
             value: new_pwd_value,
@@ -72,13 +85,26 @@ const PasswordSettings = () => {
             eyeOfOn: new_pwd_eye,
             type: new_pwd_type,
             placeholder: new_pwd_placeholder,
+            error: new_pwd_error,
         },
         confirm_pwd: {
             value: confirm_value,
             name: confirm_name,
             placeholder: confirm_placeholder,
+            error: confirm_pwd_error,
         },
     } = password;
+
+    const changeHandler = (val: string, e: any) => {
+        if (val === current_pwd_name) {
+            password.current_pwd.value = e;
+        } else if (val === new_pwd_name) {
+            password.new_pwd.value = e;
+        } else {
+            password.confirm_pwd.value = e;
+        }
+        setPassword({ ...password });
+    };
     return (
         <Card
             title="Password Reset"
@@ -88,10 +114,12 @@ const PasswordSettings = () => {
             }}>
             <FlexLayout direction="vertical" spacing="tight">
                 <TextField
+                    show={current_pwd_error}
                     type={current_pwd_type}
                     name={current_pwd_name}
                     value={current_pwd_value}
                     placeHolder={current_pwd_placeholder}
+                    onChange={(e) => changeHandler(current_pwd_name, e)}
                     innerSufIcon={
                         current_pwd_eye ? (
                             <Eye
@@ -119,9 +147,11 @@ const PasswordSettings = () => {
                     }
                 />
                 <TextField
+                    show={new_pwd_error}
                     placeHolder={new_pwd_placeholder}
                     type={new_pwd_type}
                     name={new_pwd_name}
+                    onChange={(e) => changeHandler(new_pwd_name, e)}
                     value={new_pwd_value}
                     innerSufIcon={
                         new_pwd_eye ? (
@@ -151,9 +181,11 @@ const PasswordSettings = () => {
                 />
                 <CustomHelpPoints />
                 <TextField
+                    show={confirm_pwd_error}
                     placeHolder={confirm_placeholder}
                     name={confirm_name}
                     value={confirm_value}
+                    onChange={(e) => changeHandler(confirm_name, e)}
                 />
             </FlexLayout>
         </Card>

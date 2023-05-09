@@ -22,11 +22,10 @@ import {
     Image,
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useRef, useState } from 'react';
-import { AlertCircle, CheckCircle, Play, X } from 'react-feather';
+import { AlertCircle, CheckCircle, X } from 'react-feather';
 import { DI, DIProps } from '../../../Core';
 import { urlFetchCalls } from '../../../Constant';
 import './CampaignPage.css';
-import images from '../../../Asests/Images/images.png';
 import { getAdditionalParams, prepareheaders } from '../../../Services';
 import moment from 'moment';
 
@@ -70,7 +69,7 @@ const CampaignPage = (_props: DIProps) => {
 
     // created ref for aborting the previous call
     const controller = useRef<any>(null);
-    const [products, setProducts] = useState({
+    const [products, setProducts] = useState<any>({
         products_count: 0,
         is_instagram_connected: false,
         audience_str: '',
@@ -167,21 +166,29 @@ const CampaignPage = (_props: DIProps) => {
     // function calls the gitInit API
     const getInitCampaigns = () => {
         GET(initCampaignUrl, { shop_id: current?.target._id }).then((res) => {
-            Object.values(res.data.audience).forEach((ele: any) => {
-                let obj: any = {
-                    label: ele,
-                    value: ele,
-                };
-                selectedValues.reTarget.push(obj);
-            });
-            selectedValues.reTargetValue.value =
-                selectedValues.reTarget[0].value;
-            setSelectedValues({ ...selectedValues });
-            if (res.data.products_preview.length > 30) {
+            if (res.data.audience.length > 0) {
+                Object.values(res.data.audience).forEach((ele: any) => {
+                    let obj: any = {
+                        label: ele,
+                        value: ele,
+                    };
+                    selectedValues.reTarget.push(obj);
+                });
+                selectedValues.reTargetValue.value =
+                    selectedValues.reTarget[0].value;
+                setSelectedValues({ ...selectedValues });
+            }
+            if (res.data.products_preview.length >= 30) {
                 products.max_Fb_Preview = res.data.products_preview.splice(
                     0,
                     30
                 );
+                products.max_Insta_Preview = res.data.products_preview.splice(
+                    0,
+                    10
+                );
+            } else if (res.data.products_preview.length >= 10) {
+                products.max_Fb_Preview = res.data.products_preview;
                 products.max_Insta_Preview = res.data.products_preview.splice(
                     0,
                     10
@@ -306,6 +313,24 @@ const CampaignPage = (_props: DIProps) => {
         } else {
             return '#027A48';
         }
+    };
+
+    const enableCreateButton = () => {
+        // if (
+        //     ((campaign_value !== '' ||
+        //         budget_value !== '' ||
+        //         ad_value !== '' ||
+        //         start_value !== '' ||
+        //         campaign_error ||
+        //         budget_error ||
+        //         ad_error ||
+        //         start_value === null) &&
+        //         prospective_checked) ||
+        //     prospective_checked
+        // ) {
+        //     return true;
+        // } else return false;
+        return true;
     };
     // function handles the select boxes
     const selectHandler = (str: string, ele: any) => {
@@ -449,19 +474,29 @@ const CampaignPage = (_props: DIProps) => {
         }
     }, [searchedvalue]);
 
-    const selectSearched = (val: any) => {
-        let obj: any = searchedArr.find((ele: any) => ele.name === val);
+    const selectSearched = (val: any, id: any) => {
+        let obj: any = searchedArr.find(
+            (ele: any) => ele.id === id && ele.name === val
+        );
         const keyName = JSON.stringify(obj.path.slice(0, obj.path.length - 1));
         if (!Object.keys(selectedObj).includes(keyName)) {
             searched.selectedObj[keyName] = [obj];
         } else {
-            searched.selectedObj[keyName].push(obj);
+            let index = searched.selectedObj[keyName].findIndex(
+                (ele: any) => ele.id === id
+            );
+            if (index === -1) {
+                searched.selectedObj[keyName].push(obj);
+            }
         }
+        searched.searchedvalue = '';
         setSearched({ ...searched });
     };
 
     const imageError = (value: any, i: number) => {
-        console.log(value, i, 'chal gaya function');
+        products.max_Fb_Preview[i].main_image =
+            'https://testing.cedcommerce.bwpapps.com/194ae022ff7f3d98d3fe50ea0c0b7818.png';
+        setProducts({ ...products });
     };
 
     return (
@@ -474,9 +509,9 @@ const CampaignPage = (_props: DIProps) => {
             <FlexLayout
                 spacing="loose"
                 wrap="noWrap"
-                wrapTab="noWrap"
+                wrapTab="wrap"
                 wrapMob="wrap">
-                <FlexChild desktopWidth="66" tabWidth="66" mobileWidth="100">
+                <FlexChild desktopWidth="66" tabWidth="100" mobileWidth="100">
                     <Card
                         cardType="Default"
                         title={
@@ -497,6 +532,7 @@ const CampaignPage = (_props: DIProps) => {
                         primaryAction={{
                             content: 'Create Campaign',
                             type: 'Primary',
+                            disable: enableCreateButton(),
                         }}
                         secondaryAction={{
                             content: 'Cancel',
@@ -504,7 +540,9 @@ const CampaignPage = (_props: DIProps) => {
                         }}>
                         <FlexLayout spacing="loose" direction="vertical">
                             <Card>
-                                <FormElement>
+                                <FlexLayout
+                                    direction="vertical"
+                                    spacing="loose">
                                     <TextField
                                         name="Campaign Name"
                                         required
@@ -522,8 +560,15 @@ const CampaignPage = (_props: DIProps) => {
                                             blurHandler('Enter Campaign Name')
                                         }
                                     />
-                                    <FlexLayout spacing="loose" wrap="noWrap">
-                                        <FlexChild desktopWidth="50">
+                                    <FlexLayout
+                                        spacing="loose"
+                                        wrap="noWrap"
+                                        wrapTab="wrap"
+                                        wrapMob="wrap">
+                                        <FlexChild
+                                            desktopWidth="50"
+                                            tabWidth="100"
+                                            mobileWidth="100">
                                             <FlexLayout direction="vertical">
                                                 <FlexLayout spacing="extraTight">
                                                     <TextStyles content="Start Date" />
@@ -547,7 +592,10 @@ const CampaignPage = (_props: DIProps) => {
                                                 />
                                             </FlexLayout>
                                         </FlexChild>
-                                        <FlexChild desktopWidth="50">
+                                        <FlexChild
+                                            desktopWidth="50"
+                                            tabWidth="100"
+                                            mobileWidth="100">
                                             <Datepicker
                                                 onChange={(val: any) =>
                                                     dateHandler('End Date', val)
@@ -623,7 +671,7 @@ const CampaignPage = (_props: DIProps) => {
                                             placeHolder="Insert the Suitable Ad Text"
                                         />
                                         <FlexLayout
-                                            wrap="noWrap"
+                                            direction="vertical"
                                             spacing="extraTight">
                                             <TextStyles
                                                 type="Paragraph"
@@ -633,12 +681,12 @@ const CampaignPage = (_props: DIProps) => {
                                                 content="To know more about high performing and quality content for Ads refer to our"
                                             />
                                             <TextLink
-                                                label="Content guide"
+                                                label="Content guide."
                                                 extraClass="link--style"
                                             />
                                         </FlexLayout>
                                     </FlexLayout>
-                                </FormElement>
+                                </FlexLayout>
                             </Card>
                             <hr />
                             <Card
@@ -665,13 +713,16 @@ const CampaignPage = (_props: DIProps) => {
                                     spacing="loose">
                                     <TextStyles
                                         content={
-                                            <>
-                                                <TextStyles content="Make sure your product catalog is synced with the app so that Facebook can select the most suitable products to advertise. " />
+                                            <span>
+                                                Make sure your product catalog
+                                                is synced with the app so that
+                                                Facebook can select the most
+                                                suitable products to advertise.
                                                 <TextLink
-                                                    label="Learn more about the Catalog Sync process."
+                                                    label=" Learn more about the Catalog Sync process."
                                                     extraClass="link--style"
                                                 />
-                                            </>
+                                            </span>
                                         }
                                     />
                                     <Alert
@@ -985,10 +1036,12 @@ const CampaignPage = (_props: DIProps) => {
                                                                     searchedArr
                                                                 }
                                                                 onClick={(
-                                                                    val: any
+                                                                    val: any,
+                                                                    id: any
                                                                 ) =>
                                                                     selectSearched(
-                                                                        val
+                                                                        val,
+                                                                        id
                                                                     )
                                                                 }
                                                                 placeHolder=" Search for demographics, interests, behaviors, etc."
@@ -1007,8 +1060,9 @@ const CampaignPage = (_props: DIProps) => {
                                             direction="vertical"
                                             spacing="tight"
                                             desktopWidth="100"
-                                            mobileWidth="100"
-                                            tabWidth="100">
+                                            // mobileWidth="100"
+                                            // tabWidth="100"
+                                        >
                                             <FlexChild childWidth="fullWidth">
                                                 <TextStyles
                                                     content="Target customers who either viewed your product or added it to their cart, but did not purchase."
@@ -1146,7 +1200,7 @@ const CampaignPage = (_props: DIProps) => {
                         </FlexLayout>
                     </Card>
                 </FlexChild>
-                <FlexChild desktopWidth="33" tabWidth="33" mobileWidth="100">
+                <FlexChild desktopWidth="33" tabWidth="100" mobileWidth="100">
                     <FlexLayout
                         direction="vertical"
                         spacing="loose"
@@ -1196,19 +1250,19 @@ const CampaignPage = (_props: DIProps) => {
                                     <Carousel
                                         responsive={[
                                             {
-                                                breakpoint: 1115,
+                                                breakpoint: 1364,
                                                 settings: {
                                                     slidesToShow: 1.2,
                                                 },
                                             },
                                             {
-                                                breakpoint: 983,
+                                                breakpoint: 1113,
                                                 settings: {
-                                                    slidesToShow: 2.5,
+                                                    slidesToShow: 2.7,
                                                 },
                                             },
                                             {
-                                                breakpoint: 726,
+                                                breakpoint: 1012,
                                                 settings: {
                                                     slidesToShow: 2.2,
                                                 },
@@ -1217,7 +1271,13 @@ const CampaignPage = (_props: DIProps) => {
                                             {
                                                 breakpoint: 660,
                                                 settings: {
-                                                    slidesToShow: 1,
+                                                    slidesToShow: 2,
+                                                },
+                                            },
+                                            {
+                                                breakpoint: 595,
+                                                settings: {
+                                                    slidesToShow: 1.2,
                                                 },
                                             },
                                         ]}
@@ -1240,6 +1300,7 @@ const CampaignPage = (_props: DIProps) => {
                                                                 direction="vertical"
                                                                 valign="start">
                                                                 <Image
+                                                                    fit="fill"
                                                                     height={284}
                                                                     width={265}
                                                                     onError={() =>
@@ -1278,35 +1339,6 @@ const CampaignPage = (_props: DIProps) => {
                                         )}
                                     </Carousel>
                                 </div>
-                            </FlexLayout>
-                        </Card>
-                        <Card cardType="Default">
-                            <FlexLayout spacing="tight" direction="vertical">
-                                <TextStyles
-                                    content="Need assistance creating a campaign? Please see this video guide for help"
-                                    type="Paragraph"
-                                    paragraphTypes="MD-1.4"
-                                    textcolor="#4E4F52"
-                                    fontweight="light"
-                                    lineHeight="LH-2.0"
-                                />
-                                <TextLink
-                                    label={
-                                        <FlexLayout
-                                            halign="start"
-                                            wrap="noWrap"
-                                            spacing="extraTight">
-                                            <Play size={16} color="#2E90FA" />
-                                            <TextStyles
-                                                content="Campaign Guide"
-                                                textcolor="#4E4F52"
-                                                paragraphTypes="MD-1.4"
-                                                type="Paragraph"
-                                                fontweight="light"
-                                            />
-                                        </FlexLayout>
-                                    }
-                                />
                             </FlexLayout>
                         </Card>
                     </FlexLayout>

@@ -11,6 +11,7 @@ import OnBoardingPage from './Components/Auth/OnBoarding/OnBoardingPage';
 import OnBoardingSuccessPage from './Components/Auth/OnBoarding/OnBoardingSuccessPage';
 import OnBoardingErrorPage from './Components/Auth/OnBoarding/OnBoardingErrorPage';
 import CampaignPage from './Components/Panel/CampaignPage/CampaignPage';
+import RegisterPage from './Components/Auth/RegisterPage/RegisterPage';
 
 const Auth = lazy(() => import('./Components/Auth'));
 const ShowMessage = lazy(
