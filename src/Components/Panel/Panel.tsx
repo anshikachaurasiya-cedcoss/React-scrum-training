@@ -1,5 +1,5 @@
 import { BodyLayout, Button, NewSidebar, Topbar } from '@cedcommerce/ounce-ui';
-import React, { useState } from 'react';
+import React from 'react';
 import {
     Bell,
     Box,
@@ -15,13 +15,21 @@ import Cedcommerce from '../../Asests/Images/svg/Cedcommerce';
 import MobileLogo from '../../Asests/Images/svg/MobileLogo';
 import Dashboard from './Dashboard';
 import Footer from '../Footer/Footer';
-import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
+import './Panel.css';
+import {
+    Outlet,
+    Route,
+    Routes,
+    useLocation,
+    useNavigate,
+} from 'react-router-dom';
 import CampaignPage from './CampaignPage/CampaignPage';
 import ProductPage from './ProductPage/ProductPage';
 import SettingsPage from './SettingPage/SettingsPage';
 
 const Panel = (_props: PropsI) => {
     let navigate = useNavigate();
+    const location = useLocation();
     const menu = [
         {
             id: 'dashboard',
@@ -59,11 +67,6 @@ const Panel = (_props: PropsI) => {
         { id: 'logout', content: 'Logout', icon: <LogOut />, path: '/logout' },
     ];
 
-    const [selectedTab, setSelectedTab] = useState({
-        selectedVal: '',
-        selectedStyle: '',
-    });
-
     const changeHandler = (e: any) => {
         navigate(`${e.path}`);
     };
@@ -87,7 +90,12 @@ const Panel = (_props: PropsI) => {
                                 logo={<Cedcommerce />}
                                 mobileLogo={<MobileLogo />}
                                 menu={menu}
-                                subMenu={submenus}
+                                path={
+                                    location.pathname.split('/')[3] ===
+                                    'campaign'
+                                        ? 'dashboard'
+                                        : location.pathname.split('/')[3]
+                                }
                                 onChange={(e: any) => changeHandler(e)}
                             />
                             <BodyLayout>

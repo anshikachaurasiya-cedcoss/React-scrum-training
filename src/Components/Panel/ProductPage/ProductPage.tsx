@@ -320,7 +320,6 @@ const ProductPage = (_props: PropsI) => {
         let ParamsArr: any = [];
         let newObj: any = {};
         let errorArr: any = [];
-        let array: any = [];
         obj.items.forEach((ele: any) => {
             if (ele.status === 'error') {
                 if (ele.errors) {
@@ -344,17 +343,19 @@ const ProductPage = (_props: PropsI) => {
             }
         });
         POST(solutionsUrl, ParamsArr).then((res) => {
-            res.data.forEach((ele: any) => {
-                errorArr.forEach((innerEle: any) => {
-                    console.log(innerEle);
-                    if (innerEle && array.length < errorArr.length) {
-                        Object.assign(innerEle, ele);
-                        array.push(innerEle);
-                    }
-                });
+            res.data.forEach((ele: any, index: number) => {
+                errorArr[index] = { ...errorArr[index], ...ele };
+            });
+            const myobj: any = {};
+            errorArr.forEach((err: any) => {
+                if (err.sku in myobj) {
+                    myobj[err.sku].push(err);
+                } else {
+                    myobj[err.sku] = [err];
+                }
             });
             openModal();
-            setModalErrors(array);
+            setModalErrors([myobj]);
         });
     };
 
@@ -363,12 +364,12 @@ const ProductPage = (_props: PropsI) => {
     };
 
     const openErrorAccordian = (ele: any, i: number) => {
-        let index = modalErrors.findIndex(
-            (innerEle: any) =>
-                innerEle.source_product_id === ele.source_product_id &&
-                innerEle.sku === ele.sku
-        );
-        modalErrors[index].errorAction = !modalErrors[index].errorAction;
+        if ('errorAction' in modalErrors[0][ele])
+            modalErrors[0][ele]['errorAction'] =
+                !modalErrors[0][ele]['errorAction'];
+        else {
+            modalErrors[0][ele]['errorAction'] = true;
+        }
         setModalErrors([...modalErrors]);
     };
     // function renders the action list
@@ -578,13 +579,19 @@ const ProductPage = (_props: PropsI) => {
         }
     };
     const openSolutionAccordian = (ele: any, i: number) => {
-        let index = modalErrors.findIndex(
-            (innerEle: any) =>
-                innerEle.source_product_id === ele.source_product_id &&
-                innerEle.sku === ele.sku
-        );
-        modalErrors[index].solutionAction = !modalErrors[index].solutionAction;
+        console.log(modalErrors[0]);
+        Object.values(modalErrors[0]).forEach((item: any, index) => {
+            if (
+                item.sku === ele.sku &&
+                item.source_product_id === ele.source_product_id
+            ) {
+                item.solutionAction = !item.solutionAction;
+            }
+        });
         setModalErrors([...modalErrors]);
+    };
+    const closeFilter = () => {
+        console.log('filter closed');
     };
     return (
         <>
@@ -625,6 +632,7 @@ const ProductPage = (_props: PropsI) => {
                             onClick={(val: any) => selectSearch(val)}
                         />
                         <AdvanceFilter
+                            onClose={closeFilter}
                             filters={filterArr}
                             type="Outlined"
                             button="Filter"
@@ -772,70 +780,102 @@ const ProductPage = (_props: PropsI) => {
             </Card>
             <Modal open={errorModal} close={openModal} heading="Errors">
                 <FlexLayout direction="vertical" spacing="loose">
-                    {modalErrors.map((ele: any, i: number) => {
-                        return (
-                            <Accordion
-                                key={ele.sku}
-                                title={
-                                    <TextStyles
-                                        content={`Variants sku: ${ele.sku}`}
-                                        textcolor="negative"
-                                    />
-                                }
-                                iconAlign="right"
-                                onClick={() => openErrorAccordian(ele, i)}
-                                active={ele.errorAction}>
-                                <Card cardType="Default">
-                                    <FlexLayout wrap="noWrap" spacing="loose">
-                                        <AlertTriangle
-                                            size={20}
-                                            color="#C4281C"
-                                        />
-                                        <FlexLayout
-                                            direction="vertical"
-                                            spacing="tight">
+                    {modalErrors.length > 0 &&
+                        Object.entries(modalErrors[0]).map(
+                            ([key, value]: any, i) => {
+                                return (
+                                    <Accordion
+                                        key={key}
+                                        title={
                                             <TextStyles
-                                                content={ele.title}
-                                                type="Paragraph"
-                                                paragraphTypes="MD-1.4"
-                                                fontweight="bold"
+                                                content={`Variants sku: ${key}`}
+                                                textcolor="negative"
                                             />
-                                            <TextStyles
-                                                type="Paragraph"
-                                                paragraphTypes="MD-1.4"
-                                                fontweight="normal"
-                                                textcolor="#4E4F52"
-                                                content={ele.description}
-                                            />
-                                            {ele.solution_exists === true ? (
-                                                <Accordion
-                                                    title="Resolutions"
-                                                    onClick={() =>
-                                                        openSolutionAccordian(
-                                                            ele,
-                                                            i
-                                                        )
-                                                    }
-                                                    active={ele.solutionAction}
-                                                    children={
-                                                        <TextStyles
-                                                            content={ele.answer}
-                                                            type="Paragraph"
-                                                            paragraphTypes="MD-1.4"
-                                                            lineHeight="LH-2.0"
-                                                            textcolor="#4E4F52"
-                                                        />
-                                                    }
-                                                />
-                                            ) : (
-                                                <></>
+                                        }
+                                        iconAlign="right"
+                                        onClick={() =>
+                                            openErrorAccordian(key, i)
+                                        }
+                                        active={
+                                            modalErrors[0][key].errorAction
+                                        }>
+                                        <Card cardType="Default">
+                                            {value.map(
+                                                (item: any, index: any) => {
+                                                    return (
+                                                        <FlexLayout
+                                                            key={item.title}
+                                                            spacing="loose"
+                                                            direction="vertical">
+                                                            <FlexLayout
+                                                                key={item.title}
+                                                                wrap="noWrap"
+                                                                spacing="loose">
+                                                                <AlertTriangle
+                                                                    size={20}
+                                                                    color="#C4281C"
+                                                                />
+                                                                <FlexLayout
+                                                                    direction="vertical"
+                                                                    spacing="extraTight">
+                                                                    <TextStyles
+                                                                        content={
+                                                                            item.title
+                                                                        }
+                                                                        type="Paragraph"
+                                                                        paragraphTypes="MD-1.4"
+                                                                        fontweight="bold"
+                                                                    />
+                                                                    <TextStyles
+                                                                        type="Paragraph"
+                                                                        paragraphTypes="MD-1.4"
+                                                                        fontweight="normal"
+                                                                        textcolor="#4E4F52"
+                                                                        content={
+                                                                            item.description
+                                                                        }
+                                                                    />
+                                                                    {item.solution_exists ===
+                                                                    true ? (
+                                                                        <Accordion
+                                                                            title="Resolutions"
+                                                                            onClick={() =>
+                                                                                openSolutionAccordian(
+                                                                                    item,
+                                                                                    index
+                                                                                )
+                                                                            }
+                                                                            active={
+                                                                                value.solutionAction
+                                                                            }
+                                                                            children={
+                                                                                <TextStyles
+                                                                                    content={
+                                                                                        ''
+                                                                                        // ele.answer
+                                                                                    }
+                                                                                    type="Paragraph"
+                                                                                    paragraphTypes="MD-1.4"
+                                                                                    lineHeight="LH-2.0"
+                                                                                    textcolor="#4E4F52"
+                                                                                />
+                                                                            }
+                                                                        />
+                                                                    ) : (
+                                                                        <></>
+                                                                    )}
+                                                                </FlexLayout>
+                                                            </FlexLayout>
+                                                            <hr />
+                                                        </FlexLayout>
+                                                    );
+                                                }
                                             )}
-                                        </FlexLayout>
-                                    </FlexLayout>
-                                </Card>
-                            </Accordion>
-                        );
-                    })}
+                                        </Card>
+                                    </Accordion>
+                                );
+                            }
+                        )}
                 </FlexLayout>
             </Modal>
         </>

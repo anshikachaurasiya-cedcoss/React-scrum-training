@@ -59,6 +59,11 @@ const SettingsPage = (_props: DIProps) => {
         btnLoading: false,
         updateModal: false,
     });
+    const [privacy, setPrivacy] = useState({
+        privacyChecked: false,
+        checkedValue: false,
+        btnLoading: false,
+    });
     const [tab, setTab] = useState({
         selectedTab: settingsArr[0].id,
         showComponent: settingsArr[0].id,
@@ -75,6 +80,7 @@ const SettingsPage = (_props: DIProps) => {
         getDisconnected();
         getinit();
         getConfig();
+        getPrivacyConfig();
     }, []);
 
     const getinit = () => {
@@ -100,6 +106,19 @@ const SettingsPage = (_props: DIProps) => {
                 general.brandValue = res.data[0].value.brand;
                 setGeneral({ ...general });
             }
+        });
+    };
+
+    const getPrivacyConfig = () => {
+        let params = { group_code: ['meta_TnC'] };
+        POST(getConfigUrl, params).then((res) => {
+            if (res.success) {
+                privacy.privacyChecked = res.data[0].value.meta_LDU;
+                privacy.checkedValue = res.data[0].value.meta_LDU;
+            } else {
+                error(res.message);
+            }
+            setPrivacy({ ...privacy });
         });
     };
 
@@ -138,7 +157,13 @@ const SettingsPage = (_props: DIProps) => {
                         getConfig={getConfig}
                     />
                 )}
-                {showComponent === settingsArr[3].id && <PrivacySettings />}
+                {showComponent === settingsArr[3].id && (
+                    <PrivacySettings
+                        privacy={privacy}
+                        setPrivacy={setPrivacy}
+                        getPrivacyConfig={getPrivacyConfig}
+                    />
+                )}
             </Tabs>
         </>
     );

@@ -17,7 +17,7 @@ import fbicon from '../../../Asests/Images/fbicon.png';
 import onboardinglogo from '../../../Asests/Images/onboardinglogo.png';
 import CheckField from '../../../Asests/Images/svg/CheckField';
 import { DI, DIProps } from '../../../Core/DependencyInjection';
-import { syncNecessaryInfo, syncConnectorInfo } from '../../../Actions';
+import { syncNecessaryInfo, syncConnectorInfo, error } from '../../../Actions';
 import { urlFetchCalls } from '../../../Constant';
 import { parseJwt } from '../../../Core';
 import { StoreDispatcher } from '../../../';
