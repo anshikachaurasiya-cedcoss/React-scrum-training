@@ -11,8 +11,14 @@ import { urlFetchCalls } from '../../../Constant';
 
 const SettingsPage = (_props: DIProps) => {
     const {
-        get: { initCampaignUrl },
+        get: { initCampaignUrl, getDisconnectedAccountUrl },
+        post: { getConfigUrl },
     } = urlFetchCalls;
+    const {
+        di: { GET, POST },
+        redux: { current },
+        error,
+    } = _props;
     const settingsArr = [
         {
             icon: <User />,
@@ -35,6 +41,24 @@ const SettingsPage = (_props: DIProps) => {
             id: 'Privacy Settings',
         },
     ];
+    const [general, setGeneral] = useState({
+        store_url: '',
+        brand: '',
+        editModal: false,
+        brandValue: '',
+        brandError: false,
+        btnLoading: false,
+    });
+    const [account, setAccount] = useState({
+        disconnected: [],
+        modal: false,
+        pixelData: [],
+        selectedPixel: '',
+        primaryBtnDisable: true,
+        pixels: '',
+        btnLoading: false,
+        updateModal: false,
+    });
     const [tab, setTab] = useState({
         selectedTab: settingsArr[0].id,
         showComponent: settingsArr[0].id,
@@ -47,6 +71,51 @@ const SettingsPage = (_props: DIProps) => {
             }
         });
     };
+    useEffect(() => {
+        getDisconnected();
+        getinit();
+        getConfig();
+    }, []);
+
+    const getinit = () => {
+        GET(initCampaignUrl, { shop_id: current?.target._id }).then((res) => {
+            if (res.success) {
+                general.store_url = res.data.website_url;
+            } else {
+                error(res.message);
+            }
+            setGeneral({ ...general });
+        });
+    };
+
+    const getConfig = () => {
+        let params = {
+            group_code: ['bwp-product'],
+            key: 'brand',
+            source: { shopId: current?.source._id, marketplace: 'onyx' },
+        };
+        POST(getConfigUrl, params).then((res) => {
+            if (res.success) {
+                general.brand = res.data[0].value.brand;
+                general.brandValue = res.data[0].value.brand;
+                setGeneral({ ...general });
+            }
+        });
+    };
+
+    const getDisconnected = () => {
+        GET(getDisconnectedAccountUrl, { shop_id: current?.target._id }).then(
+            (res) => {
+                if (res.success) {
+                    account.disconnected = res.data;
+                    setAccount({ ...account });
+                } else {
+                    error(res.message);
+                }
+            }
+        );
+    };
+
     return (
         <>
             <PageHeader title="Settings" />
@@ -55,9 +124,20 @@ const SettingsPage = (_props: DIProps) => {
                 value={settingsArr}
                 alignment="vertical"
                 onChange={(id: any) => changeTab(id)}>
-                {showComponent === settingsArr[0].id && <AccountSettings />}
+                {showComponent === settingsArr[0].id && (
+                    <AccountSettings
+                        account={account}
+                        setAccount={setAccount}
+                    />
+                )}
                 {showComponent === settingsArr[1].id && <PasswordSettings />}
-                {showComponent === settingsArr[2].id && <GeneralSettings />}
+                {showComponent === settingsArr[2].id && (
+                    <GeneralSettings
+                        general={general}
+                        setGeneral={setGeneral}
+                        getConfig={getConfig}
+                    />
+                )}
                 {showComponent === settingsArr[3].id && <PrivacySettings />}
             </Tabs>
         </>
