@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'react-feather';
 import CustomHelpPoints from '../../CustomHelpPoints';
 import './SettingsPage.css';
+import { regexValidation } from '../../../Constant';
+import { DI, DIProps } from '../../../Core';
+import { urlFetchCalls } from '../../../Constant';
 
 interface pwdObj {
     current_pwd: {
@@ -40,11 +43,20 @@ interface pwdObj {
         name: string;
         placeholder: string;
         error: boolean;
-        type: 'password';
     };
 }
 
-const PasswordSettings = () => {
+const PasswordSettings = (_props: DIProps) => {
+    const {
+        post: { resetPassword },
+    } = urlFetchCalls;
+    const {
+        di: { POST },
+        redux: { current },
+        error,
+        success,
+    } = _props;
+    const { passwordFormat } = regexValidation;
     const [password, setPassword] = useState<pwdObj>({
         current_pwd: {
             value: '',
@@ -67,7 +79,6 @@ const PasswordSettings = () => {
             name: 'Confirm Password',
             placeholder: 'Confirm New Password',
             error: false,
-            type: 'password',
         },
     });
     const {
@@ -94,16 +105,103 @@ const PasswordSettings = () => {
             error: confirm_pwd_error,
         },
     } = password;
-
+    // function handles the input boxes and also check for the validations
     const changeHandler = (val: string, e: any) => {
         if (val === current_pwd_name) {
+            if (e === '') {
+                password.current_pwd.error = true;
+            } else {
+                password.current_pwd.error = false;
+            }
             password.current_pwd.value = e;
+            if (new_pwd_value !== '') {
+                oldNewMatch();
+            }
         } else if (val === new_pwd_name) {
+            if (e === '') {
+                password.new_pwd.error = true;
+            } else {
+                password.new_pwd.error = false;
+            }
             password.new_pwd.value = e;
+            if (current_pwd_value !== '') {
+                oldNewMatch();
+            }
+            if (confirm_value !== '') {
+                checkValidation();
+            }
         } else {
             password.confirm_pwd.value = e;
+            checkValidation();
         }
         setPassword({ ...password });
+    };
+    // function checks if the old and new password are same or not
+    const oldNewMatch = () => {
+        if (password.current_pwd.value === password.new_pwd.value) {
+            password.new_pwd.error = true;
+        } else {
+            password.new_pwd.error = false;
+        }
+        setPassword({ ...password });
+    };
+    const checkValidation = () => {
+        if (password.new_pwd.value === password.confirm_pwd.value) {
+            password.confirm_pwd.error = false;
+        } else {
+            password.confirm_pwd.error = true;
+        }
+        setPassword({ ...password });
+    };
+    // function checks for validation on blur of the input fields
+    const blurHandler = (value: string) => {
+        if (value === new_pwd_name) {
+            console.log(value, new_pwd_name, new_pwd_value);
+            if (new_pwd_value.match(passwordFormat)) {
+                password.new_pwd.error = false;
+            } else {
+                password.new_pwd.error = true;
+            }
+        } else {
+            checkValidation();
+        }
+
+        setPassword({ ...password });
+    };
+    // function disables or enables the reset button if any of the input field is not correctly filled or empty
+    const disableBtn = () => {
+        if (
+            current_pwd_value === '' ||
+            new_pwd_value === '' ||
+            confirm_value === '' ||
+            current_pwd_error ||
+            new_pwd_error ||
+            confirm_pwd_error
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+    // function hits the api for resetting the password
+    const reset = () => {
+        let params = {
+            email: current?.source.email,
+            old_password: current_pwd_value,
+            new_password: new_pwd_value,
+            confirm_password: confirm_value,
+        };
+        POST(resetPassword, params).then((res) => {
+            if (res.success) {
+                password.current_pwd.value = '';
+                password.new_pwd.value = '';
+                password.confirm_pwd.value = '';
+                setPassword({ ...password });
+                success(res.message);
+            } else {
+                error(res.message);
+            }
+        });
     };
     return (
         <Card
@@ -111,10 +209,13 @@ const PasswordSettings = () => {
             primaryAction={{
                 type: 'Primary',
                 content: 'Save New Password',
+                disable: disableBtn(),
+                onClick: () => reset(),
             }}>
             <FlexLayout direction="vertical" spacing="tight">
                 <TextField
-                    show={current_pwd_error}
+                    show={current_pwd_eye}
+                    error={current_pwd_error}
                     type={current_pwd_type}
                     name={current_pwd_name}
                     value={current_pwd_value}
@@ -147,12 +248,19 @@ const PasswordSettings = () => {
                     }
                 />
                 <TextField
-                    show={new_pwd_error}
+                    show={new_pwd_eye}
+                    error={new_pwd_error}
                     placeHolder={new_pwd_placeholder}
                     type={new_pwd_type}
                     name={new_pwd_name}
                     onChange={(e) => changeHandler(new_pwd_name, e)}
+                    onblur={() => blurHandler(new_pwd_name)}
                     value={new_pwd_value}
+                    showHelp={
+                        new_pwd_error
+                            ? 'Your new password cannot be the same as your current password.'
+                            : ''
+                    }
                     innerSufIcon={
                         new_pwd_eye ? (
                             <Eye
@@ -181,15 +289,20 @@ const PasswordSettings = () => {
                 />
                 <CustomHelpPoints />
                 <TextField
-                    show={confirm_pwd_error}
+                    error={confirm_pwd_error}
                     placeHolder={confirm_placeholder}
                     name={confirm_name}
                     value={confirm_value}
                     onChange={(e) => changeHandler(confirm_name, e)}
+                    onblur={() => blurHandler(confirm_name)}
+                    showHelp={
+                        confirm_pwd_error ? 'Passwords do not match!' : ''
+                    }
+                    type="password"
                 />
             </FlexLayout>
         </Card>
     );
 };
 
-export default PasswordSettings;
+export default DI(PasswordSettings);

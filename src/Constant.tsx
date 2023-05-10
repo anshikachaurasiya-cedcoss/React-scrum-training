@@ -28,6 +28,7 @@ export const regexValidation = {
         /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.+([a-zA-Z0-9-]+)2*$/,
     singleDigit: /^[0-9]{1}$/,
     onlyDigit: /^[0-9]$/,
+    passwordFormat: /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{7,15}$/,
 };
 /**
  * url Endpoints (GET POST PUT DELETE) and redirection url
