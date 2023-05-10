@@ -166,7 +166,7 @@ const CampaignPage = (_props: DIProps) => {
     // function calls the gitInit API
     const getInitCampaigns = () => {
         GET(initCampaignUrl, { shop_id: current?.target._id }).then((res) => {
-            if (res.data.audience.length > 0) {
+            if (Object.values(res.data.audience).length > 0) {
                 Object.values(res.data.audience).forEach((ele: any) => {
                     let obj: any = {
                         label: ele,

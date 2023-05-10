@@ -24,7 +24,32 @@ interface PropsI extends DIProps {
     syncConnectorInfo: (_props: DIProps) => void;
 }
 
-const AccountSettings = (_props: PropsI) => {
+interface accountProps extends PropsI {
+    account: {
+        disconnected: never[];
+        modal: boolean;
+        pixelData: never[];
+        selectedPixel: string;
+        primaryBtnDisable: boolean;
+        pixels: string;
+        btnLoading: boolean;
+        updateModal: boolean;
+    };
+    setAccount: React.Dispatch<
+        React.SetStateAction<{
+            disconnected: never[];
+            modal: boolean;
+            pixelData: never[];
+            selectedPixel: string;
+            primaryBtnDisable: boolean;
+            pixels: string;
+            btnLoading: boolean;
+            updateModal: boolean;
+        }>
+    >;
+}
+
+const AccountSettings = (_props: accountProps) => {
     const {
         di: { GET, POST },
         error,
@@ -38,16 +63,16 @@ const AccountSettings = (_props: PropsI) => {
         post: { updatePixelUrl },
     } = urlFetchCalls;
 
-    const [account, setAccount] = useState({
-        disconnected: [],
-        modal: false,
-        pixelData: [],
-        selectedPixel: '',
-        primaryBtnDisable: true,
-        pixels: '',
-        btnLoading: false,
-        updateModal: false,
-    });
+    // const [account, setAccount] = useState({
+    //     disconnected: [],
+    //     modal: false,
+    //     pixelData: [],
+    //     selectedPixel: '',
+    //     primaryBtnDisable: true,
+    //     pixels: '',
+    //     btnLoading: false,
+    //     updateModal: false,
+    // });
     const {
         disconnected,
         modal,
@@ -57,30 +82,34 @@ const AccountSettings = (_props: PropsI) => {
         pixels,
         btnLoading,
         updateModal,
-    } = account;
-    useEffect(() => {
-        getDisconnected();
-    }, []);
+    } = _props.account;
+    // useEffect(() => {
+    //     getDisconnected();
+    // }, []);
 
-    const getDisconnected = () => {
-        GET(getDisconnectedAccountUrl, { shop_id: current?.target._id }).then(
-            (res) => {
-                if (res.success) {
-                    account.disconnected = res.data;
-                    setAccount({ ...account });
-                } else {
-                    error(res.message);
-                }
-            }
-        );
-    };
+    // const getDisconnected = () => {
+    //     GET(getDisconnectedAccountUrl, { shop_id: current?.target._id }).then(
+    //         (res) => {
+    //             if (res.success) {
+    //                 account.disconnected = res.data;
+    //                 setAccount({ ...account });
+    //             } else {
+    //                 error(res.message);
+    //             }
+    //         }
+    //     );
+    // };
     const openModal = () => {
-        account.modal = !account.modal;
-        setAccount({ ...account, pixelData: [], primaryBtnDisable: true });
+        _props.account.modal = !_props.account.modal;
+        _props.setAccount({
+            ..._props.account,
+            pixelData: [],
+            primaryBtnDisable: true,
+        });
     };
     const openUpdateModal = () => {
-        account.updateModal = !account.updateModal;
-        setAccount({ ...account });
+        _props.account.updateModal = !_props.account.updateModal;
+        _props.setAccount({ ..._props.account });
     };
     const editPixel = () => {
         GET(getPixelsUrl, { shop_id: current?.target._id }).then((res) => {
@@ -96,29 +125,29 @@ const AccountSettings = (_props: PropsI) => {
                 let index = res.data.findIndex(
                     (ele: any) => ele.id === current?.target.data.pixel_id
                 );
-                account.selectedPixel = response[index].value;
-                account.pixelData = response;
-                setAccount({ ...account });
+                _props.account.selectedPixel = response[index].value;
+                _props.account.pixelData = response;
+                _props.setAccount({ ..._props.account });
             }
         });
         openModal();
     };
     const selectHandler = (value: any, obj: any) => {
-        setAccount({
-            ...account,
+        _props.setAccount({
+            ..._props.account,
             primaryBtnDisable: false,
             selectedPixel: obj.value,
             pixels: obj.id,
         });
     };
     const savePixel = () => {
-        setAccount({ ...account, btnLoading: true });
+        _props.setAccount({ ..._props.account, btnLoading: true });
         let data = {
             shop_id: current?.target._id,
             pixel: pixels,
         };
         POST(updatePixelUrl, data).then((res) => {
-            account.btnLoading = false;
+            _props.account.btnLoading = false;
             if (res.success) {
                 success(res.message);
                 syncConnectorInfo(_props);
