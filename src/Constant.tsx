@@ -53,6 +53,7 @@ export const urlFetchCalls = {
         getPixelsUrl: 'meta/account/getAccountPixels',
         getAudience: 'meta/campaign/getAudience',
         faqSearch: 'webapi/rest/v1/faq/search',
+        getNotifications: 'connector/get/allNotifications',
     },
     post: {
         userLogin: 'user/login',

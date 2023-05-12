@@ -11,14 +11,20 @@ import {
     TextStyles,
 } from '@cedcommerce/ounce-ui';
 import { syncConnectorInfo } from '../../../Actions';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Edit, Plus } from 'react-feather';
 import FbDisabled from '../../../Asests/Images/svg/FbDisabled';
 import FbEnable from '../../../Asests/Images/svg/FbEnable';
 import InstaEnable from '../../../Asests/Images/svg/InstaEnable';
-import { DI, DIProps } from '../../../Core';
+import { DI, DIProps, parseJwt } from '../../../Core';
 import './SettingsPage.css';
-import { urlFetchCalls } from '../../../Constant';
+import {
+    APP_SOURCE_NAME,
+    APP_TARGET_NAME,
+    currency,
+    timezone,
+    urlFetchCalls,
+} from '../../../Constant';
 
 interface PropsI extends DIProps {
     syncConnectorInfo: (_props: DIProps) => void;
@@ -34,6 +40,7 @@ interface accountProps extends PropsI {
         pixels: string;
         btnLoading: boolean;
         updateModal: boolean;
+        accountModal: boolean;
     };
     setAccount: React.Dispatch<
         React.SetStateAction<{
@@ -51,28 +58,24 @@ interface accountProps extends PropsI {
 
 const AccountSettings = (_props: accountProps) => {
     const {
-        di: { GET, POST },
+        di: {
+            GET,
+            POST,
+            globalState: { get },
+        },
         error,
         success,
         redux: { current },
         syncConnectorInfo,
+        account,
+        setAccount,
     } = _props;
 
     const {
-        get: { getDisconnectedAccountUrl, getPixelsUrl },
+        get: { getPixelsUrl, installtionForm },
         post: { updatePixelUrl },
     } = urlFetchCalls;
 
-    // const [account, setAccount] = useState({
-    //     disconnected: [],
-    //     modal: false,
-    //     pixelData: [],
-    //     selectedPixel: '',
-    //     primaryBtnDisable: true,
-    //     pixels: '',
-    //     btnLoading: false,
-    //     updateModal: false,
-    // });
     const {
         disconnected,
         modal,
@@ -82,35 +85,24 @@ const AccountSettings = (_props: accountProps) => {
         pixels,
         btnLoading,
         updateModal,
-    } = _props.account;
-    // useEffect(() => {
-    //     getDisconnected();
-    // }, []);
+        accountModal,
+    } = account;
 
-    // const getDisconnected = () => {
-    //     GET(getDisconnectedAccountUrl, { shop_id: current?.target._id }).then(
-    //         (res) => {
-    //             if (res.success) {
-    //                 account.disconnected = res.data;
-    //                 setAccount({ ...account });
-    //             } else {
-    //                 error(res.message);
-    //             }
-    //         }
-    //     );
-    // };
-    const openModal = () => {
-        _props.account.modal = !_props.account.modal;
-        _props.setAccount({
-            ..._props.account,
+    const openModal = (temp: string) => {
+        if (temp === 'Edit Pixel') {
+            account.modal = !account.modal;
+        } else if (temp === 'Connect New Account') {
+            account.accountModal = !account.accountModal;
+        } else if (temp === 'Update Account') {
+            account.updateModal = !account.updateModal;
+        }
+        setAccount({
+            ...account,
             pixelData: [],
             primaryBtnDisable: true,
         });
     };
-    const openUpdateModal = () => {
-        _props.account.updateModal = !_props.account.updateModal;
-        _props.setAccount({ ..._props.account });
-    };
+
     const editPixel = () => {
         GET(getPixelsUrl, { shop_id: current?.target._id }).then((res) => {
             if (res.success) {
@@ -125,39 +117,67 @@ const AccountSettings = (_props: accountProps) => {
                 let index = res.data.findIndex(
                     (ele: any) => ele.id === current?.target.data.pixel_id
                 );
-                _props.account.selectedPixel = response[index].value;
-                _props.account.pixelData = response;
-                _props.setAccount({ ..._props.account });
+                account.selectedPixel = response[index].value;
+                account.pixelData = response;
+                setAccount({ ...account });
             }
         });
-        openModal();
+        openModal('Edit Pixel');
     };
     const selectHandler = (value: any, obj: any) => {
-        _props.setAccount({
-            ..._props.account,
+        setAccount({
+            ...account,
             primaryBtnDisable: false,
             selectedPixel: obj.value,
             pixels: obj.id,
         });
     };
     const savePixel = () => {
-        _props.setAccount({ ..._props.account, btnLoading: true });
+        setAccount({ ...account, btnLoading: true });
         let data = {
             shop_id: current?.target._id,
             pixel: pixels,
         };
         POST(updatePixelUrl, data).then((res) => {
-            _props.account.btnLoading = false;
+            account.btnLoading = false;
             if (res.success) {
                 success(res.message);
                 syncConnectorInfo(_props);
-                openModal();
+                openModal('Edit Pixel');
             } else {
                 error(res.message);
             }
         });
     };
-    const redirectFb = () => {};
+    const redirectFb = (temp: string) => {
+        setAccount({ ...account, btnLoading: true });
+        let id = '';
+        let token = get('auth_token');
+        if (token) {
+            id = parseJwt(token).user_id;
+        }
+        let params = {
+            code: APP_TARGET_NAME,
+            state: JSON.stringify({
+                source_shop_id: get('source_id'),
+                app_tag: APP_SOURCE_NAME,
+                app_code: { onyx: 'bwp', meta: APP_TARGET_NAME },
+                user_id: id,
+                source: APP_SOURCE_NAME,
+            }),
+            bearer: token,
+            currency: currency,
+            timezone: timezone,
+        };
+        GET(installtionForm, params).then((res) => {
+            if (token) localStorage.setItem('user_token', token);
+            localStorage.setItem('navigate_from', 'Account');
+            account.btnLoading = false;
+            setAccount({ ...account });
+            openModal(temp);
+        });
+    };
+
     return (
         <Card cardType="Default" title="Accounts">
             <FlexLayout spacing="loose" direction="vertical">
@@ -205,23 +225,30 @@ const AccountSettings = (_props: accountProps) => {
                                         </FlexLayout>
                                         <Button
                                             type="Outlined"
-                                            onClick={openUpdateModal}>
+                                            onClick={() =>
+                                                openModal('Update Account')
+                                            }>
                                             Update
                                         </Button>
                                     </FlexLayout>
                                     <Modal
                                         heading="Update Facebook Account Settings"
                                         open={updateModal}
-                                        close={openUpdateModal}
+                                        close={() =>
+                                            openModal('Update Account')
+                                        }
                                         primaryAction={{
                                             content: 'Continue',
                                             type: 'Primary',
-                                            onClick: redirectFb,
+                                            onClick: () =>
+                                                redirectFb('Update Account'),
+                                            loading: btnLoading,
                                         }}
                                         secondaryAction={{
                                             content: 'Cancel',
                                             type: 'Outlined',
-                                            onClick: openUpdateModal,
+                                            onClick: () =>
+                                                openModal('Update Account'),
                                         }}>
                                         <p>
                                             Your Facebook account
@@ -304,9 +331,9 @@ const AccountSettings = (_props: accountProps) => {
                             secondaryAction={{
                                 content: 'Cancel',
                                 type: 'Outlined',
-                                onClick: openModal,
+                                onClick: () => openModal('Edit Pixel'),
                             }}
-                            close={openModal}>
+                            close={() => openModal('Edit Pixel')}>
                             <FlexLayout>
                                 {pixelData.length === 0 ? (
                                     <div className="loader--position">
@@ -423,7 +450,40 @@ const AccountSettings = (_props: accountProps) => {
                     content="Connect New Account"
                     type="Plain"
                     iconAlign="left"
+                    onClick={() => openModal('Connect New Account')}
                 />
+                <Modal
+                    heading="New Account Connection"
+                    open={accountModal}
+                    close={() => openModal('Connect New Account')}
+                    primaryAction={{
+                        content: 'Disconnect & Continue',
+                        type: 'Danger',
+                        onClick: () => redirectFb('Connect New Account'),
+                        loading: btnLoading,
+                    }}
+                    secondaryAction={{
+                        content: 'Cancel',
+                        type: 'Outlined',
+                        onClick: () => openModal('Connect New Account'),
+                    }}>
+                    <FlexLayout direction="vertical" spacing="loose">
+                        <TextStyles
+                            type="Paragraph"
+                            paragraphTypes="MD-1.4"
+                            fontweight="normal"
+                            lineHeight="LH-2.0"
+                            content="This action disconnects your current Facebook account from the Buy with Prime app. Hence, deleting your Buy with Prime catalog from Facebook."
+                        />
+                        <TextStyles
+                            type="Paragraph"
+                            paragraphTypes="MD-1.4"
+                            fontweight="normal"
+                            lineHeight="LH-2.0"
+                            content="NOTE: Upon successful disconnection, all existing campaigns will reflect Disconnected status in app and will get deleted from the ads manager."
+                        />
+                    </FlexLayout>
+                </Modal>
             </FlexLayout>
         </Card>
     );

@@ -10,7 +10,7 @@ import React from 'react';
 import { Edit } from 'react-feather';
 import './SettingsPage.css';
 import { DI, DIProps } from '../../../Core';
-import { urlFetchCalls } from '../../../Constant';
+import { APP_SOURCE_NAME, urlFetchCalls } from '../../../Constant';
 
 interface generalProps extends DIProps {
     general: {
@@ -65,7 +65,10 @@ const GeneralSettings = (_props: generalProps) => {
         _props.general.btnLoading = true;
         _props.setGeneral({ ..._props.general });
         let params = {
-            source: { shopId: current?.source._id, marketplace: 'onyx' },
+            source: {
+                shopId: current?.source._id,
+                marketplace: APP_SOURCE_NAME,
+            },
             data: [{ group_code: 'bwp-product', data: { brand: brandValue } }],
         };
         POST(updateConfigUrl, params).then((res) => {

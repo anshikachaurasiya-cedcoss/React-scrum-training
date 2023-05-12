@@ -1,3 +1,7 @@
 .inte__Menus--active .inte__Menus {
     background-color: rgb(230 228 239) !important;
 }
+
+.popover--height .inte__Popover-Wrapper {
+    max-height: initial !important;
+}

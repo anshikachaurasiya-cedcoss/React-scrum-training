@@ -11,13 +11,13 @@ import {
     TextStyles,
 } from '@cedcommerce/ounce-ui';
 import './OnBoardingPage.css';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Footer from '../../Footer/Footer';
 import fbicon from '../../../Asests/Images/fbicon.png';
 import onboardinglogo from '../../../Asests/Images/onboardinglogo.png';
 import CheckField from '../../../Asests/Images/svg/CheckField';
 import { DI, DIProps } from '../../../Core/DependencyInjection';
-import { syncNecessaryInfo, syncConnectorInfo, error } from '../../../Actions';
+import { syncNecessaryInfo, syncConnectorInfo } from '../../../Actions';
 import { urlFetchCalls } from '../../../Constant';
 import { parseJwt } from '../../../Core';
 import { StoreDispatcher } from '../../../';
@@ -44,14 +44,17 @@ const OnBoardingPage = (_props: PropsI) => {
     } = urlFetchCalls;
     const [errorModal, setErrorModal] = useState(false);
     const [redirectLoader, setRedirectLoader] = useState(true);
-    const [sec, setSec] = useState(2);
     const [fbResponse, setFbResponse] = useState<any>({});
-    const timeRef = useRef<any>();
 
     let dispatcher = useContext(StoreDispatcher);
     let [searchParams] = useSearchParams();
+    let navigate = useNavigate();
 
     useEffect(() => {
+        redirectFunc();
+    }, []);
+
+    const redirectFunc = async () => {
         let success = searchParams.get('success');
         let message = searchParams.get('message');
         let auth_token = get('auth_token');
@@ -68,22 +71,28 @@ const OnBoardingPage = (_props: PropsI) => {
                 type: 'user_id',
                 state: { user_id: parseJwt(auth_token).user_id },
             });
-            syncConnectorInfo(_props);
-        }
-    }, []);
-
-    useEffect(() => {
-        clearInterval(timeRef.current);
-        setInterval(() => {
-            if (sec > 0) {
-                setSec((sec) => sec - 1);
-            }
-        }, 1000);
-        if (sec === 0) {
-            syncNecessaryInfo();
+            await syncConnectorInfo(_props);
+            await syncNecessaryInfo();
             setRedirectLoader(false);
+            let navigate_value = localStorage.getItem('navigate_from');
+            if (navigate_value) {
+                if (navigate_value === 'Account') {
+                    if (success === 'true') {
+                        navigate(
+                            `/panel/${parseJwt(auth_token).user_id}/settings`
+                        );
+                    } else
+                        navigate(
+                            `/panel/${
+                                parseJwt(auth_token).user_id
+                            }/settings?success=${success}`
+                        );
+                }
+                localStorage.removeItem('navigate_from');
+            }
         }
-    }, [sec]);
+    };
+
     const registerError = () => {
         openModalFunc();
     };
@@ -113,6 +122,7 @@ const OnBoardingPage = (_props: PropsI) => {
         }).then((res) => {
             if (token !== null) {
                 localStorage.setItem('user_token', token);
+                localStorage.setItem('navigate_from', 'Onboarding');
             }
         });
     };
