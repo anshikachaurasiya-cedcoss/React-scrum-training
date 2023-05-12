@@ -64,6 +64,9 @@ function Login(_props: PropsI): JSX.Element {
     useEffect(() => {
         let bearerToken = searchParams.get('bearer');
         let status = searchParams.get('connection_status');
+        let success = searchParams.get('success');
+        let navigate_value = localStorage.getItem('navigate_from');
+
         if (bearerToken) {
             dispatcher({
                 type: 'user_id',
@@ -71,7 +74,19 @@ function Login(_props: PropsI): JSX.Element {
             });
             set(`${parseJwt(bearerToken).user_id}_auth_token`, bearerToken);
             if (status && Number(status) === 1) {
-                navigate('/success/message');
+                if (navigate_value) {
+                    if (navigate_value === 'Account') {
+                        navigate(
+                            `/panel/${
+                                parseJwt(bearerToken).user_id
+                            }/dashboard?success=${true}`
+                        );
+                    } else {
+                        navigate('/success/message');
+                    }
+                } else {
+                    navigate('/success/message');
+                }
             }
         }
     }, []);

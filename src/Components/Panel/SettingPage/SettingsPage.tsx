@@ -7,7 +7,8 @@ import PasswordSettings from './PasswordSettings';
 import './SettingsPage.css';
 import PrivacySettings from './PrivacySettings';
 import { DI, DIProps } from '../../../Core';
-import { urlFetchCalls } from '../../../Constant';
+import { APP_SOURCE_NAME, urlFetchCalls } from '../../../Constant';
+import { useSearchParams } from 'react-router-dom';
 
 const SettingsPage = (_props: DIProps) => {
     const {
@@ -19,6 +20,7 @@ const SettingsPage = (_props: DIProps) => {
         redux: { current },
         error,
     } = _props;
+    const [searchParams] = useSearchParams();
     const settingsArr = [
         {
             icon: <User />,
@@ -58,6 +60,7 @@ const SettingsPage = (_props: DIProps) => {
         pixels: '',
         btnLoading: false,
         updateModal: false,
+        accountModal: false,
     });
     const [privacy, setPrivacy] = useState({
         privacyChecked: false,
@@ -77,6 +80,10 @@ const SettingsPage = (_props: DIProps) => {
         });
     };
     useEffect(() => {
+        let success = searchParams.get('success');
+        if (success) {
+            error('Update Process Aborted From FBE');
+        }
         getDisconnected();
         getinit();
         getConfig();
@@ -98,7 +105,10 @@ const SettingsPage = (_props: DIProps) => {
         let params = {
             group_code: ['bwp-product'],
             key: 'brand',
-            source: { shopId: current?.source._id, marketplace: 'onyx' },
+            source: {
+                shopId: current?.source._id,
+                marketplace: APP_SOURCE_NAME,
+            },
         };
         POST(getConfigUrl, params).then((res) => {
             if (res.success) {

@@ -257,7 +257,7 @@ const PasswordSettings = (_props: DIProps) => {
                     onblur={() => blurHandler(new_pwd_name)}
                     value={new_pwd_value}
                     showHelp={
-                        new_pwd_error
+                        current_pwd_value === new_pwd_value
                             ? 'Your new password cannot be the same as your current password.'
                             : ''
                     }

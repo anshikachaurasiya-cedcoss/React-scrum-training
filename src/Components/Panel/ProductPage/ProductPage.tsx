@@ -333,7 +333,6 @@ const ProductPage = (_props: PropsI) => {
                             title: innerEle.title,
                             description: innerEle.description,
                             source_product_id: ele.source_product_id,
-                            errorAction: false,
                             solutionAction: false,
                         };
                         errorArr.push(newObj);
@@ -452,7 +451,7 @@ const ProductPage = (_props: PropsI) => {
                 activePage: currentPage,
                 count: countPerPage,
             }).then((response) => {
-                console.log(response, 'response');
+                // console.log(response, 'response');
             });
             designProductsData(res.data.rows);
             setPagination({

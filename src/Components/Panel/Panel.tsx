@@ -1,6 +1,17 @@
-import { BodyLayout, Button, NewSidebar, Topbar } from '@cedcommerce/ounce-ui';
-import React from 'react';
 import {
+    BodyLayout,
+    Button,
+    FlexLayout,
+    NewSidebar,
+    Notification,
+    Popover,
+    TextStyles,
+    Topbar,
+} from '@cedcommerce/ounce-ui';
+import React, { useEffect, useState } from 'react';
+import {
+    ArrowLeft,
+    ArrowRight,
     Bell,
     Box,
     HelpCircle,
@@ -26,10 +37,20 @@ import {
 import CampaignPage from './CampaignPage/CampaignPage';
 import ProductPage from './ProductPage/ProductPage';
 import SettingsPage from './SettingPage/SettingsPage';
+import NotificationPage from './NotificationPage/NotificationPage';
+import { urlFetchCalls } from '../../Constant';
+import { dateFormat } from '../CommonFunctions';
+import { parseJwt } from 'src/Core';
 
 const Panel = (_props: PropsI) => {
     let navigate = useNavigate();
     const location = useLocation();
+    const {
+        get: { getNotifications },
+    } = urlFetchCalls;
+    const {
+        di: { GET },
+    } = _props;
     const menu = [
         {
             id: 'dashboard',
@@ -66,7 +87,43 @@ const Panel = (_props: PropsI) => {
     const submenus = [
         { id: 'logout', content: 'Logout', icon: <LogOut />, path: '/logout' },
     ];
+    const [panel, setPanel] = useState({
+        notification_popUp: false,
+        notifications: [],
+        notification_activePage: 1,
+        notification_count: 10,
+        total_notification: 0,
+    });
 
+    const {
+        notification_popUp,
+        notification_activePage,
+        notification_count,
+        notifications,
+        total_notification,
+    } = panel;
+
+    useEffect(() => {
+        getAllNotifications(notification_activePage, notification_count);
+    }, []);
+
+    const getAllNotifications = (activePage: any, count: any) => {
+        setPanel({ ...panel, notifications: [] });
+        GET(getNotifications, {
+            activePage: activePage,
+            count: count,
+        }).then((res) => {
+            if (res.success) {
+                panel.notifications = res.data.rows;
+                panel.total_notification = res.data.count;
+            }
+            setPanel({ ...panel });
+        });
+    };
+    const openNotificationPopover = () => {
+        panel.notification_popUp = !panel.notification_popUp;
+        setPanel({ ...panel });
+    };
     const changeHandler = (e: any) => {
         navigate(`${e.path}`);
     };
@@ -80,10 +137,71 @@ const Panel = (_props: PropsI) => {
                         <>
                             <Topbar
                                 connectRight={
-                                    <Button
-                                        type="Outlined"
-                                        icon={<Bell size={'16px'} />}
-                                    />
+                                    <div className="popover--height">
+                                        <Popover
+                                            activator={
+                                                <Button
+                                                    type="Outlined"
+                                                    icon={
+                                                        <Bell size={'16px'} />
+                                                    }
+                                                    onClick={
+                                                        openNotificationPopover
+                                                    }
+                                                />
+                                            }
+                                            open={notification_popUp}
+                                            onClose={openNotificationPopover}
+                                            popoverContainer="element"
+                                            popoverWidth={300}>
+                                            {notifications.length > 0 &&
+                                                [
+                                                    notifications[0],
+                                                    notifications[1],
+                                                    notifications[2],
+                                                ].map((ele: any) => {
+                                                    return (
+                                                        <Notification
+                                                            key={ele.title}
+                                                            children={
+                                                                <TextStyles
+                                                                    content={
+                                                                        ele
+                                                                            .message
+                                                                            .length >
+                                                                        30
+                                                                            ? `${ele.message.substring(
+                                                                                  0,
+                                                                                  30
+                                                                              )}...`
+                                                                            : ele.message
+                                                                    }
+                                                                    type="Paragraph"
+                                                                    paragraphTypes="MD-1.4"
+                                                                    fontweight="normal"
+                                                                />
+                                                            }
+                                                            destroy={false}
+                                                            type="danger"
+                                                            subdesciption={dateFormat(
+                                                                ele.created_at
+                                                            )}
+                                                        />
+                                                    );
+                                                })}
+                                            <hr />
+                                            <Button
+                                                type="Plain"
+                                                icon={<ArrowRight />}
+                                                content="View all Notifications"
+                                                iconAlign="left"
+                                                onClick={() => {
+                                                    navigate('notification');
+                                                    openNotificationPopover();
+                                                }}
+                                            />
+                                        </Popover>
+                                    </div>
                                 }
                             />
                             <NewSidebar
@@ -108,6 +226,16 @@ const Panel = (_props: PropsI) => {
                     <Route path="product" element={<ProductPage />} />
                     <Route path="campaign" element={<CampaignPage />} />
                     <Route path="settings" element={<SettingsPage />} />
+                    <Route
+                        path="notification"
+                        element={
+                            <NotificationPage
+                                panel={panel}
+                                setPanel={setPanel}
+                                getAllNotifications={getAllNotifications}
+                            />
+                        }
+                    />
                 </Route>
             </Routes>
         </>
