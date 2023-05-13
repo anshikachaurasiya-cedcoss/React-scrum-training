@@ -73,6 +73,7 @@ export const urlFetchCalls = {
         createCustomAudience: 'meta/account/createCustomAudience',
         updateCampaign: 'meta/campaign/updateCampaign',
         publishCampaign: 'meta/campaign/publishCampaign',
+        faqGetData: 'webapi/rest/v1/faq/search',
     },
     put: {
         pauseCampaignUrl: 'meta/campaign/pauseCampaign',

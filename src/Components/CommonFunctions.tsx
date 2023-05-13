@@ -1,3 +1,5 @@
+import { APP_TARGET_NAME, urlFetchCalls } from '../Constant';
+
 /**
  * function calculate the date according to time zone
  * @param date
