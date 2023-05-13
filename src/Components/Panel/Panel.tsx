@@ -40,7 +40,7 @@ import SettingsPage from './SettingPage/SettingsPage';
 import NotificationPage from './NotificationPage/NotificationPage';
 import { urlFetchCalls } from '../../Constant';
 import { dateFormat } from '../CommonFunctions';
-import { parseJwt } from 'src/Core';
+import HelpPage from './HelpPage/HelpPage';
 
 const Panel = (_props: PropsI) => {
     let navigate = useNavigate();
@@ -236,6 +236,7 @@ const Panel = (_props: PropsI) => {
                             />
                         }
                     />
+                    <Route path="help" element={<HelpPage />} />
                 </Route>
             </Routes>
         </>
