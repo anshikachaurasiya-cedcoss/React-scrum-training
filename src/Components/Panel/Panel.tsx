@@ -261,9 +261,8 @@ const Panel = (_props: PropsI) => {
                             </BodyLayout>
                         </>
                     }>
-                    <Route path="dashboard/*" element={<Dashboard />}>
-                        <Route path="create" element={<CampaignPage />} />
-                    </Route>
+                    <Route path="dashboard/*" element={<Dashboard />} />
+                    <Route path="dashboard/create" element={<CampaignPage />} />
                     <Route path="product" element={<ProductPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                     <Route
