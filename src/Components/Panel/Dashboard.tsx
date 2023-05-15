@@ -280,156 +280,6 @@ const Dashboard = (_props: PropsI) => {
     const [searchVal, setSearchVal] = useState('');
     // destructuring of states
     const { showFilters, showFilterBadges, searchedValues } = showFilter;
-    // function opens the action list on clicking the action option
-    const openActionList = (obj: any) => {
-        let newData = [...data];
-        let index = newData.findIndex(
-            (ele: any) => ele.campaign_id === obj.campaign_id
-        );
-        newData[index].action = !newData[index].action;
-        setData([...newData]);
-    };
-    // function renders the action list
-    const renderActionList = (obj: any) => {
-        if (
-            obj.status === 'PENDING' ||
-            obj.status === 'ENDED' ||
-            obj.status === 'DISCONNECTED' ||
-            obj.status === 'ARCHIVED'
-        ) {
-            return (
-                <Button
-                    disable
-                    type="TextButton"
-                    icon={<MoreVertical size={20} color="#8C9098" />}
-                />
-            );
-        } else {
-            return (
-                <ActionList
-                    activator={
-                        <Button
-                            onClick={() => openActionList(obj)}
-                            type="TextButton"
-                            iconRound
-                            icon={<MoreVertical size={20} color="#3B424F" />}
-                        />
-                    }
-                    options={[
-                        {
-                            items: [
-                                {
-                                    content: 'Edit',
-                                    onClick: function noRefCheck() {},
-                                },
-                                {
-                                    content: 'Archive',
-                                    onClick: function noRefCheck() {},
-                                },
-                                {
-                                    content: 'Pause',
-                                    onClick: function noRefCheck() {},
-                                },
-                            ],
-                        },
-                    ]}
-                    open={obj.action}
-                />
-            );
-        }
-    };
-
-    const filterArr = [
-        {
-            children: (
-                <FormElement>
-                    {filtersArr.map((ele, i) => {
-                        return (
-                            <CheckBox
-                                key={i}
-                                labelVal={ele.status}
-                                checked={ele.checked}
-                                onClick={() => filterHandler(ele, i)}
-                            />
-                        );
-                    })}
-                </FormElement>
-            ),
-            name: 'Status',
-        },
-    ];
-    // check handler function for filtered checkboxes
-    const filterHandler = (ele: any, i: number) => {
-        let index = filtersArr.findIndex((item) => item.status === ele.status);
-        filtersArr[index].checked = !filtersArr[index].checked;
-        setFiltersArr([...filtersArr]);
-    };
-    // function sets the filter and hits the filter api
-    const applyFilter = () => {
-        let obj: any = {};
-        let n = 0;
-        manageFilter();
-        filtersArr.forEach((ele: any) => {
-            if (ele.checked) {
-                Object.assign(obj, { [`filter[status][${n++}]`]: ele.status });
-            }
-        });
-        let parObj = {
-            shop_id: current?.target._id,
-            'filter[shop_id]': current?.target._id,
-            order: 1,
-            count: 5,
-            activePage: 2,
-        };
-        Object.assign(parObj, obj);
-        GET(getCampaignsUrl, parObj).then((res) => {});
-    };
-    const manageFilter = () => {
-        showFilter.showFilters = [];
-        filtersArr.forEach((ele) => {
-            if (ele.checked) {
-                showFilter.showFilters.push(ele);
-            }
-        });
-        if (showFilter.showFilters.length === 0) {
-            showFilter.showFilterBadges = false;
-        } else {
-            showFilter.showFilterBadges = true;
-        }
-        setShowFilter({ ...showFilter });
-    };
-    // function enables or disables the reset or apply button of advance Filter
-    const disableBtn = () => {
-        let obj = filtersArr.find((ele) => ele.checked === true);
-        if (obj !== undefined) {
-            return false;
-        }
-        if (obj === undefined) {
-            return true;
-        }
-    };
-    // function removes filter of particular selected item
-    const removeItemFilter = (ele: any) => {
-        let ind = filtersArr.findIndex(
-            (item: any) => item.status === ele.status
-        );
-        filtersArr[ind].checked = false;
-        setFiltersArr([...filtersArr]);
-        applyFilter();
-    };
-    // function removes all the filters
-    const removeAllFilter = () => {
-        setShowFilter({
-            ...showFilter,
-            showFilters: [],
-            showFilterBadges: false,
-        });
-        let removedFilters = [...filtersArr];
-        removedFilters.forEach((ele) => {
-            ele.checked = false;
-        });
-        setFiltersArr([...removedFilters]);
-    };
 
     // useEffect used to call the function which hits the api of get campaigns data
     useEffect(() => {
@@ -633,6 +483,157 @@ const Dashboard = (_props: PropsI) => {
             )}`;
 
         window.open(url);
+    };
+
+    // function opens the action list on clicking the action option
+    const openActionList = (obj: any) => {
+        let newData = [...data];
+        let index = newData.findIndex(
+            (ele: any) => ele.campaign_id === obj.campaign_id
+        );
+        newData[index].action = !newData[index].action;
+        setData([...newData]);
+    };
+    // function renders the action list
+    const renderActionList = (obj: any) => {
+        if (
+            obj.status === 'PENDING' ||
+            obj.status === 'ENDED' ||
+            obj.status === 'DISCONNECTED' ||
+            obj.status === 'ARCHIVED'
+        ) {
+            return (
+                <Button
+                    disable
+                    type="TextButton"
+                    icon={<MoreVertical size={20} color="#8C9098" />}
+                />
+            );
+        } else {
+            return (
+                <ActionList
+                    activator={
+                        <Button
+                            onClick={() => openActionList(obj)}
+                            type="TextButton"
+                            iconRound
+                            icon={<MoreVertical size={20} color="#3B424F" />}
+                        />
+                    }
+                    options={[
+                        {
+                            items: [
+                                {
+                                    content: 'Edit',
+                                    onClick: function noRefCheck() {},
+                                },
+                                {
+                                    content: 'Archive',
+                                    onClick: function noRefCheck() {},
+                                },
+                                {
+                                    content: 'Pause',
+                                    onClick: function noRefCheck() {},
+                                },
+                            ],
+                        },
+                    ]}
+                    open={obj.action}
+                />
+            );
+        }
+    };
+
+    const filterArr = [
+        {
+            children: (
+                <FormElement>
+                    {filtersArr.map((ele, i) => {
+                        return (
+                            <CheckBox
+                                key={i}
+                                labelVal={ele.status}
+                                checked={ele.checked}
+                                onClick={() => filterHandler(ele, i)}
+                            />
+                        );
+                    })}
+                </FormElement>
+            ),
+            name: 'Status',
+        },
+    ];
+    // check handler function for filtered checkboxes
+    const filterHandler = (ele: any, i: number) => {
+        let index = filtersArr.findIndex((item) => item.status === ele.status);
+        filtersArr[index].checked = !filtersArr[index].checked;
+        setFiltersArr([...filtersArr]);
+    };
+    // function sets the filter and hits the filter api
+    const applyFilter = () => {
+        let obj: any = {};
+        let n = 0;
+        manageFilter();
+        filtersArr.forEach((ele: any) => {
+            if (ele.checked) {
+                Object.assign(obj, { [`filter[status][${n++}]`]: ele.status });
+            }
+        });
+        let parObj = {
+            shop_id: current?.target._id,
+            'filter[shop_id]': current?.target._id,
+            order: 1,
+            count: 5,
+            activePage: 2,
+        };
+        Object.assign(parObj, obj);
+        GET(getCampaignsUrl, parObj).then((res) => {});
+    };
+    const manageFilter = () => {
+        showFilter.showFilters = [];
+        filtersArr.forEach((ele) => {
+            if (ele.checked) {
+                showFilter.showFilters.push(ele);
+            }
+        });
+        if (showFilter.showFilters.length === 0) {
+            showFilter.showFilterBadges = false;
+        } else {
+            showFilter.showFilterBadges = true;
+        }
+        setShowFilter({ ...showFilter });
+    };
+    // function enables or disables the reset or apply button of advance Filter
+    const disableBtn = () => {
+        let obj = filtersArr.find((ele) => ele.checked === true);
+        if (obj !== undefined) {
+            return false;
+        }
+        if (obj === undefined) {
+            return true;
+        }
+    };
+    // function removes filter of particular selected item
+    const removeItemFilter = (ele: any) => {
+        let ind = filtersArr.findIndex(
+            (item: any) => item.status === ele.status
+        );
+        filtersArr[ind].checked = false;
+        setFiltersArr([...filtersArr]);
+        applyFilter();
+    };
+    // function removes all the filters
+    const removeAllFilter = () => {
+        setShowFilter({
+            ...showFilter,
+            showFilters: [],
+            showFilterBadges: false,
+        });
+        let removedFilters = [...filtersArr];
+        removedFilters.forEach((ele) => {
+            ele.checked = false;
+        });
+        setFiltersArr([...removedFilters]);
     };
     const { addItemPopOver, filterPopOver } = popOver;
     const { currentPage, optionPagination } = page;

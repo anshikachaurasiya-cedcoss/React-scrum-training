@@ -15,6 +15,7 @@ import {
     PageHeader,
     Pagination,
     Popover,
+    Skeleton,
     Tag,
     TextStyles,
 } from '@cedcommerce/ounce-ui';
@@ -56,11 +57,16 @@ const ProductPage = (_props: PropsI) => {
     const {
         di: { GET, POST },
     } = _props;
-    const [productsData, setProductsData] = useState<any>([]);
+    const [products, setProducts] = useState<any>({
+        productLoading: false,
+        productsData: [],
+    });
+    const { productLoading, productsData } = products;
+
     const [pagination, setPagination] = useState({
         countPerPage: 5,
         currentPage: 1,
-        totalItems: 1,
+        totalItems: 0,
     });
     const [filtersArr, setFiltersArr] = useState(productFilterData);
     const [showFilters, setShowFilters] = useState<any>({
@@ -82,23 +88,26 @@ const ProductPage = (_props: PropsI) => {
     }, [currentPage]);
 
     // function hits the api of getting the products data
-    const getProductsData = async () => {
+    const getProductsData = () => {
+        setProducts({ ...products, productLoading: true });
         let paramsObj = { activePage: currentPage, count: countPerPage };
-        await GET(getRefineProductsUrl, paramsObj).then((res) => {
+        GET(getRefineProductsUrl, paramsObj).then((res) => {
             GET(getRefineProductsCountsUrl, paramsObj).then((response) => {
+                setProducts({ ...products, productLoading: false });
                 setPagination({
                     ...pagination,
                     totalItems: response.data.count,
                     currentPage: res.data.totalPageRead,
-                    countPerPage: res.data.current_count,
+                    countPerPage: pagination.countPerPage,
                 });
                 designProductsData(res.data.rows);
             });
         });
     };
+
     // function formats the data and renders the data in UI
     const designProductsData = (rows: any) => {
-        let newData = rows.map((ele: any) => {
+        let newData = rows.map((ele: any, index: number) => {
             let obj = { ...ele };
             let error: any = [];
             let pending: any = [];
@@ -171,8 +180,7 @@ const ProductPage = (_props: PropsI) => {
             };
             return obj;
         });
-
-        setProductsData([...newData]);
+        setProducts({ ...products, productsData: [...newData] });
     };
     // function renders the status column on the basis of the status
     const renderStatusList = (obj: any) => {
@@ -451,9 +459,7 @@ const ProductPage = (_props: PropsI) => {
             GET(getRefineProductsCountsUrl, {
                 activePage: currentPage,
                 count: countPerPage,
-            }).then((response) => {
-                // console.log(response, 'response');
-            });
+            }).then((response) => {});
             designProductsData(res.data.rows);
             setPagination({
                 ...pagination,
@@ -515,32 +521,39 @@ const ProductPage = (_props: PropsI) => {
     };
 
     useEffect(() => {
+        let obj: any;
         if (searchVal !== '') {
-            if (productsData.length > 0) {
-                let search = setTimeout(() => {
-                    GET(getRefineProductsUrl, {
-                        'filter[title][3]': searchVal,
-                    }).then((res) => {
-                        renderSearchedData();
+            // if (productsData.length > 0) {
+            let search = setTimeout(() => {
+                GET(getRefineProductsUrl, {
+                    'filter[title][3]': searchVal,
+                }).then((res) => {
+                    res.data.rows.forEach((ele: any) => {
+                        console.log(ele);
+                        obj = { value: ele.title, label: ele.title };
+                        Object.assign(obj, ele);
                     });
-                }, 1000);
+                    // renderSearchedData(res.data.rows);
+                });
+            }, 1000);
 
-                return () => clearTimeout(search);
-            }
+            return () => clearTimeout(search);
+            // }
         }
     }, [searchVal]);
 
-    const renderSearchedData = () => {
+    const renderSearchedData = (searchedArr: any) => {
+        console.log(searchedArr);
         if (searchVal === '') {
-            setPagination({
-                ...pagination,
-                currentPage: 1,
-                countPerPage: 5,
-            });
-            getProductsData();
+            // setPagination({
+            //     ...pagination,
+            //     currentPage: 1,
+            //     countPerPage: 5,
+            // });
+            // getProductsData();
         } else {
             let search: any = [];
-            productsData.map((ele: any) => {
+            searchedArr.map((ele: any) => {
                 if (ele.value.toLowerCase().includes(searchVal.toLowerCase())) {
                     search.push(ele);
                 }
@@ -559,27 +572,8 @@ const ProductPage = (_props: PropsI) => {
         });
         designProductsData(arr);
     };
-    const nextPage = () => {
-        if (productsData.length > 0) {
-            setProductsData([]);
-            setPagination({
-                ...pagination,
-                currentPage: Number(currentPage) + 1,
-            });
-        }
-    };
 
-    const prevPage = () => {
-        if (currentPage > 1) {
-            setProductsData([]);
-            setPagination({
-                ...pagination,
-                currentPage: Number(currentPage) - 1,
-            });
-        }
-    };
     const openSolutionAccordian = (ele: any, i: number) => {
-        console.log(modalErrors[0]);
         Object.values(modalErrors[0]).forEach((item: any, index) => {
             if (
                 item.sku === ele.sku &&
@@ -609,7 +603,9 @@ const ProductPage = (_props: PropsI) => {
                     )
                 }
             />
-            {productsData.length > 0 ? (
+            {productLoading === true ? (
+                <Skeleton line={5} />
+            ) : productsData.length > 0 ? (
                 <Card cardType="Default">
                     <FlexLayout
                         spacing="loose"
@@ -768,7 +764,7 @@ const ProductPage = (_props: PropsI) => {
                         />
                         <Pagination
                             countPerPage={countPerPage}
-                            currentPage={currentPage}
+                            currentPage={parseInt(currentPage.toString())}
                             optionPerPage={pageArr}
                             totalitem={totalItems}
                             onCountChange={(page) =>
@@ -784,8 +780,20 @@ const ProductPage = (_props: PropsI) => {
                                     currentPage: Number(page),
                                 })
                             }
-                            onNext={nextPage}
-                            onPrevious={prevPage}
+                            onNext={() => {
+                                pagination.currentPage =
+                                    Number(currentPage) + 1;
+                                setPagination({
+                                    ...pagination,
+                                });
+                            }}
+                            onPrevious={() => {
+                                if (currentPage > 1) {
+                                    pagination.currentPage =
+                                        Number(currentPage) - 1;
+                                    setPagination({ ...pagination });
+                                }
+                            }}
                         />
                     </FlexLayout>
                 </Card>
