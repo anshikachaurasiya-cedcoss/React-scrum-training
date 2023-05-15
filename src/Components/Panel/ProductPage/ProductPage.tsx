@@ -23,8 +23,9 @@ import React, { useEffect, useState } from 'react';
 import { AlertTriangle, Filter, MoreVertical, RefreshCcw } from 'react-feather';
 import { DI, DIProps } from '../../../Core';
 import { urlFetchCalls } from '../../../Constant';
-import imageNotFound from '../../../Asests/Images/Image_not_found.png';
+import noimg2 from '../../../Actions/Images-del/no-img.png';
 import { pageArr } from '../../ConstantArrays';
+import { EmptyProduct } from '../../../Components/EmptyState/EmptyPages';
 
 interface PropsI extends DIProps {}
 
@@ -108,7 +109,7 @@ const ProductPage = (_props: PropsI) => {
                 );
             } else {
                 obj.main_image = (
-                    <Image src={imageNotFound} alt="" width={48} height={48} />
+                    <Image src={noimg2} alt="" width={48} height={48} />
                 );
             }
             if (
@@ -598,185 +599,199 @@ const ProductPage = (_props: PropsI) => {
                 title="Products"
                 description="Your Buy with Prime products and their status appear here."
                 action={
-                    <Button
-                        content="Catalog Sync"
-                        icon={<RefreshCcw size={16} color="#FAFAFB" />}
-                    />
+                    productsData.length > 0 ? (
+                        <Button
+                            content="Catalog Sync"
+                            icon={<RefreshCcw size={16} color="#FAFAFB" />}
+                        />
+                    ) : (
+                        ''
+                    )
                 }
             />
-            <Card cardType="Default">
-                <FlexLayout
-                    spacing="loose"
-                    direction="vertical"
-                    desktopWidth="100"
-                    mobileWidth="100"
-                    tabWidth="100">
-                    <FlexLayout valign="center" halign="fill">
-                        <AutoComplete
-                            options={searchedValues}
-                            placeHolder="Search Products"
-                            thickness="thin"
-                            onChange={(e: any) =>
-                                setShowFilters({ ...showFilters, searchVal: e })
-                            }
-                            value={searchVal}
-                            clearButton
-                            setHiglighted
-                            clearFunction={() =>
-                                setShowFilters({
-                                    ...showFilters,
-                                    searchVal: '',
+            {productsData.length > 0 ? (
+                <Card cardType="Default">
+                    <FlexLayout
+                        spacing="loose"
+                        direction="vertical"
+                        desktopWidth="100"
+                        mobileWidth="100"
+                        tabWidth="100">
+                        <FlexLayout valign="center" halign="fill">
+                            <AutoComplete
+                                options={searchedValues}
+                                placeHolder="Search Products"
+                                thickness="thin"
+                                onChange={(e: any) =>
+                                    setShowFilters({
+                                        ...showFilters,
+                                        searchVal: e,
+                                    })
+                                }
+                                value={searchVal}
+                                clearButton
+                                setHiglighted
+                                clearFunction={() =>
+                                    setShowFilters({
+                                        ...showFilters,
+                                        searchVal: '',
+                                    })
+                                }
+                                onClick={(val: any) => selectSearch(val)}
+                            />
+                            <AdvanceFilter
+                                onClose={closeFilter}
+                                filters={filterArr}
+                                type="Outlined"
+                                button="Filter"
+                                icon={<Filter size={16} color="#3B424F" />}
+                                disableApply={disableFilterBtn()}
+                                disableReset={disableFilterBtn()}
+                                resetFilter={resetFilters}
+                                onApply={applyFilter}
+                                heading="Filters"
+                            />
+                        </FlexLayout>
+                        <FlexLayout>
+                            {showBadges === true ? (
+                                <Card
+                                    cardType="Subdued"
+                                    extraClass="badge--card">
+                                    <Popover
+                                        popoverWidth={210}
+                                        activator={
+                                            showFilterBadges.length > 1 ? (
+                                                <Tag
+                                                    count={`+${
+                                                        showFilterBadges.length -
+                                                        1
+                                                    }`}
+                                                    popover
+                                                    togglePopup={() =>
+                                                        setOpen({
+                                                            ...open,
+                                                            filterPopOver:
+                                                                !filterPopOver,
+                                                        })
+                                                    }
+                                                    destroy={removeAllFilter}>
+                                                    <FlexLayout
+                                                        valign="center"
+                                                        halign="center"
+                                                        wrap="noWrap"
+                                                        spacing="tight">
+                                                        <TextStyles content="Status:" />
+                                                        <TextStyles
+                                                            content={
+                                                                showFilterBadges[0]
+                                                                    .status
+                                                            }
+                                                            type="Paragraph"
+                                                            paragraphTypes="MD-1.4"
+                                                        />
+                                                    </FlexLayout>
+                                                </Tag>
+                                            ) : (
+                                                <Tag
+                                                    destroy={removeAllFilter}
+                                                    togglePopup={() =>
+                                                        setOpen({
+                                                            ...open,
+                                                            filterPopOver:
+                                                                !filterPopOver,
+                                                        })
+                                                    }>
+                                                    <FlexLayout
+                                                        valign="center"
+                                                        halign="center"
+                                                        wrap="noWrap"
+                                                        spacing="tight">
+                                                        <TextStyles content="Status:" />
+                                                        <TextStyles
+                                                            content={
+                                                                showFilterBadges[0]
+                                                                    .status
+                                                            }
+                                                            type="Paragraph"
+                                                            paragraphTypes="MD-1.4"
+                                                        />
+                                                    </FlexLayout>
+                                                </Tag>
+                                            )
+                                        }
+                                        popoverContainer="body"
+                                        children={
+                                            <FlexLayout spacing="extraTight">
+                                                {showFilterBadges.map(
+                                                    (ele: any) => {
+                                                        return (
+                                                            <Tag
+                                                                key={ele.staus}
+                                                                destroy={() =>
+                                                                    removeItemFilter(
+                                                                        ele
+                                                                    )
+                                                                }>
+                                                                {ele.status}
+                                                            </Tag>
+                                                        );
+                                                    }
+                                                )}
+                                            </FlexLayout>
+                                        }
+                                        open={filterPopOver}
+                                    />
+                                </Card>
+                            ) : (
+                                <></>
+                            )}
+                        </FlexLayout>
+                        <Grid
+                            scrollX={700}
+                            loading={productsData.length > 0 ? false : true}
+                            columns={[
+                                ...productsHead,
+                                {
+                                    render: (obj: any) => renderStatusList(obj),
+                                    key: 'item_status',
+                                    title: 'Status',
+                                    width: 200,
+                                },
+                                {
+                                    render: (obj: any) => renderActionList(obj),
+                                    key: 'actions',
+                                    title: 'Actions',
+                                    width: 100,
+                                },
+                            ]}
+                            dataSource={productsData}
+                        />
+                        <Pagination
+                            countPerPage={countPerPage}
+                            currentPage={currentPage}
+                            optionPerPage={pageArr}
+                            totalitem={totalItems}
+                            onCountChange={(page) =>
+                                setPagination({
+                                    ...pagination,
+                                    countPerPage: page,
+                                    currentPage: 1,
                                 })
                             }
-                            onClick={(val: any) => selectSearch(val)}
-                        />
-                        <AdvanceFilter
-                            onClose={closeFilter}
-                            filters={filterArr}
-                            type="Outlined"
-                            button="Filter"
-                            icon={<Filter size={16} color="#3B424F" />}
-                            disableApply={disableFilterBtn()}
-                            disableReset={disableFilterBtn()}
-                            resetFilter={resetFilters}
-                            onApply={applyFilter}
-                            heading="Filters"
+                            onEnter={(page) =>
+                                setPagination({
+                                    ...pagination,
+                                    currentPage: Number(page),
+                                })
+                            }
+                            onNext={nextPage}
+                            onPrevious={prevPage}
                         />
                     </FlexLayout>
-                    <FlexLayout>
-                        {showBadges === true ? (
-                            <Card cardType="Subdued" extraClass="badge--card">
-                                <Popover
-                                    popoverWidth={210}
-                                    activator={
-                                        showFilterBadges.length > 1 ? (
-                                            <Tag
-                                                count={`+${
-                                                    showFilterBadges.length - 1
-                                                }`}
-                                                popover
-                                                togglePopup={() =>
-                                                    setOpen({
-                                                        ...open,
-                                                        filterPopOver:
-                                                            !filterPopOver,
-                                                    })
-                                                }
-                                                destroy={removeAllFilter}>
-                                                <FlexLayout
-                                                    valign="center"
-                                                    halign="center"
-                                                    wrap="noWrap"
-                                                    spacing="tight">
-                                                    <TextStyles content="Status:" />
-                                                    <TextStyles
-                                                        content={
-                                                            showFilterBadges[0]
-                                                                .status
-                                                        }
-                                                        type="Paragraph"
-                                                        paragraphTypes="MD-1.4"
-                                                    />
-                                                </FlexLayout>
-                                            </Tag>
-                                        ) : (
-                                            <Tag
-                                                destroy={removeAllFilter}
-                                                togglePopup={() =>
-                                                    setOpen({
-                                                        ...open,
-                                                        filterPopOver:
-                                                            !filterPopOver,
-                                                    })
-                                                }>
-                                                <FlexLayout
-                                                    valign="center"
-                                                    halign="center"
-                                                    wrap="noWrap"
-                                                    spacing="tight">
-                                                    <TextStyles content="Status:" />
-                                                    <TextStyles
-                                                        content={
-                                                            showFilterBadges[0]
-                                                                .status
-                                                        }
-                                                        type="Paragraph"
-                                                        paragraphTypes="MD-1.4"
-                                                    />
-                                                </FlexLayout>
-                                            </Tag>
-                                        )
-                                    }
-                                    popoverContainer="body"
-                                    children={
-                                        <FlexLayout spacing="extraTight">
-                                            {showFilterBadges.map(
-                                                (ele: any) => {
-                                                    return (
-                                                        <Tag
-                                                            key={ele.staus}
-                                                            destroy={() =>
-                                                                removeItemFilter(
-                                                                    ele
-                                                                )
-                                                            }>
-                                                            {ele.status}
-                                                        </Tag>
-                                                    );
-                                                }
-                                            )}
-                                        </FlexLayout>
-                                    }
-                                    open={filterPopOver}
-                                />
-                            </Card>
-                        ) : (
-                            <></>
-                        )}
-                    </FlexLayout>
-                    <Grid
-                        scrollX={700}
-                        loading={productsData.length > 0 ? false : true}
-                        columns={[
-                            ...productsHead,
-                            {
-                                render: (obj: any) => renderStatusList(obj),
-                                key: 'item_status',
-                                title: 'Status',
-                                width: 200,
-                            },
-                            {
-                                render: (obj: any) => renderActionList(obj),
-                                key: 'actions',
-                                title: 'Actions',
-                                width: 100,
-                            },
-                        ]}
-                        dataSource={productsData}
-                    />
-                    <Pagination
-                        countPerPage={countPerPage}
-                        currentPage={currentPage}
-                        optionPerPage={pageArr}
-                        totalitem={totalItems}
-                        onCountChange={(page) =>
-                            setPagination({
-                                ...pagination,
-                                countPerPage: page,
-                                currentPage: 1,
-                            })
-                        }
-                        onEnter={(page) =>
-                            setPagination({
-                                ...pagination,
-                                currentPage: Number(page),
-                            })
-                        }
-                        onNext={nextPage}
-                        onPrevious={prevPage}
-                    />
-                </FlexLayout>
-            </Card>
+                </Card>
+            ) : (
+                <EmptyProduct />
+            )}
             <Modal open={errorModal} close={openModal} heading="Errors">
                 <FlexLayout direction="vertical" spacing="loose">
                     {modalErrors.length > 0 &&

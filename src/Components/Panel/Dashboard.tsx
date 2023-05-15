@@ -34,6 +34,7 @@ import Instagram from '../../Asests/Images/svg/Instagram';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { environment } from '../../environments/environment';
 import CampaignPage from './CampaignPage/CampaignPage';
+import { EmptyCampaigns } from '../EmptyState/EmptyPages';
 
 type typeProps =
     | 'Neutral-100-Border'
@@ -641,249 +642,264 @@ const Dashboard = (_props: PropsI) => {
                 title="Welcome to Social Ads for Buy with Prime!"
                 description="Create and manage all your Buy with Prime Facebook and Instagram campaigns here."
                 action={
-                    <Button
-                        icon={<Plus />}
-                        thickness="large"
-                        onClick={() =>
-                            navigate(`/panel/${match.uId}/campaign`)
-                        }>
-                        Create Campaign
-                    </Button>
+                    data.length > 0 ? (
+                        <Button
+                            icon={<Plus />}
+                            thickness="large"
+                            onClick={() =>
+                                navigate(`/panel/${match.uId}/campaign`)
+                            }>
+                            Create Campaign
+                        </Button>
+                    ) : (
+                        ''
+                    )
                 }
             />
-            <Card
-                cardType="Default"
-                title={
-                    <TextStyles
-                        content="Campaigns"
-                        utility="dashedLine"
-                        type="SubHeading"
-                        subheadingTypes="XS-1.6"
-                        fontweight="extraBold"
-                    />
-                }
-                action={
-                    <Button
-                        icon={<Download size={16} color="#3B424F" />}
-                        type="Outlined"
-                        thickness="large"
-                        onClick={downloadCampaign}>
+
+            {data.length > 0 ? (
+                <Card
+                    cardType="Default"
+                    title={
                         <TextStyles
-                            content="Download Report"
+                            content="Campaigns"
                             utility="dashedLine"
-                            type="Paragraph"
-                            paragraphTypes="MD-1.4"
-                            fontweight="bold"
+                            type="SubHeading"
+                            subheadingTypes="XS-1.6"
+                            fontweight="extraBold"
                         />
-                    </Button>
-                }>
-                <FlexLayout
-                    direction="vertical"
-                    desktopWidth="100"
-                    mobileWidth="100"
-                    tabWidth="100"
-                    spacing="loose">
-                    <hr />
-                    <FlexLayout valign="center" halign="fill" wrap="noWrap">
-                        <FlexChild
-                            desktopWidth="50"
-                            mobileWidth="50"
-                            tabWidth="50">
-                            <AutoComplete
-                                value={searchVal}
-                                onChange={(e: any) => searchHandler(e)}
-                                placeHolder="Search Campaign"
-                                thickness="thin"
-                                options={searchedValues}
-                                clearButton
-                                setHiglighted
-                                clearFunction={() => setSearchVal('')}
+                    }
+                    action={
+                        <Button
+                            icon={<Download size={16} color="#3B424F" />}
+                            type="Outlined"
+                            thickness="large"
+                            onClick={downloadCampaign}>
+                            <TextStyles
+                                content="Download Report"
+                                utility="dashedLine"
+                                type="Paragraph"
+                                paragraphTypes="MD-1.4"
+                                fontweight="bold"
                             />
-                        </FlexChild>
-                        <FlexChild
-                            desktopWidth="50"
-                            mobileWidth="50"
-                            tabWidth="50">
-                            <FlexLayout spacing="loose" halign="end">
-                                <AdvanceFilter
-                                    type="Outlined"
-                                    icon={<Filter color="#3B424F" size={16} />}
-                                    filters={filterArr}
-                                    button="Filter"
-                                    heading="Filters"
-                                    disableApply={disableBtn()}
-                                    onApply={applyFilter}
-                                    disableReset={disableBtn()}
-                                    resetFilter={removeAllFilter}
+                        </Button>
+                    }>
+                    <FlexLayout
+                        direction="vertical"
+                        desktopWidth="100"
+                        mobileWidth="100"
+                        tabWidth="100"
+                        spacing="loose">
+                        <hr />
+                        <FlexLayout valign="center" halign="fill" wrap="noWrap">
+                            <FlexChild
+                                desktopWidth="50"
+                                mobileWidth="50"
+                                tabWidth="50">
+                                <AutoComplete
+                                    value={searchVal}
+                                    onChange={(e: any) => searchHandler(e)}
+                                    placeHolder="Search Campaign"
+                                    thickness="thin"
+                                    options={searchedValues}
+                                    clearButton
+                                    setHiglighted
+                                    clearFunction={() => setSearchVal('')}
                                 />
-                                <Popover
-                                    onClose={handlePopOver}
-                                    activator={
-                                        <Button
-                                            type="Outlined"
-                                            icon={
-                                                <Plus
-                                                    color="#3B424F"
-                                                    size={16}
+                            </FlexChild>
+                            <FlexChild
+                                desktopWidth="50"
+                                mobileWidth="50"
+                                tabWidth="50">
+                                <FlexLayout spacing="loose" halign="end">
+                                    <AdvanceFilter
+                                        type="Outlined"
+                                        icon={
+                                            <Filter color="#3B424F" size={16} />
+                                        }
+                                        filters={filterArr}
+                                        button="Filter"
+                                        heading="Filters"
+                                        disableApply={disableBtn()}
+                                        onApply={applyFilter}
+                                        disableReset={disableBtn()}
+                                        resetFilter={removeAllFilter}
+                                    />
+                                    <Popover
+                                        onClose={handlePopOver}
+                                        activator={
+                                            <Button
+                                                type="Outlined"
+                                                icon={
+                                                    <Plus
+                                                        color="#3B424F"
+                                                        size={16}
+                                                    />
+                                                }
+                                                thickness="thin"
+                                                onClick={handlePopOver}>
+                                                <TextStyles
+                                                    content="Manage Coloumns"
+                                                    type="Paragraph"
+                                                    paragraphTypes="MD-1.4"
                                                 />
-                                            }
-                                            thickness="thin"
-                                            onClick={handlePopOver}>
-                                            <TextStyles
-                                                content="Manage Coloumns"
-                                                type="Paragraph"
-                                                paragraphTypes="MD-1.4"
-                                            />
-                                        </Button>
-                                    }
-                                    open={addItemPopOver}
-                                    popoverContainer="body"
-                                    popoverWidth={165}>
-                                    <FlexLayout
-                                        direction="vertical"
-                                        spacing="loose">
-                                        {gridHeading.newColumns.map(
-                                            (ele, index) => {
-                                                return (
+                                            </Button>
+                                        }
+                                        open={addItemPopOver}
+                                        popoverContainer="body"
+                                        popoverWidth={165}>
+                                        <FlexLayout
+                                            direction="vertical"
+                                            spacing="loose">
+                                            {gridHeading.newColumns.map(
+                                                (ele, index) => {
+                                                    return (
+                                                        <FlexLayout
+                                                            key={index}
+                                                            wrap="noWrap">
+                                                            <CheckBox
+                                                                onClick={() =>
+                                                                    addColumn(
+                                                                        ele
+                                                                    )
+                                                                }
+                                                                checked={
+                                                                    ele.checked
+                                                                }
+                                                                labelVal={
+                                                                    ele.heading
+                                                                }
+                                                            />
+                                                        </FlexLayout>
+                                                    );
+                                                }
+                                            )}
+                                        </FlexLayout>
+                                    </Popover>
+                                </FlexLayout>
+                            </FlexChild>
+                        </FlexLayout>
+                        <FlexLayout>
+                            {showFilterBadges === true ? (
+                                <Card
+                                    cardType="Subdued"
+                                    extraClass="badge--card">
+                                    <Popover
+                                        popoverWidth={210}
+                                        activator={
+                                            showFilters.length > 1 ? (
+                                                <Tag
+                                                    count={`+${
+                                                        showFilters.length - 1
+                                                    }`}
+                                                    popover
+                                                    togglePopup={
+                                                        handleFilterPopOver
+                                                    }
+                                                    destroy={removeAllFilter}>
                                                     <FlexLayout
-                                                        key={index}
-                                                        wrap="noWrap">
-                                                        <CheckBox
-                                                            onClick={() =>
-                                                                addColumn(ele)
+                                                        valign="center"
+                                                        halign="center"
+                                                        wrap="noWrap"
+                                                        spacing="tight">
+                                                        <TextStyles content="Status:" />
+                                                        <TextStyles
+                                                            content={
+                                                                showFilters[0]
+                                                                    .status
                                                             }
-                                                            checked={
-                                                                ele.checked
-                                                            }
-                                                            labelVal={
-                                                                ele.heading
-                                                            }
+                                                            type="Paragraph"
+                                                            paragraphTypes="MD-1.4"
                                                         />
                                                     </FlexLayout>
-                                                );
-                                            }
-                                        )}
-                                    </FlexLayout>
-                                </Popover>
-                            </FlexLayout>
-                        </FlexChild>
-                    </FlexLayout>
-                    <FlexLayout>
-                        {showFilterBadges === true ? (
-                            <Card cardType="Subdued" extraClass="badge--card">
-                                <Popover
-                                    popoverWidth={210}
-                                    activator={
-                                        showFilters.length > 1 ? (
-                                            <Tag
-                                                count={`+${
-                                                    showFilters.length - 1
-                                                }`}
-                                                popover
-                                                togglePopup={
-                                                    handleFilterPopOver
-                                                }
-                                                destroy={removeAllFilter}>
-                                                <FlexLayout
-                                                    valign="center"
-                                                    halign="center"
-                                                    wrap="noWrap"
-                                                    spacing="tight">
-                                                    <TextStyles content="Status:" />
-                                                    <TextStyles
-                                                        content={
-                                                            showFilters[0]
-                                                                .status
-                                                        }
-                                                        type="Paragraph"
-                                                        paragraphTypes="MD-1.4"
-                                                    />
-                                                </FlexLayout>
-                                            </Tag>
-                                        ) : (
-                                            <Tag
-                                                destroy={removeAllFilter}
-                                                togglePopup={
-                                                    handleFilterPopOver
-                                                }>
-                                                <FlexLayout
-                                                    valign="center"
-                                                    halign="center"
-                                                    wrap="noWrap"
-                                                    spacing="tight">
-                                                    <TextStyles content="Status:" />
-                                                    <TextStyles
-                                                        content={
-                                                            showFilters[0]
-                                                                .status
-                                                        }
-                                                        type="Paragraph"
-                                                        paragraphTypes="MD-1.4"
-                                                    />
-                                                </FlexLayout>
-                                            </Tag>
-                                        )
-                                    }
-                                    popoverContainer="body"
-                                    children={
-                                        <FlexLayout spacing="extraTight">
-                                            {showFilters.map((ele: any) => {
-                                                return (
-                                                    <Tag
-                                                        key={ele.staus}
-                                                        destroy={() =>
-                                                            removeItemFilter(
-                                                                ele
-                                                            )
-                                                        }>
-                                                        {ele.status}
-                                                    </Tag>
-                                                );
-                                            })}
-                                        </FlexLayout>
-                                    }
-                                    open={filterPopOver}
-                                />
-                            </Card>
-                        ) : (
-                            <></>
-                        )}
-                    </FlexLayout>
-                    <Grid
-                        columns={[
-                            ...gridHeading.gridHead,
-                            {
-                                render: (obj: any) => renderActionList(obj),
-                                fixed: 'right',
-                                key: 'actions',
-                                title: (
-                                    <TextStyles
-                                        content="Actions"
-                                        utility="dashedLine dashedLine--block"
-                                        type="Paragraph"
-                                        paragraphTypes="MD-1.4"
-                                        fontweight="bold"
+                                                </Tag>
+                                            ) : (
+                                                <Tag
+                                                    destroy={removeAllFilter}
+                                                    togglePopup={
+                                                        handleFilterPopOver
+                                                    }>
+                                                    <FlexLayout
+                                                        valign="center"
+                                                        halign="center"
+                                                        wrap="noWrap"
+                                                        spacing="tight">
+                                                        <TextStyles content="Status:" />
+                                                        <TextStyles
+                                                            content={
+                                                                showFilters[0]
+                                                                    .status
+                                                            }
+                                                            type="Paragraph"
+                                                            paragraphTypes="MD-1.4"
+                                                        />
+                                                    </FlexLayout>
+                                                </Tag>
+                                            )
+                                        }
+                                        popoverContainer="body"
+                                        children={
+                                            <FlexLayout spacing="extraTight">
+                                                {showFilters.map((ele: any) => {
+                                                    return (
+                                                        <Tag
+                                                            key={ele.staus}
+                                                            destroy={() =>
+                                                                removeItemFilter(
+                                                                    ele
+                                                                )
+                                                            }>
+                                                            {ele.status}
+                                                        </Tag>
+                                                    );
+                                                })}
+                                            </FlexLayout>
+                                        }
+                                        open={filterPopOver}
                                     />
-                                ),
-                            },
-                        ]}
-                        dataSource={data}
-                        scrollX={1400}
-                    />
-                    <Pagination
-                        countPerPage={optionPagination}
-                        currentPage={currentPage}
-                        onCountChange={(count) => countChange(count)}
-                        onEnter={(page: string | number) =>
-                            enterChange(Number(page))
-                        }
-                        onNext={nextChange}
-                        onPrevious={() => prevChange()}
-                        optionPerPage={pageArr}
-                        totalitem={gridData.length}
-                    />
-                </FlexLayout>
-            </Card>
+                                </Card>
+                            ) : (
+                                <></>
+                            )}
+                        </FlexLayout>
+                        <Grid
+                            columns={[
+                                ...gridHeading.gridHead,
+                                {
+                                    render: (obj: any) => renderActionList(obj),
+                                    fixed: 'right',
+                                    key: 'actions',
+                                    title: (
+                                        <TextStyles
+                                            content="Actions"
+                                            utility="dashedLine dashedLine--block"
+                                            type="Paragraph"
+                                            paragraphTypes="MD-1.4"
+                                            fontweight="bold"
+                                        />
+                                    ),
+                                },
+                            ]}
+                            dataSource={data}
+                            scrollX={1400}
+                        />
+                        <Pagination
+                            countPerPage={optionPagination}
+                            currentPage={currentPage}
+                            onCountChange={(count) => countChange(count)}
+                            onEnter={(page: string | number) =>
+                                enterChange(Number(page))
+                            }
+                            onNext={nextChange}
+                            onPrevious={() => prevChange()}
+                            optionPerPage={pageArr}
+                            totalitem={gridData.length}
+                        />
+                    </FlexLayout>
+                </Card>
+            ) : (
+                <EmptyCampaigns _props={_props} />
+            )}
         </>
     );
 };

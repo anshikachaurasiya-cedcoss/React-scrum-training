@@ -27,66 +27,67 @@ import MobileLogo from '../../Asests/Images/svg/MobileLogo';
 import Dashboard from './Dashboard';
 import Footer from '../Footer/Footer';
 import './Panel.css';
-import {
-    Outlet,
-    Route,
-    Routes,
-    useLocation,
-    useNavigate,
-} from 'react-router-dom';
+import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import CampaignPage from './CampaignPage/CampaignPage';
 import ProductPage from './ProductPage/ProductPage';
 import SettingsPage from './SettingPage/SettingsPage';
 import NotificationPage from './NotificationPage/NotificationPage';
-import { urlFetchCalls } from '../../Constant';
+import { APP_TARGET_NAME, urlFetchCalls } from '../../Constant';
 import { dateFormat } from '../CommonFunctions';
 import HelpPage from './HelpPage/HelpPage';
+import FAQPage from './FAQPage/FAQPage';
 
 const Panel = (_props: PropsI) => {
     let navigate = useNavigate();
-    const location = useLocation();
     const {
         get: { getNotifications },
+        post: { faqGetData },
     } = urlFetchCalls;
     const {
-        di: { GET },
+        di: { GET, POST },
+        location,
+        error,
     } = _props;
     const menu = [
         {
             id: 'dashboard',
             content: 'Dashboard',
-            icon: <Home />,
+            icon: <Home size={20} color="#3B424F" />,
             path: 'dashboard',
         },
         {
             id: 'productlist',
             content: 'Product List',
-            icon: <Box />,
+            icon: <Box size={20} color="#3B424F" />,
             path: 'product',
         },
         {
             id: 'settings',
             content: 'Settings',
-            icon: <Settings />,
+            icon: <Settings size={20} color="#3B424F" />,
             path: 'settings',
         },
         {
             id: 'help',
             content: 'Help',
-            icon: <LifeBuoy />,
+            icon: <LifeBuoy size={20} color="#3B424F" />,
             path: 'help',
         },
         {
             id: 'faq',
             content: 'FAQ',
-            icon: <HelpCircle />,
+            icon: <HelpCircle color="#3B424F" size={20} />,
             path: 'faq',
+        },
+        {
+            id: 'logout',
+            content: 'Logout',
+            icon: <LogOut size={20} color="#3B424F" />,
+            path: '/logout',
+            extraClass: 'logout__style',
         },
     ];
 
-    const submenus = [
-        { id: 'logout', content: 'Logout', icon: <LogOut />, path: '/logout' },
-    ];
     const [panel, setPanel] = useState({
         notification_popUp: false,
         notifications: [],
@@ -103,9 +104,47 @@ const Panel = (_props: PropsI) => {
         total_notification,
     } = panel;
 
+    const [faq, setFaq] = useState<any>({
+        faqData: {},
+        dataLoading: false,
+        helpFaqData: [],
+        faqs: [],
+        btnLoading: false,
+        searchValue: '',
+        searchedData: [],
+        renderSearcedData: {},
+        showSearch: false,
+    });
+
     useEffect(() => {
         getAllNotifications(notification_activePage, notification_count);
-    }, []);
+        let path =
+            location.pathname.split('/')[3] === 'faq' ||
+            location.pathname.split('/')[3] === 'help';
+        if (path === true) {
+            setFaq({
+                ...faq,
+                dataLoading: true,
+                faqData: {},
+                faqs: {},
+                helpFaqData: [],
+            });
+            POST(faqGetData, { marketplace: APP_TARGET_NAME, limit: 5 }).then(
+                (res) => {
+                    faq.dataLoading = false;
+                    if (res.success) {
+                        faq.faqData = res.data;
+                        faq.dataLoading = false;
+                    } else {
+                        error(res.message);
+                    }
+                    setFaq({
+                        ...faq,
+                    });
+                }
+            );
+        }
+    }, [location]);
 
     const getAllNotifications = (activePage: any, count: any) => {
         setPanel({ ...panel, notifications: [] });
@@ -222,9 +261,10 @@ const Panel = (_props: PropsI) => {
                             </BodyLayout>
                         </>
                     }>
-                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="dashboard/*" element={<Dashboard />}>
+                        <Route path="create" element={<CampaignPage />} />
+                    </Route>
                     <Route path="product" element={<ProductPage />} />
-                    <Route path="campaign" element={<CampaignPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                     <Route
                         path="notification"
@@ -236,7 +276,21 @@ const Panel = (_props: PropsI) => {
                             />
                         }
                     />
-                    <Route path="help" element={<HelpPage />} />
+                    <Route
+                        path="help"
+                        element={
+                            <HelpPage
+                                menu={menu}
+                                changeHandler={changeHandler}
+                                faq={faq}
+                                setFaq={setFaq}
+                            />
+                        }
+                    />
+                    <Route
+                        path="faq"
+                        element={<FAQPage faq={faq} setFaq={setFaq} />}
+                    />
                 </Route>
             </Routes>
         </>

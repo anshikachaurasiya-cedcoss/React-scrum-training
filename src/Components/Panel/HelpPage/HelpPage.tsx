@@ -8,39 +8,51 @@ import {
     Skeleton,
     TextStyles,
 } from '@cedcommerce/ounce-ui';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import GenerateTicket from '../../../Asests/Images/svg/GenerateTicket';
 import EmailHelp from '../../../Asests/Images/svg/EmailHelp';
 import { DI, DIProps } from '../../../Core';
-import { APP_TARGET_NAME, urlFetchCalls } from '../../../Constant';
+import { FaqBroken } from '../../../Components/EmptyState/EmptyPages';
 
-const HelpPage = (_props: DIProps) => {
-    const {
-        di: { POST },
-    } = _props;
-    const {
-        post: { faqGetData },
-    } = urlFetchCalls;
-    const [faq, setFaq] = useState<any>({ faqData: [] });
-    const { faqData } = faq;
+interface helpProps extends DIProps {
+    menu: (
+        | {
+              id: string;
+              content: string;
+              icon: JSX.Element;
+              path: string;
+              extraClass?: undefined;
+          }
+        | {
+              id: string;
+              content: string;
+              icon: JSX.Element;
+              path: string;
+              extraClass: string;
+          }
+    )[];
+    changeHandler: (e: any) => void;
+    faq: any;
+    setFaq: React.Dispatch<any>;
+}
+
+const HelpPage = (_props: helpProps) => {
+    const { menu, changeHandler, faq, setFaq } = _props;
+
+    const { faqData, dataLoading, helpFaqData } = faq;
     useEffect(() => {
-        getFaqData();
-    }, []);
-    const getFaqData = () => {
-        POST(faqGetData, { marketplace: APP_TARGET_NAME, limit: 5 }).then(
-            (res) => {
-                if (res.success) {
-                    renderTopFaq(res.data);
-                }
-            }
-        );
-    };
+        if (Object.keys(faqData).length > 0) {
+            renderTopFaq();
+        }
+    }, [faqData]);
 
-    const renderTopFaq = (data: any) => {
-        Object.entries(data).forEach(([key, value]: any) => {
+    const renderTopFaq = () => {
+        Object.entries(faqData).forEach(([key, value]: any) => {
             Object.entries(value).forEach(([innerKey, innerValue]: any) => {
                 if (innerValue.data.length > 0) {
-                    faq.faqData.push(innerValue.data[0]);
+                    let obj = { faqOpen: false };
+                    Object.assign(obj, innerValue.data[0]);
+                    faq.helpFaqData.push(obj);
                 }
             });
         });
@@ -134,15 +146,38 @@ const HelpPage = (_props: DIProps) => {
                 <Card
                     title="Frequently Asked Question"
                     action={
-                        <Button type="TextButton">View All FAQ Articles</Button>
+                        <Button
+                            type="TextButton"
+                            onClick={() => changeHandler(menu[4])}>
+                            View All FAQ Articles
+                        </Button>
                     }>
-                    {console.log(faqData)}
-                    {faqData.length === 0 ? (
-                        <Skeleton line={5} />
-                    ) : (
-                        faqData.map((ele: any) => {
-                            return <Accordion title={ele.title} />;
+                    {dataLoading === true && <Skeleton />}
+
+                    {helpFaqData.length > 0 ? (
+                        helpFaqData.map((ele: any, index: number) => {
+                            return (
+                                <Accordion
+                                    title={ele.title}
+                                    key={ele}
+                                    onClick={() => {
+                                        helpFaqData[index].faqOpen =
+                                            !helpFaqData[index].faqOpen;
+                                        setFaq({ ...faq });
+                                    }}
+                                    active={ele.faqOpen}
+                                    children={
+                                        <div
+                                            dangerouslySetInnerHTML={{
+                                                __html: ele.answer,
+                                            }}
+                                        />
+                                    }
+                                />
+                            );
                         })
+                    ) : (
+                        <FaqBroken />
                     )}
                 </Card>
             </FlexLayout>

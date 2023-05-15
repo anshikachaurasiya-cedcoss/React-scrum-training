@@ -128,8 +128,8 @@ export const EmptyCampaigns = (_props: any) => (
                 length="none"
                 onAction={() => {}}
                 onClick={() => {
-                    const user_id = _props.match.uId;
-                    _props.history(`/panel/${user_id}/dashboard/create`);
+                    const user_id = _props._props.match.uId;
+                    _props._props.history(`/panel/${user_id}/dashboard/create`);
                 }}
                 thickness="large"
                 type="Primary"
@@ -142,9 +142,12 @@ export const EmptyCampaigns = (_props: any) => (
 export const EmptyProduct = () => (
     <EmptyState
         extraclass="empty_product"
-        title="No Product"
+        title="No Products Found"
         subTitle={
-            <FlexLayout spacing="extraTight" halign="center">
+            <FlexLayout
+                spacing="extraTight"
+                halign="center"
+                direction="vertical">
                 <TextStyles
                     alignment="center"
                     fontweight="normal"
@@ -152,8 +155,9 @@ export const EmptyProduct = () => (
                     textcolor="light"
                     type="Paragraph"
                     utility="with_action">
-                    You haven’t any product yet. When you have, it'll show up
-                    here.
+                    Please ensure that your product catalog is synchronized with
+                    the app so that Facebook can select the most suitable
+                    product(s) to promote.
                 </TextStyles>
                 <TextStyles
                     alignment="center"
@@ -162,16 +166,15 @@ export const EmptyProduct = () => (
                     textcolor="light"
                     type="Paragraph"
                     utility="with_action">
-                    Need Help? Read our{' '}
+                    Learn more about the
                     <Button
                         halign="Center"
                         length="none"
                         onClick={() => {}}
                         thickness="thin"
                         type="TextButton">
-                        Help doc
-                    </Button>{' '}
-                    for further details.
+                        Catalog Sync process
+                    </Button>
                 </TextStyles>
             </FlexLayout>
         }
@@ -269,29 +272,41 @@ export const BrokenPage1 = (_props: BrokenPage) => (
 export const FaqBroken = () => (
     <EmptyState
         extraclass="search_result"
-        title="We’re facing a temporary issue"
+        title={
+            <FlexLayout
+                spacing="extraTight"
+                halign="center"
+                direction="vertical">
+                <TextStyles
+                    alignment="center"
+                    fontweight="extraBold"
+                    type="SubHeading"
+                    subheadingTypes="XS-1.6"
+                    utility="with_action">
+                    We’re facing some issue!
+                </TextStyles>
+            </FlexLayout>
+        }
         subTitle={
-            <>
-                <FlexLayout
-                    spacing="extraTight"
-                    halign="center"
-                    direction="vertical">
-                    <TextStyles
-                        alignment="center"
-                        fontweight="normal"
-                        paragraphTypes="MD-1.4"
-                        textcolor="light"
-                        type="Paragraph"
-                        utility="with_action">
-                        Start counting to a hundred and we will be back right in
-                        time.
-                    </TextStyles>
-                </FlexLayout>
-            </>
+            <FlexLayout
+                spacing="extraTight"
+                halign="center"
+                direction="vertical">
+                <TextStyles
+                    alignment="center"
+                    fontweight="normal"
+                    paragraphTypes="MD-1.4"
+                    textcolor="light"
+                    type="Paragraph"
+                    utility="with_action">
+                    Please check back after some time!
+                </TextStyles>
+            </FlexLayout>
         }
         illustration={<NoSearchResult />}
     />
 );
+
 export const SessionExpire1 = (_props: any, dispacher: any) => (
     <EmptyState
         cardType="Plain"
@@ -325,6 +340,7 @@ export const SessionExpire1 = (_props: any, dispacher: any) => (
         }
     />
 );
+
 export const Nofaqs = () => (
     <EmptyState
         extraclass="no_faq"

@@ -65,7 +65,6 @@ function Login(_props: PropsI): JSX.Element {
         let bearerToken = searchParams.get('bearer');
         let status = searchParams.get('connection_status');
         let navigate_value = localStorage.getItem('navigate_from');
-
         if (bearerToken) {
             dispatcher({
                 type: 'user_id',
