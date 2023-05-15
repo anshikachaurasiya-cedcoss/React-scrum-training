@@ -5,3 +5,14 @@
 .popover--height .inte__Popover-Wrapper {
     max-height: initial !important;
 }
+
+
+.logout__style {
+    border-top: 1px solid #D7D9DB !important;
+    margin: 150px 0px 10px 0px !important;
+    align-items: center;
+}
+
+.logout__style .inte__Menus {
+    position: fixed;
+}

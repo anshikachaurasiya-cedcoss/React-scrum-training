@@ -26,10 +26,10 @@ const Forget = (_props: PropsI) => {
         value: '',
         showError: false,
         message: '',
-        error: true,
+        emailError: true,
+        btnLoading: false,
     });
-    // state for the setting the loading state of button on hitting the Generate link button
-    const [btnLoading, setBtnLoading] = useState(false);
+    const { value, showError, message, emailError, btnLoading } = emailState;
     const navigate = useNavigate();
     // function handles the state of email on change of the input box
     const emailHandler = (e: any) => {
@@ -37,9 +37,9 @@ const Forget = (_props: PropsI) => {
         emailState.showError = false;
         emailState.value = e;
         if (emailState.value.match(regexValidation.emailFormat)) {
-            emailState.error = false;
+            emailState.emailError = false;
         } else {
-            emailState.error = true;
+            emailState.emailError = true;
         }
         setEmailState({ ...emailState });
     };
@@ -48,21 +48,21 @@ const Forget = (_props: PropsI) => {
         if (emailState.value.match(regexValidation.emailFormat)) {
             emailState.showError = false;
             emailState.message = '';
-            emailState.error = false;
+            emailState.emailError = false;
         } else {
             if (emailState.value === '') {
                 emailState.message = '';
             } else {
                 emailState.message = 'Please enter a valid email';
             }
-            emailState.error = true;
+            emailState.emailError = true;
             emailState.showError = true;
         }
         setEmailState({ ...emailState });
     };
     // function hits the forget api on click of generate link button
     const generateHandler = () => {
-        setBtnLoading(true);
+        setEmailState({ ...emailState, btnLoading: true });
         let location = window.location.origin;
         const {
             post: { forgotPassword },
@@ -74,11 +74,10 @@ const Forget = (_props: PropsI) => {
             subject:
                 'Reset your password for Social Ads on Buy with Prime Account',
         }).then((res) => {
+            setEmailState({ ...emailState, btnLoading: false });
             if (res.success) {
                 navigate('/auth/forgotsuccess');
-                setBtnLoading(false);
             } else {
-                setBtnLoading(false);
                 error(res.message);
             }
         });
@@ -89,15 +88,15 @@ const Forget = (_props: PropsI) => {
             <FormElement>
                 <TextField
                     placeHolder="Enter Email"
-                    error={emailState.showError}
-                    value={emailState.value}
+                    error={showError}
+                    value={value}
                     onChange={(e) => emailHandler(e)}
                     onblur={blurHandler}
-                    showHelp={emailState.message}
+                    showHelp={message}
                 />
                 <hr />
                 <Button
-                    disable={emailState.error}
+                    disable={emailError}
                     length={'fullBtn'}
                     thickness="large"
                     content=" Generate Link"
