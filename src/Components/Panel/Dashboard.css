@@ -20,3 +20,8 @@
 .dashedLine--block {
     display: inline-block;
 }
+
+.sorting--div {
+    display: flex;
+    flex-direction: column;
+}

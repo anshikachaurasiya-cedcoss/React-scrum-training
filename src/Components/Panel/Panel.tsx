@@ -1,16 +1,16 @@
 import {
     BodyLayout,
     Button,
-    FlexLayout,
+    Modal,
     NewSidebar,
     Notification,
     Popover,
+    Skeleton,
     TextStyles,
     Topbar,
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useState } from 'react';
 import {
-    ArrowLeft,
     ArrowRight,
     Bell,
     Box,
@@ -20,8 +20,7 @@ import {
     LogOut,
     Settings,
 } from 'react-feather';
-import { PropsI } from 'src/Core/@types';
-import { DI } from '../../Core/DependencyInjection';
+import { DI, DIProps } from '../../Core/DependencyInjection';
 import Cedcommerce from '../../Asests/Images/svg/Cedcommerce';
 import MobileLogo from '../../Asests/Images/svg/MobileLogo';
 import Dashboard from './Dashboard';
@@ -37,17 +36,22 @@ import { dateFormat } from '../CommonFunctions';
 import HelpPage from './HelpPage/HelpPage';
 import FAQPage from './FAQPage/FAQPage';
 
-const Panel = (_props: PropsI) => {
+const Panel = (_props: DIProps) => {
     let navigate = useNavigate();
     const {
-        get: { getNotifications },
-        post: { faqGetData },
+        get: { getNotifications, queuedTaskUrl },
+        post: { faqGetData, productImport },
     } = urlFetchCalls;
     const {
-        di: { GET, POST },
+        di: {
+            GET,
+            POST,
+            globalState: { get },
+        },
         location,
         error,
     } = _props;
+
     const menu = [
         {
             id: 'dashboard',
@@ -83,17 +87,22 @@ const Panel = (_props: PropsI) => {
             id: 'logout',
             content: 'Logout',
             icon: <LogOut size={20} color="#3B424F" />,
-            path: '/logout',
+            path: '/auth',
             extraClass: 'logout__style',
         },
     ];
 
-    const [panel, setPanel] = useState({
+    const [panel, setPanel] = useState<any>({
         notification_popUp: false,
         notifications: [],
         notification_activePage: 1,
         notification_count: 10,
         total_notification: 0,
+        notify: false,
+        syncProductData: [],
+        logoutModal: false,
+        popOverNotifications: [],
+        apiLoading: false,
     });
 
     const {
@@ -101,7 +110,10 @@ const Panel = (_props: PropsI) => {
         notification_activePage,
         notification_count,
         notifications,
-        total_notification,
+        notify,
+        syncProductData,
+        logoutModal,
+        popOverNotifications,
     } = panel;
 
     const [faq, setFaq] = useState<any>({
@@ -115,9 +127,7 @@ const Panel = (_props: PropsI) => {
         renderSearcedData: {},
         showSearch: false,
     });
-
     useEffect(() => {
-        getAllNotifications(notification_activePage, notification_count);
         let path =
             location.pathname.split('/')[3] === 'faq' ||
             location.pathname.split('/')[3] === 'help';
@@ -146,26 +156,164 @@ const Panel = (_props: PropsI) => {
         }
     }, [location]);
 
+    useEffect(() => {
+        webSocket();
+        syncProducts();
+    }, []);
+    const webSocket = () => {
+        let ws = new WebSocket(
+            'wss://a5zls8ce93.execute-api.us-east-2.amazonaws.com/beta'
+        );
+        ws.onopen = function () {
+            // just after opening connection its required to send identity to server
+            ws.send(
+                '{ "action": "identity","client_id":' +
+                    7 +
+                    ',"customer_id":"' +
+                    _props.redux.user_id +
+                    '","token":"' +
+                    get('auth_token') +
+                    '"}'
+            );
+        };
+        ws.onmessage = function (evt) {
+            let received_msg = evt.data;
+            if (
+                JSON.parse(received_msg).new_notification &&
+                JSON.parse(received_msg).new_notification === true
+            ) {
+                setPanel((prev: any) => {
+                    return { ...prev, notify: true };
+                });
+            }
+            return getAllNotifications(
+                notification_activePage,
+                notification_count
+            );
+        };
+        ws.onclose = function () {
+            // websocket is closed.
+            webSocket();
+        };
+    };
+
     const getAllNotifications = (activePage: any, count: any) => {
-        setPanel({ ...panel, notifications: [] });
         GET(getNotifications, {
             activePage: activePage,
             count: count,
         }).then((res) => {
             if (res.success) {
-                panel.notifications = res.data.rows;
-                panel.total_notification = res.data.count;
+                if (activePage === 1) {
+                    setPanel((prev: any) => {
+                        prev.popOverNotifications = res.data.rows;
+                        return { ...prev };
+                    });
+                }
+                setPanel((prev: any) => {
+                    prev.notification_activePage = activePage;
+                    prev.notification_count = count;
+                    prev.notifications = res.data.rows;
+                    prev.total_notification = res.data.count;
+                    return { ...prev };
+                });
             }
-            setPanel({ ...panel });
         });
     };
     const openNotificationPopover = () => {
         panel.notification_popUp = !panel.notification_popUp;
-        setPanel({ ...panel });
+        setPanel({ ...panel, notify: false });
     };
     const changeHandler = (e: any) => {
-        navigate(`${e.path}`);
+        if (e.path !== '/auth') {
+            navigate(`${e.path}`);
+        } else {
+            setPanel({ ...panel, logoutModal: true });
+        }
     };
+    const synced: any = {
+        completed: {
+            color: 'success',
+            message: 'Products successfully uploaded.',
+            heading: 'Uploaded Completed',
+            product_code: 'product_upload',
+            open: true,
+        },
+        variants_delete: {
+            color: 'info',
+            message: 'Please wait while the import is in progress.',
+            heading: 'Take a break!!',
+            product_code: 'variants_delete',
+            open: true,
+        },
+        product_import: {
+            color: 'info',
+            message: 'Product uploading!',
+            heading: 'Take a break. Your Product uploading! is in progress ',
+            product_code: 'product_import',
+            open: true,
+        },
+    };
+
+    const syncProducts = () => {
+        setPanel((prev: any) => {
+            prev.apiLoading = true;
+            return { ...prev };
+        });
+        GET(queuedTaskUrl).then((res) => {
+            panel.apiLoading = false;
+            if (res.success) {
+                if (res.data.rows.length > 0) {
+                    res.data.rows.forEach((ele: any) => {
+                        if (
+                            ele.process_code === 'product_upload' &&
+                            ele.message === 'Products successfully uploaded.'
+                        ) {
+                            panel.syncProductData = synced.completed;
+                        } else if (
+                            (ele.process_code === 'product_import' &&
+                                ele.message ===
+                                    "Just a moment! We're retrieving your products from the source catalog. We'll let you know once it's done.") ||
+                            (ele.process_code === 'product_upload' &&
+                                ele.message ===
+                                    'Take a break. Your product upload is in progress.')
+                        ) {
+                            panel.syncProductData = synced.product_import;
+                        } else if (
+                            ele.process_code === 'variants_delete' &&
+                            ele.message ===
+                                'Please wait while the import is in progress.'
+                        ) {
+                            panel.syncProductData = synced.variants_delete;
+                        }
+                        setPanel({ ...panel });
+                    });
+                }
+            } else {
+                let params = {
+                    source: {
+                        marketplace: _props.redux.current?.source.marketplace,
+                        shopId: _props.redux.current?.source._id,
+                        data: {
+                            filter_condition: 'or',
+                            filter_options: {
+                                isPrimeIntended: true,
+                                is_tester_account: true,
+                            },
+                        },
+                    },
+                    target: {
+                        marketplace: _props.redux.current?.target.marketplace,
+                        shopId: _props.redux.current?.target._id,
+                    },
+                };
+                POST(productImport, params).then((res) => {
+                    console.log(res);
+                });
+            }
+        });
+    };
+
+    const getImport = () => {};
 
     return (
         <>
@@ -179,41 +327,48 @@ const Panel = (_props: PropsI) => {
                                     <div className="popover--height">
                                         <Popover
                                             activator={
-                                                <Button
-                                                    type="Outlined"
-                                                    icon={
-                                                        <Bell size={'16px'} />
-                                                    }
-                                                    onClick={
-                                                        openNotificationPopover
-                                                    }
-                                                />
+                                                <div className="notify__alert">
+                                                    {notify === true ? (
+                                                        <div className="notification--dot" />
+                                                    ) : (
+                                                        ''
+                                                    )}
+                                                    <Button
+                                                        type="Outlined"
+                                                        icon={
+                                                            <Bell
+                                                                size={'16px'}
+                                                            />
+                                                        }
+                                                        onClick={
+                                                            openNotificationPopover
+                                                        }
+                                                    />
+                                                </div>
                                             }
                                             open={notification_popUp}
                                             onClose={openNotificationPopover}
                                             popoverContainer="element"
                                             popoverWidth={300}>
-                                            {notifications.length > 0 &&
+                                            {popOverNotifications.length ===
+                                            0 ? (
+                                                <Skeleton line={3} />
+                                            ) : (
+                                                popOverNotifications.length >
+                                                    0 &&
                                                 [
-                                                    notifications[0],
-                                                    notifications[1],
-                                                    notifications[2],
+                                                    popOverNotifications[0],
+                                                    popOverNotifications[1],
+                                                    popOverNotifications[2],
                                                 ].map((ele: any) => {
                                                     return (
                                                         <Notification
                                                             key={ele.title}
                                                             children={
                                                                 <TextStyles
+                                                                    utility="ellipses--text"
                                                                     content={
-                                                                        ele
-                                                                            .message
-                                                                            .length >
-                                                                        30
-                                                                            ? `${ele.message.substring(
-                                                                                  0,
-                                                                                  30
-                                                                              )}...`
-                                                                            : ele.message
+                                                                        ele.message
                                                                     }
                                                                     type="Paragraph"
                                                                     paragraphTypes="MD-1.4"
@@ -221,13 +376,19 @@ const Panel = (_props: PropsI) => {
                                                                 />
                                                             }
                                                             destroy={false}
-                                                            type="danger"
+                                                            type={
+                                                                ele.severity ===
+                                                                'error'
+                                                                    ? 'danger'
+                                                                    : ele.severity
+                                                            }
                                                             subdesciption={dateFormat(
                                                                 ele.created_at
                                                             )}
                                                         />
                                                     );
-                                                })}
+                                                })
+                                            )}
                                             <hr />
                                             <Button
                                                 type="Plain"
@@ -263,7 +424,16 @@ const Panel = (_props: PropsI) => {
                     }>
                     <Route path="dashboard/*" element={<Dashboard />} />
                     <Route path="dashboard/create" element={<CampaignPage />} />
-                    <Route path="product" element={<ProductPage />} />
+                    <Route
+                        path="product"
+                        element={
+                            <ProductPage
+                                syncProducts={syncProducts}
+                                panel={panel}
+                                setPanel={setPanel}
+                            />
+                        }
+                    />
                     <Route path="settings" element={<SettingsPage />} />
                     <Route
                         path="notification"
@@ -292,6 +462,30 @@ const Panel = (_props: PropsI) => {
                     />
                 </Route>
             </Routes>
+            <Modal
+                heading="Logging Out"
+                open={logoutModal}
+                primaryAction={{
+                    content: 'LogOut',
+                    type: 'Primary',
+                    onClick: () => {
+                        sessionStorage.clear();
+                        navigate('/auth');
+                    },
+                }}
+                secondaryAction={{
+                    content: 'Cancel',
+                    type: 'Outlined',
+                    onClick: () => {
+                        setPanel({ ...panel, logoutModal: false });
+                    },
+                }}
+                close={() => {
+                    setPanel({ ...panel, logoutModal: false });
+                }}>
+                Are you sure you want to logout? You can always log back in
+                later.
+            </Modal>
         </>
     );
 };

@@ -19,7 +19,13 @@ import {
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
-import { gridData, filterVal, pageArr, searchedData } from '../ConstantArrays';
+import {
+    gridData,
+    filterVal,
+    pageArr,
+    newColumns,
+    gridHead,
+} from '../ConstantArrays';
 import {
     Download,
     Plus,
@@ -31,9 +37,8 @@ import { DI, DIProps } from '../../Core/DependencyInjection';
 import { urlFetchCalls } from '../../Constant';
 import Facebook from '../../Asests/Images/svg/Facebook';
 import Instagram from '../../Asests/Images/svg/Instagram';
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { environment } from '../../environments/environment';
-import CampaignPage from './CampaignPage/CampaignPage';
 import { EmptyCampaigns } from '../EmptyState/EmptyPages';
 
 type typeProps =
@@ -63,176 +68,6 @@ type badgeProps = {
 interface PropsI extends DIProps {}
 let start = 0;
 const Dashboard = (_props: PropsI) => {
-    const gridHead = [
-        {
-            dataIndex: 'campaign_name',
-            fixed: 'left',
-            key: 'campaign_name',
-            title: (
-                <TextStyles
-                    content="Campaigns"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-        },
-        {
-            dataIndex: 'statusComponent',
-            fixed: 'left',
-            key: 'status',
-            title: (
-                <TextStyles
-                    content="Status"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-        },
-        {
-            dataIndex: 'campaign_placement',
-            key: 'campaign_placement',
-            title: (
-                <TextStyles
-                    content="Placement"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-        },
-        {
-            dataIndex: 'start_date',
-            key: 'start_date',
-            title: (
-                <TextStyles
-                    content="Start Date"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-        },
-        {
-            dataIndex: 'end_date',
-            key: 'end_date',
-            title: (
-                <TextStyles
-                    content="End Date"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-        },
-        {
-            dataIndex: 'daily_budget',
-            key: 'daily_budget',
-            title: (
-                <TextStyles
-                    content="Daily Budget"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-        },
-        {
-            dataIndex: 'spend',
-            key: 'spend',
-            title: (
-                <TextStyles
-                    content="Spend"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-        },
-        {
-            dataIndex: 'sales',
-            key: 'sales',
-            title: (
-                <TextStyles
-                    content="Sales"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-        },
-    ];
-    const newColumns = [
-        {
-            dataIndex: 'impressions',
-            key: 'impressions',
-            title: (
-                <TextStyles
-                    content="Impressions"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-            heading: 'Impressions',
-            checked: false,
-        },
-        {
-            dataIndex: 'clicks',
-            key: 'clicks',
-            title: (
-                <TextStyles
-                    content="Clicks"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-            heading: 'Clicks',
-            checked: false,
-        },
-        {
-            dataIndex: 'orders',
-            key: 'orders',
-            title: (
-                <TextStyles
-                    content="Orders"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-            heading: 'Orders',
-            checked: false,
-        },
-        {
-            dataIndex: 'roas',
-            key: 'roas',
-            title: (
-                <TextStyles
-                    content="ROAS"
-                    utility="dashedLine dashedLine--block"
-                    type="Paragraph"
-                    paragraphTypes="MD-1.4"
-                    fontweight="bold"
-                />
-            ),
-            heading: 'ROAS',
-            checked: false,
-        },
-    ];
     // destructuring of fetching calls
     const {
         get: { getCampaignsUrl, bulkExportCSV, getCampaignsAutoCompleteUrl },
@@ -243,7 +78,7 @@ const Dashboard = (_props: PropsI) => {
             GET,
             globalState: { get },
         },
-        redux: { current },
+        redux: { current, account },
         match,
     } = _props;
     const statusArr: badgeProps = [
@@ -298,7 +133,7 @@ const Dashboard = (_props: PropsI) => {
         setData(() => gridData);
         designGridData(gridData);
         GET(getCampaignsUrl, {
-            shop_id: _props.redux.account?.target.meta[0]._id,
+            shop_id: account?.target.meta[0]._id,
             count: page.optionPagination,
             activePage: page.currentPage,
         }).then((res) => {});
@@ -458,19 +293,19 @@ const Dashboard = (_props: PropsI) => {
     }, [searchVal]);
 
     const renderSearchedData = () => {
-        let searched: any = [];
-        let newSearch = searchedData.map((ele) => {
-            let searchedObj: any = { ...ele };
-            searchedObj.value = ele.campaign_name;
-            searchedObj.label = ele.campaign_name;
-            return searchedObj;
-        });
-        newSearch.forEach((ele) => {
-            if (ele.value.includes(searchVal)) {
-                searched.push(ele);
-            }
-        });
-        setShowFilter({ ...showFilter, searchedValues: searched });
+        // let searched: any = [];
+        // let newSearch = searchedData.map((ele) => {
+        //     let searchedObj: any = { ...ele };
+        //     searchedObj.value = ele.campaign_name;
+        //     searchedObj.label = ele.campaign_name;
+        //     return searchedObj;
+        // });
+        // newSearch.forEach((ele) => {
+        //     if (ele.value.includes(searchVal)) {
+        //         searched.push(ele);
+        //     }
+        // });
+        // setShowFilter({ ...showFilter, searchedValues: searched });
     };
 
     // function downloads the camapign Report in a csv format
@@ -478,10 +313,7 @@ const Dashboard = (_props: PropsI) => {
         let url =
             environment.API_ENDPOINT +
             bulkExportCSV +
-            `?shop_id=${_props.redux.current?.target._id}&bearer=${get(
-                'auth_token'
-            )}`;
-
+            `?shop_id=${current?.target._id}&bearer=${get('auth_token')}`;
         window.open(url);
     };
 
@@ -647,9 +479,11 @@ const Dashboard = (_props: PropsI) => {
                         <Button
                             icon={<Plus />}
                             thickness="large"
-                            onClick={() =>
-                                navigate(`/panel/${match.uId}/campaign`)
-                            }>
+                            onClick={() => {
+                                navigate(
+                                    `/panel/${match.uId}/dashboard/create`
+                                );
+                            }}>
                             Create Campaign
                         </Button>
                     ) : (

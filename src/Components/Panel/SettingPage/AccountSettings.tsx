@@ -215,12 +215,18 @@ const AccountSettings = (_props: accountProps) => {
                                                 utility="light--text"
                                             />
                                             <Badge
-                                                type="Positive-100"
+                                                type={
+                                                    current?.target.data
+                                                        .account_status ===
+                                                    'ACTIVE'
+                                                        ? 'Positive-100'
+                                                        : 'Negative-100'
+                                                }
                                                 size="regular">
                                                 {current?.target.data
-                                                    .account_status ===
-                                                    'ACTIVE' &&
-                                                    'Active Account'}
+                                                    .account_status === 'ACTIVE'
+                                                    ? 'Active Account'
+                                                    : 'Error Account'}
                                             </Badge>
                                         </FlexLayout>
                                         <Button

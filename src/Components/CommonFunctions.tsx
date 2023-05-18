@@ -1,9 +1,7 @@
-import { APP_TARGET_NAME, urlFetchCalls } from '../Constant';
-
 /**
  * function calculate the date according to time zone
  * @param date
- * @returns
+ * @returns the formatted date and time to display
  */
 export const dateFormat = (date: any) => {
     let date1: any = new Date(date);

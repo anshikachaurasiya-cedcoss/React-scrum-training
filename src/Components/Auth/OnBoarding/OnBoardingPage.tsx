@@ -38,6 +38,7 @@ const OnBoardingPage = (_props: PropsI) => {
         },
         syncNecessaryInfo,
         syncConnectorInfo,
+        error,
     } = _props;
     const {
         get: { installtionForm },
@@ -55,40 +56,49 @@ const OnBoardingPage = (_props: PropsI) => {
     }, []);
 
     const redirectFunc = async () => {
-        let success = searchParams.get('success');
-        let message = searchParams.get('message');
         let auth_token = get('auth_token');
-        if (success) {
-            let obj = {
-                success: false,
-                message: message,
-            };
-            localStorage.removeItem('user_token');
-            setFbResponse({ ...obj });
-        }
         if (auth_token) {
-            dispatcher({
-                type: 'user_id',
-                state: { user_id: parseJwt(auth_token).user_id },
-            });
-            await syncConnectorInfo(_props);
-            await syncNecessaryInfo();
-            setRedirectLoader(false);
-            let navigate_value = localStorage.getItem('navigate_from');
-            if (navigate_value) {
-                if (navigate_value === 'Account') {
-                    if (success === 'true') {
-                        navigate(
-                            `/panel/${parseJwt(auth_token).user_id}/settings`
-                        );
-                    } else
-                        navigate(
-                            `/panel/${
-                                parseJwt(auth_token).user_id
-                            }/settings?success=${success}`
-                        );
+            const decode = parseJwt(auth_token);
+            if (decode.exp < Date.now() / 1000) {
+                error('Token Expired!!');
+                navigate('/auth');
+            } else {
+                let success = searchParams.get('success');
+                let message = searchParams.get('message');
+                if (success) {
+                    let obj = {
+                        success: false,
+                        message: message,
+                    };
+                    localStorage.removeItem('user_token');
+                    setFbResponse({ ...obj });
                 }
-                localStorage.removeItem('navigate_from');
+
+                dispatcher({
+                    type: 'user_id',
+                    state: { user_id: parseJwt(auth_token).user_id },
+                });
+                await syncConnectorInfo(_props);
+                await syncNecessaryInfo();
+                setRedirectLoader(false);
+                let navigate_value = localStorage.getItem('navigate_from');
+                if (navigate_value) {
+                    if (navigate_value === 'Account') {
+                        if (success === 'true') {
+                            navigate(
+                                `/panel/${
+                                    parseJwt(auth_token).user_id
+                                }/settings`
+                            );
+                        } else
+                            navigate(
+                                `/panel/${
+                                    parseJwt(auth_token).user_id
+                                }/settings?success=${success}`
+                            );
+                    }
+                    localStorage.removeItem('navigate_from');
+                }
             }
         }
     };
