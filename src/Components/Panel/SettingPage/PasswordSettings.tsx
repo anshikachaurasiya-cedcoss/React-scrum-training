@@ -156,7 +156,6 @@ const PasswordSettings = (_props: DIProps) => {
     // function checks for validation on blur of the input fields
     const blurHandler = (value: string) => {
         if (value === new_pwd_name) {
-            console.log(value, new_pwd_name, new_pwd_value);
             if (new_pwd_value.match(passwordFormat)) {
                 password.new_pwd.error = false;
             } else {

@@ -1,3 +1,7 @@
+import { FlexLayout, TextStyles } from '@cedcommerce/ounce-ui';
+import React from 'react';
+import { ChevronDown, ChevronUp } from 'react-feather';
+
 export const gridData = [
     // {
     //     campaign_name: 'retargeting campaign 1',
@@ -136,29 +140,303 @@ export const filterVal = [
     { status: 'Pending', checked: false },
     { status: 'Scheduled', checked: false },
 ];
-
-export const searchedData = [
+export const gridHead = [
     {
-        campaign_name: 'arfah campaign',
-
-        campaign_id: '23854582774900431',
+        dataIndex: 'campaign_name',
+        fixed: 'left',
+        key: 'campaign_name',
+        title: (
+            <TextStyles
+                content="Campaigns"
+                utility="dashedLine dashedLine--block"
+                type="Paragraph"
+                paragraphTypes="MD-1.4"
+                fontweight="bold"
+            />
+        ),
     },
-
     {
-        campaign_name: 'syed campaign',
-
-        campaign_id: '23854594122030431',
+        dataIndex: 'statusComponent',
+        fixed: 'left',
+        key: 'status',
+        title: (
+            <TextStyles
+                content="Status"
+                utility="dashedLine dashedLine--block"
+                type="Paragraph"
+                paragraphTypes="MD-1.4"
+                fontweight="bold"
+            />
+        ),
     },
-
     {
-        campaign_name: 'retargeting campaign',
-
-        campaign_id: '23854594149590431',
+        dataIndex: 'campaign_placement',
+        key: 'campaign_placement',
+        title: (
+            <TextStyles
+                content="Placement"
+                utility="dashedLine dashedLine--block"
+                type="Paragraph"
+                paragraphTypes="MD-1.4"
+                fontweight="bold"
+            />
+        ),
     },
-
     {
-        campaign_name: 'Pre Eid campaign',
-
-        campaign_id: '23854612241780431',
+        dataIndex: 'start_date',
+        key: 'start_date',
+        title: (
+            <FlexLayout spacing="loose" valign="center" wrap="noWrap">
+                <TextStyles
+                    content="Start Date"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+                <div className="sorting--div">
+                    <ChevronUp
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                    <ChevronDown
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                </div>
+            </FlexLayout>
+        ),
+    },
+    {
+        dataIndex: 'end_date',
+        key: 'end_date',
+        title: (
+            <FlexLayout spacing="loose" valign="center" wrap="noWrap">
+                <TextStyles
+                    content="End Date"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+                <div className="sorting--div">
+                    <ChevronUp
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                    <ChevronDown
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                </div>
+            </FlexLayout>
+        ),
+    },
+    {
+        dataIndex: 'daily_budget',
+        key: 'daily_budget',
+        title: (
+            <FlexLayout spacing="loose" valign="center" wrap="noWrap">
+                <TextStyles
+                    content="Daily Budget"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+                <div className="sorting--div">
+                    <ChevronUp
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                    <ChevronDown
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                </div>
+            </FlexLayout>
+        ),
+    },
+    {
+        dataIndex: 'spend',
+        key: 'spend',
+        title: (
+            <FlexLayout spacing="loose" valign="center" wrap="noWrap">
+                <TextStyles
+                    content="Spend"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />{' '}
+                <div className="sorting--div">
+                    <ChevronUp
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                    <ChevronDown
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                </div>
+            </FlexLayout>
+        ),
+    },
+    {
+        dataIndex: 'sales',
+        key: 'sales',
+        title: (
+            <FlexLayout spacing="loose" valign="center" wrap="noWrap">
+                <TextStyles
+                    content="Sales"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+                <div className="sorting--div">
+                    <ChevronUp
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                    <ChevronDown
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                </div>
+            </FlexLayout>
+        ),
+    },
+];
+export const newColumns = [
+    {
+        dataIndex: 'impressions',
+        key: 'impressions',
+        title: (
+            <FlexLayout spacing="loose" valign="center" wrap="noWrap">
+                <TextStyles
+                    content="Impressions"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+                <div className="sorting--div">
+                    <ChevronUp
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                    <ChevronDown
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                </div>
+            </FlexLayout>
+        ),
+        heading: 'Impressions',
+        checked: false,
+        columnWidth: 270,
+    },
+    {
+        dataIndex: 'clicks',
+        key: 'clicks',
+        title: (
+            <FlexLayout spacing="loose" valign="center" wrap="noWrap">
+                <TextStyles
+                    content="Clicks"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />{' '}
+                <div className="sorting--div">
+                    <ChevronUp
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                    <ChevronDown
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                </div>
+            </FlexLayout>
+        ),
+        heading: 'Clicks',
+        checked: false,
+        columnWidth: 270,
+    },
+    {
+        dataIndex: 'orders',
+        key: 'orders',
+        title: (
+            <FlexLayout spacing="loose" valign="center" wrap="noWrap">
+                <TextStyles
+                    content="Orders"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />{' '}
+                <div className="sorting--div">
+                    <ChevronUp
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                    <ChevronDown
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                </div>
+            </FlexLayout>
+        ),
+        columnWidth: 270,
+        heading: 'Orders',
+        checked: false,
+    },
+    {
+        dataIndex: 'roas',
+        key: 'roas',
+        columnWidth: 270,
+        title: (
+            <FlexLayout spacing="loose" valign="center" wrap="noWrap">
+                <TextStyles
+                    content="ROAS"
+                    utility="dashedLine dashedLine--block"
+                    type="Paragraph"
+                    paragraphTypes="MD-1.4"
+                    fontweight="bold"
+                />
+                <div className="sorting--div">
+                    <ChevronUp
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                    <ChevronDown
+                        size={16}
+                        color="#70747E"
+                        alignmentBaseline="central"
+                    />
+                </div>
+            </FlexLayout>
+        ),
+        heading: 'ROAS',
+        checked: false,
     },
 ];

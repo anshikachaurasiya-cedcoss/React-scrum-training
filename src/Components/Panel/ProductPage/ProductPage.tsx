@@ -2,6 +2,7 @@ import {
     Accordion,
     ActionList,
     AdvanceFilter,
+    Alert,
     AutoComplete,
     Button,
     Card,
@@ -28,9 +29,13 @@ import noimg2 from '../../../Actions/Images-del/no-img.png';
 import { pageArr } from '../../ConstantArrays';
 import { EmptyProduct } from '../../../Components/EmptyState/EmptyPages';
 
-interface PropsI extends DIProps {}
+interface productProps extends DIProps {
+    syncProducts: () => void;
+    panel: any;
+    setPanel: React.Dispatch<any>;
+}
 
-const ProductPage = (_props: PropsI) => {
+const ProductPage = (_props: productProps) => {
     const productsHead = [
         {
             dataIndex: 'main_image',
@@ -51,11 +56,18 @@ const ProductPage = (_props: PropsI) => {
     ];
 
     const {
-        get: { getRefineProductsUrl, getRefineProductsCountsUrl },
+        get: {
+            getRefineProductsUrl,
+            getRefineProductsCountsUrl,
+            queuedTaskUrl,
+        },
         post: { solutionsUrl },
     } = urlFetchCalls;
     const {
         di: { GET, POST },
+        syncProducts,
+        setPanel,
+        panel,
     } = _props;
     const [products, setProducts] = useState<any>({
         productLoading: false,
@@ -74,24 +86,37 @@ const ProductPage = (_props: PropsI) => {
         showBadges: false,
         searchVal: '',
         searchedValues: [],
+        searchLoading: false,
     });
     const [open, setOpen] = useState({
         filterPopOver: false,
         errorModal: false,
+        syncModal: false,
     });
-    const { filterPopOver, errorModal } = open;
-    const { showFilterBadges, showBadges, searchVal, searchedValues } =
-        showFilters;
+    const { syncProductData } = panel;
+    const { filterPopOver, errorModal, syncModal } = open;
+    const {
+        showFilterBadges,
+        showBadges,
+        searchVal,
+        searchedValues,
+        searchLoading,
+    } = showFilters;
     const { countPerPage, currentPage, totalItems } = pagination;
+
     useEffect(() => {
         getProductsData();
-    }, [currentPage]);
+    }, []);
 
     // function hits the api of getting the products data
-    const getProductsData = () => {
+    const getProductsData = async () => {
         setProducts({ ...products, productLoading: true });
-        let paramsObj = { activePage: currentPage, count: countPerPage };
-        GET(getRefineProductsUrl, paramsObj).then((res) => {
+        let paramsObj = {
+            activePage: currentPage,
+            count: countPerPage,
+            is_only_parent_allow: false,
+        };
+        await GET(getRefineProductsUrl, paramsObj).then((res) => {
             GET(getRefineProductsCountsUrl, paramsObj).then((response) => {
                 setProducts({ ...products, productLoading: false });
                 setPagination({
@@ -126,13 +151,22 @@ const ProductPage = (_props: PropsI) => {
                 ele.items[0].visibility === 'Catalog and Search'
             ) {
                 {
-                    obj.item_title = ele.items[0].title;
+                    obj.item_title = (
+                        <TextStyles
+                            utility="light--text"
+                            content={ele.items[0].title}
+                            type="Paragraph"
+                            paragraphTypes="MD-1.4"
+                            textcolor="#4E4F52"
+                        />
+                    );
                 }
             } else {
                 if (ele.items.length > 0) {
                     obj.item_title = (
                         <FlexLayout direction="vertical" valign="start">
                             <TextStyles
+                                utility="light--text"
                                 content={ele.items[0].title}
                                 type="Paragraph"
                                 paragraphTypes="MD-1.4"
@@ -149,10 +183,10 @@ const ProductPage = (_props: PropsI) => {
                     );
                 }
             }
-            if (ele.items[0].visibility === 'Catalog and Search') {
-                obj.value = ele.items[0].title;
-                obj.label = ele.items[0].title;
-            }
+            // if (ele.items[0].visibility === 'Catalog and Search') {
+            //     obj.value = ele.items[0].title;
+            //     obj.label = ele.items[0].title;
+            // }
             if (
                 ele.items.length === 1 &&
                 ele.items[0].visibility === 'Catalog and Search'
@@ -235,6 +269,7 @@ const ProductPage = (_props: PropsI) => {
                             wrap="noWrap">
                             <Dots status="none" />
                             <TextStyles
+                                utility="light--text"
                                 type="Paragraph"
                                 paragraphTypes="SM-1.3"
                                 content="Pending"
@@ -301,6 +336,26 @@ const ProductPage = (_props: PropsI) => {
                             wrap="noWrap">
                             <Dots status="none" />
                             <TextStyles
+                                utility="light--text"
+                                type="Paragraph"
+                                paragraphTypes="SM-1.3"
+                                content={`${
+                                    obj.status_arr.pending < 10
+                                        ? '0' + obj.status_arr.pending
+                                        : obj.status_arr.pending
+                                } Pending`}
+                            />
+                        </FlexLayout>
+                    );
+                } else {
+                    pending = (
+                        <FlexLayout
+                            spacing="mediumTight"
+                            valign="center"
+                            wrap="noWrap">
+                            <Dots status="none" />
+                            <TextStyles
+                                utility="light--text"
                                 type="Paragraph"
                                 paragraphTypes="SM-1.3"
                                 content={`${
@@ -521,29 +576,37 @@ const ProductPage = (_props: PropsI) => {
     };
 
     useEffect(() => {
-        let obj: any;
+        let obj: any = {};
+        let arr: any = [];
         if (searchVal !== '') {
-            // if (productsData.length > 0) {
+            setShowFilters({ ...showFilters, searchLoading: true });
             let search = setTimeout(() => {
                 GET(getRefineProductsUrl, {
                     'filter[title][3]': searchVal,
+                    is_only_parent_allow: false,
+                    activePage: 1,
+                    count: 5,
                 }).then((res) => {
-                    res.data.rows.forEach((ele: any) => {
-                        console.log(ele);
-                        obj = { value: ele.title, label: ele.title };
-                        Object.assign(obj, ele);
-                    });
-                    // renderSearchedData(res.data.rows);
+                    setShowFilters({ ...showFilters, searchLoading: false });
+                    if (res.success) {
+                        // if (res.success.rows.length > 0) {
+                        res.data.rows.forEach((ele: any) => {
+                            obj = { value: ele.title, label: ele.title };
+                            Object.assign(obj, ele);
+                            arr.push(obj);
+                        });
+                        renderSearchedData(arr);
+                    }
+                    //  else {
+                    // }
+                    // }
                 });
             }, 1000);
-
             return () => clearTimeout(search);
-            // }
         }
     }, [searchVal]);
 
     const renderSearchedData = (searchedArr: any) => {
-        console.log(searchedArr);
         if (searchVal === '') {
             // setPagination({
             //     ...pagination,
@@ -552,23 +615,23 @@ const ProductPage = (_props: PropsI) => {
             // });
             // getProductsData();
         } else {
-            let search: any = [];
-            searchedArr.map((ele: any) => {
-                if (ele.value.toLowerCase().includes(searchVal.toLowerCase())) {
-                    search.push(ele);
-                }
+            setShowFilters((prev: any) => {
+                return { ...prev, searchedValues: searchedArr };
             });
-            setShowFilters({ ...showFilters, searchedValues: search });
         }
     };
     const selectSearch = (val: any) => {
-        let obj = searchedValues.find((ele: any) => ele.item_title === val);
-        let arr = [];
-        arr.push(obj);
+        let arr: any = [];
+        searchedValues.forEach((ele: any) => {
+            if (ele.title.toLowerCase().includes(val.toLowerCase())) {
+                arr.push(ele);
+            }
+        });
         setPagination({
             ...pagination,
+            totalItems: 1,
             currentPage: 1,
-            countPerPage: 1,
+            countPerPage: 5,
         });
         designProductsData(arr);
     };
@@ -584,8 +647,25 @@ const ProductPage = (_props: PropsI) => {
         });
         setModalErrors([...modalErrors]);
     };
-    const closeFilter = () => {
-        console.log('filter closed');
+    const closeFilter = () => {};
+
+    const syncModalOpen = () => {
+        open.syncModal = !open.syncModal;
+        setOpen({ ...open });
+    };
+
+    useEffect(() => {
+        syncProducts();
+    }, []);
+
+    const searchingOnEnter = (val: any) => {
+        setPagination({
+            ...pagination,
+            currentPage: 1,
+            countPerPage: 5,
+            totalItems: searchedValues.length,
+        });
+        designProductsData(searchedValues);
     };
     return (
         <>
@@ -597,14 +677,47 @@ const ProductPage = (_props: PropsI) => {
                         <Button
                             content="Catalog Sync"
                             icon={<RefreshCcw size={16} color="#FAFAFB" />}
+                            onClick={() => syncModalOpen()}
                         />
                     ) : (
                         ''
                     )
                 }
             />
+
+            <Modal
+                open={syncModal}
+                close={syncModalOpen}
+                heading="Sync your product catalog"
+                secondaryAction={{
+                    content: 'cancel',
+                    type: 'Outlined',
+                    onClick: () => syncModalOpen(),
+                }}
+                primaryAction={{
+                    content: 'Yes',
+                    type: 'Primary',
+                    onClick: () => syncProducts(),
+                    loading: panel.apiLoading,
+                }}>
+                Are you sure you want to sync your product catalog?
+            </Modal>
             {productLoading === true ? (
-                <Skeleton line={5} />
+                <Card>
+                    <FlexLayout
+                        direction="vertical"
+                        spacing="loose"
+                        desktopWidth="100">
+                        <FlexLayout halign="fill" wrap="noWrap" spacing="loose">
+                            <Skeleton width="90px" height="20px" />
+                            <Skeleton width="30px" />
+                        </FlexLayout>
+                        <Skeleton line={8} />
+                        <FlexLayout>
+                            <Skeleton width="80px" line={1} /> <Skeleton />
+                        </FlexLayout>
+                    </FlexLayout>
+                </Card>
             ) : productsData.length > 0 ? (
                 <Card cardType="Default">
                     <FlexLayout
@@ -613,26 +726,45 @@ const ProductPage = (_props: PropsI) => {
                         desktopWidth="100"
                         mobileWidth="100"
                         tabWidth="100">
+                        {Object.keys(syncProductData).length > 0 &&
+                        syncProductData.open === true ? (
+                            <Alert
+                                onClose={() => {
+                                    syncProductData.open =
+                                        !syncProductData.open;
+                                    setPanel({ ...panel });
+                                }}
+                                type={syncProductData.color}
+                                destroy={syncProductData.open}
+                                children={syncProductData.message}
+                                desciption={syncProductData.heading}
+                            />
+                        ) : (
+                            ''
+                        )}
                         <FlexLayout valign="center" halign="fill">
                             <AutoComplete
+                                onEnter={(val: any) => searchingOnEnter(val)}
+                                loading={searchLoading}
                                 options={searchedValues}
                                 placeHolder="Search Products"
                                 thickness="thin"
-                                onChange={(e: any) =>
+                                onChange={(e: any) => {
                                     setShowFilters({
                                         ...showFilters,
                                         searchVal: e,
-                                    })
-                                }
+                                    });
+                                }}
                                 value={searchVal}
                                 clearButton
                                 setHiglighted
-                                clearFunction={() =>
+                                clearFunction={() => {
                                     setShowFilters({
                                         ...showFilters,
                                         searchVal: '',
-                                    })
-                                }
+                                    });
+                                    getProductsData();
+                                }}
                                 onClick={(val: any) => selectSearch(val)}
                             />
                             <AdvanceFilter
@@ -786,6 +918,8 @@ const ProductPage = (_props: PropsI) => {
                                 setPagination({
                                     ...pagination,
                                 });
+
+                                getProductsData();
                             }}
                             onPrevious={() => {
                                 if (currentPage > 1) {

@@ -72,7 +72,6 @@ const GeneralSettings = (_props: generalProps) => {
             data: [{ group_code: 'bwp-product', data: { brand: brandValue } }],
         };
         POST(updateConfigUrl, params).then((res) => {
-            console.log(res);
             _props.general.btnLoading = false;
             if (res.success) {
                 getConfig();

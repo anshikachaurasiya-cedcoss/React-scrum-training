@@ -49,7 +49,6 @@ const ResetPassword = (_props: PropsI) => {
         token = searchParams.get('token');
         setDetails(parseJwt(atob(token)).email);
     }, []);
-    console.log(details);
     // function handles the state on change of input fields
     const inputHandler = (e: any, name: string) => {
         if (name === 'New Password') {

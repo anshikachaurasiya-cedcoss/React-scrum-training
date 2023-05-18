@@ -16,3 +16,24 @@
 .logout__style .inte__Menus {
     position: fixed;
 }
+
+.notify__alert .notification--dot {
+    background: #D62C20;
+    height: 10px;
+    width: 10px;
+    display: inline-block;
+    border-radius: 50px;
+    position: absolute;
+    right: -4px;
+    bottom: 20px;
+    z-index: 9;
+    top: 2px;
+}
+
+
+.ellipses--text {
+    width: 200px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}

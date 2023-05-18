@@ -38,7 +38,6 @@ const NotificationPage = (_props: notificationProps) => {
     const {
         notification_activePage,
         notification_count,
-        notification_popUp,
         notifications,
         total_notification,
     } = panel;
