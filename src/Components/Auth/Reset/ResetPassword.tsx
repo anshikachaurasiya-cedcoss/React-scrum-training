@@ -7,8 +7,7 @@ import {
 } from '@cedcommerce/ounce-ui';
 import React, { useEffect, useState } from 'react';
 import { parseJwt } from '../../../Core';
-import { PropsI } from 'src/Core/@types';
-import { DI } from '../../../Core/DependencyInjection';
+import { DI, DIProps } from '../../../Core/DependencyInjection';
 import { Eye, EyeOff } from 'react-feather';
 import CustomHelpPoints from '../../CustomHelpPoints';
 import { urlFetchCalls } from '../../../Constant';
@@ -22,12 +21,14 @@ interface resetPwdObj {
     eyeoff: boolean;
     error: boolean;
 }
-let start: any = '',
-    token: any = '';
-const ResetPassword = (_props: PropsI) => {
+let token: any = '';
+const ResetPassword = (_props: DIProps) => {
     const {
         di: { POST },
     } = _props;
+    const {
+        post: { forgotReset },
+    } = urlFetchCalls;
     const [state, setState] = useState<resetPwdObj>({
         password: '',
         confirmPassword: '',
@@ -92,9 +93,6 @@ const ResetPassword = (_props: PropsI) => {
     // function hits the save password api
     const savePasswordHandler = () => {
         state.loading = true;
-        const {
-            post: { forgotReset },
-        } = urlFetchCalls;
         POST(forgotReset, {
             new_password: state.password,
             confirm_password: state.confirmPassword,
