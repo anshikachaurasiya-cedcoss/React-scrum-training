@@ -49,18 +49,14 @@ const ProductPage = (_props: productProps) => {
         },
     ];
 
-    const productFilterData = [
-        { status: 'Active', checked: false },
-        { status: 'Error', checked: false },
-        { status: 'Pending', checked: false },
-    ];
+    // const productFilterData = [
+    //     { status: 'Active', checked: false },
+    //     { status: 'Error', checked: false },
+    //     { status: 'Pending', checked: false },
+    // ];
 
     const {
-        get: {
-            getRefineProductsUrl,
-            getRefineProductsCountsUrl,
-            queuedTaskUrl,
-        },
+        get: { getRefineProductsUrl, getRefineProductsCountsUrl },
         post: { solutionsUrl },
     } = urlFetchCalls;
     const {
@@ -68,19 +64,24 @@ const ProductPage = (_props: productProps) => {
         syncProducts,
         setPanel,
         panel,
+        error,
     } = _props;
     const [products, setProducts] = useState<any>({
         productLoading: false,
         productsData: [],
     });
-    const { productLoading, productsData } = products;
+    const [modalErrors, setModalErrors] = useState<any>([]);
 
     const [pagination, setPagination] = useState({
         countPerPage: 5,
         currentPage: 1,
         totalItems: 0,
     });
-    const [filtersArr, setFiltersArr] = useState(productFilterData);
+    const [filtersArr, setFiltersArr] = useState([
+        { status: 'Active', checked: false },
+        { status: 'Error', checked: false },
+        { status: 'Pending', checked: false },
+    ]);
     const [showFilters, setShowFilters] = useState<any>({
         showFilterBadges: [],
         showBadges: false,
@@ -91,10 +92,11 @@ const ProductPage = (_props: productProps) => {
     const [open, setOpen] = useState({
         filterPopOver: false,
         errorModal: false,
-        syncModal: false,
+        // syncModal: false,
     });
-    const { syncProductData } = panel;
-    const { filterPopOver, errorModal, syncModal } = open;
+    const { productLoading, productsData } = products;
+    const { syncProductData, syncModal } = panel;
+    const { filterPopOver, errorModal } = open;
     const {
         showFilterBadges,
         showBadges,
@@ -104,16 +106,12 @@ const ProductPage = (_props: productProps) => {
     } = showFilters;
     const { countPerPage, currentPage, totalItems } = pagination;
 
-    useEffect(() => {
-        getProductsData();
-    }, []);
-
     // function hits the api of getting the products data
     const getProductsData = async () => {
         setProducts({ ...products, productLoading: true });
         let paramsObj = {
-            activePage: currentPage,
-            count: countPerPage,
+            activePage: pagination.currentPage,
+            count: pagination.countPerPage,
             is_only_parent_allow: false,
         };
         await GET(getRefineProductsUrl, paramsObj).then((res) => {
@@ -378,8 +376,6 @@ const ProductPage = (_props: productProps) => {
         }
     };
 
-    const [modalErrors, setModalErrors] = useState<any>([]);
-
     const showError = (obj: any) => {
         let ParamsArr: any = [];
         let newObj: any = {};
@@ -406,19 +402,26 @@ const ProductPage = (_props: productProps) => {
             }
         });
         POST(solutionsUrl, ParamsArr).then((res) => {
-            res.data.forEach((ele: any, index: number) => {
-                errorArr[index] = { ...errorArr[index], ...ele };
-            });
-            const myobj: any = {};
-            errorArr.forEach((err: any) => {
-                if (err.sku in myobj) {
-                    myobj[err.sku].push(err);
-                } else {
-                    myobj[err.sku] = [err];
-                }
-            });
             openModal();
-            setModalErrors([myobj]);
+            if (res.success) {
+                res.data.forEach((ele: any, index: number) => {
+                    errorArr[index] = { ...errorArr[index], ...ele };
+                });
+                const myobj: any = {};
+                errorArr.forEach((err: any) => {
+                    if (err.sku in myobj) {
+                        myobj[err.sku].push(err);
+                    } else {
+                        myobj[err.sku] = [err];
+                    }
+                });
+                setModalErrors([myobj]);
+            } else {
+                error(
+                    'Sorry, the request was unsuccessful. Please try again later.'
+                );
+                setOpen({ ...open, errorModal: false });
+            }
         });
     };
 
@@ -596,15 +599,19 @@ const ProductPage = (_props: productProps) => {
                             arr.push(obj);
                         });
                         renderSearchedData(arr);
+                    } else {
+                        error(res.message);
                     }
-                    //  else {
-                    // }
-                    // }
                 });
             }, 1000);
             return () => clearTimeout(search);
         }
     }, [searchVal]);
+
+    useEffect(() => {
+        getProductsData();
+        syncProducts();
+    }, []);
 
     const renderSearchedData = (searchedArr: any) => {
         if (searchVal === '') {
@@ -647,16 +654,19 @@ const ProductPage = (_props: productProps) => {
         });
         setModalErrors([...modalErrors]);
     };
-    const closeFilter = () => {};
-
-    const syncModalOpen = () => {
-        open.syncModal = !open.syncModal;
-        setOpen({ ...open });
+    const closeFilter = () => {
+        filtersArr.forEach((ele) => {
+            if (ele.checked === true) {
+                ele.checked = false;
+            }
+        });
+        setFiltersArr([...filtersArr]);
     };
 
-    useEffect(() => {
-        syncProducts();
-    }, []);
+    const syncModalOpen = () => {
+        panel.syncModal = !panel.syncModal;
+        setPanel({ ...panel });
+    };
 
     const searchingOnEnter = (val: any) => {
         setPagination({
@@ -918,15 +928,13 @@ const ProductPage = (_props: productProps) => {
                                 setPagination({
                                     ...pagination,
                                 });
-
                                 getProductsData();
                             }}
                             onPrevious={() => {
-                                if (currentPage > 1) {
-                                    pagination.currentPage =
-                                        Number(currentPage) - 1;
-                                    setPagination({ ...pagination });
-                                }
+                                pagination.currentPage =
+                                    Number(currentPage) - 1;
+                                setPagination({ ...pagination });
+                                getProductsData();
                             }}
                         />
                     </FlexLayout>

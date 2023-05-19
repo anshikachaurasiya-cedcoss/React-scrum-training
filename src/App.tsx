@@ -33,7 +33,6 @@ function App(Props: PropsI): JSX.Element {
                 return (
                     <div className="custom_session_expire before_login_broken">
                         <div className="inner_s">
-                            {' '}
                             <BrokenPage1 cardType="Plain" />
                         </div>
                     </div>

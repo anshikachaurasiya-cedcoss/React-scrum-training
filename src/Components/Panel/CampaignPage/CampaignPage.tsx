@@ -316,21 +316,20 @@ const CampaignPage = (_props: DIProps) => {
     };
 
     const enableCreateButton = () => {
-        // if (
-        //     ((campaign_value !== '' ||
-        //         budget_value !== '' ||
-        //         ad_value !== '' ||
-        //         start_value !== '' ||
-        //         campaign_error ||
-        //         budget_error ||
-        //         ad_error ||
-        //         start_value === null) &&
-        //         prospective_checked) ||
-        //     prospective_checked
-        // ) {
-        //     return true;
-        // } else return false;
-        return true;
+        if (
+            campaign_value !== '' &&
+            start_value !== '' &&
+            budget_value !== '' &&
+            ad_value !== '' &&
+            campaign_error === false &&
+            budget_error === false &&
+            ad_error === false &&
+            (retargeting_checked || prospective_checked)
+        ) {
+            return false;
+        } else {
+            return true;
+        }
     };
     // function handles the select boxes
     const selectHandler = (str: string, ele: any) => {

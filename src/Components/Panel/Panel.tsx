@@ -103,6 +103,7 @@ const Panel = (_props: DIProps) => {
         logoutModal: false,
         popOverNotifications: [],
         apiLoading: false,
+        syncModal: false,
     });
 
     const {
@@ -261,6 +262,7 @@ const Panel = (_props: DIProps) => {
         });
         GET(queuedTaskUrl).then((res) => {
             panel.apiLoading = false;
+            panel.syncModal = false;
             if (res.success) {
                 if (res.data.rows.length > 0) {
                     res.data.rows.forEach((ele: any) => {

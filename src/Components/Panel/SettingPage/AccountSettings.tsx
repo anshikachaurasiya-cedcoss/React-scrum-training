@@ -120,6 +120,9 @@ const AccountSettings = (_props: accountProps) => {
                 account.selectedPixel = response[index].value;
                 account.pixelData = response;
                 setAccount({ ...account });
+            } else {
+                error(res.message);
+                openModal('Edit Pixel');
             }
         });
         openModal('Edit Pixel');
