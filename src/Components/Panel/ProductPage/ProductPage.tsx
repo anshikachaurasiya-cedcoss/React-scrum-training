@@ -212,7 +212,9 @@ const ProductPage = (_props: productProps) => {
             };
             return obj;
         });
-        setProducts({ ...products, productsData: [...newData] });
+        setProducts((prev: any) => {
+            return { ...prev, productsData: [...newData] };
+        });
     };
     // function renders the status column on the basis of the status
     const renderStatusList = (obj: any) => {
@@ -587,8 +589,8 @@ const ProductPage = (_props: productProps) => {
                 GET(getRefineProductsUrl, {
                     'filter[title][3]': searchVal,
                     is_only_parent_allow: false,
-                    activePage: 1,
-                    count: 5,
+                    // activePage: 1,
+                    // count: 5,
                 }).then((res) => {
                     setShowFilters({ ...showFilters, searchLoading: false });
                     if (res.success) {
@@ -598,6 +600,7 @@ const ProductPage = (_props: productProps) => {
                             Object.assign(obj, ele);
                             arr.push(obj);
                         });
+
                         renderSearchedData(arr);
                     } else {
                         error(res.message);
@@ -668,7 +671,7 @@ const ProductPage = (_props: productProps) => {
         setPanel({ ...panel });
     };
 
-    const searchingOnEnter = (val: any) => {
+    const searchingOnEnter = () => {
         setPagination({
             ...pagination,
             currentPage: 1,
@@ -754,7 +757,7 @@ const ProductPage = (_props: productProps) => {
                         )}
                         <FlexLayout valign="center" halign="fill">
                             <AutoComplete
-                                onEnter={(val: any) => searchingOnEnter(val)}
+                                onEnter={() => searchingOnEnter()}
                                 loading={searchLoading}
                                 options={searchedValues}
                                 placeHolder="Search Products"

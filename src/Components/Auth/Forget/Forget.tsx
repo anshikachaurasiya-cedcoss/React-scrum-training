@@ -14,8 +14,8 @@ import { DI } from '../../../Core/DependencyInjection';
 const Forget = (_props: PropsI) => {
     const {
         redirect: { loginPage },
+        post: { forgotPassword },
     } = urlFetchCalls;
-
     const {
         error,
         history,
@@ -64,10 +64,6 @@ const Forget = (_props: PropsI) => {
     const generateHandler = () => {
         setEmailState({ ...emailState, btnLoading: true });
         let location = window.location.origin;
-        const {
-            post: { forgotPassword },
-        } = urlFetchCalls;
-
         POST(forgotPassword, {
             email: emailState.value,
             'reset-link': `${location}/auth/reset`,

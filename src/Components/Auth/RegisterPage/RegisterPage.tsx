@@ -50,6 +50,10 @@ const RegisterPage = (_props: PropsI) => {
         },
         error,
     } = _props;
+    const {
+        post: { emailExistsCheck },
+        get: { otpMail },
+    } = urlFetchCalls;
 
     const dispatcher = useContext(StoreDispatcher);
 
@@ -57,7 +61,6 @@ const RegisterPage = (_props: PropsI) => {
     // setting the auth_token in useEffect
     useEffect(() => {
         let auth_token = get('auth_token', true);
-
         if (auth_token) {
             set('auth_token', auth_token);
             let obj = parseJwt(auth_token);
@@ -203,9 +206,7 @@ const RegisterPage = (_props: PropsI) => {
     // function hits the api on click of create account button
     const createHandler = () => {
         setState({ ...state, loading: true });
-        const {
-            post: { emailExistsCheck },
-        } = urlFetchCalls;
+
         POST(emailExistsCheck, { data: { email: email } }).then((res) => {
             if (res.success) {
                 state.loading = true;
@@ -223,9 +224,6 @@ const RegisterPage = (_props: PropsI) => {
     };
     // function hits the send otp api
     const getMail = (num: number) => {
-        const {
-            get: { otpMail },
-        } = urlFetchCalls;
         GET(otpMail, { email: email }).then((res) => {
             setEmailResponse(res);
             if (res.success) {

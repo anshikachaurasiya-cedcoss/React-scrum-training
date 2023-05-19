@@ -8,7 +8,6 @@ import {
     Datepicker,
     FlexChild,
     FlexLayout,
-    FormElement,
     PageHeader,
     Radio,
     Select,
@@ -47,11 +46,13 @@ interface searchedObj {
 const CampaignPage = (_props: DIProps) => {
     const {
         get: { initCampaignUrl },
+        post: { publishCampaign },
     } = urlFetchCalls;
     const {
-        di: { GET },
+        di: { GET, POST },
         redux: { current },
         error,
+        success,
     } = _props;
 
     // dynamic filling of age inside the prospective audience
@@ -498,6 +499,46 @@ const CampaignPage = (_props: DIProps) => {
         setProducts({ ...products });
     };
 
+    const publishCamp = () => {
+        const params = {
+            shop_id: current?.target.shop_id,
+            type: 'dynamic',
+            call_to_action: 'SHOP_NOW',
+            website_url: 'https://home.cedcommerce.com/',
+            locations: [
+                {
+                    key: 'US',
+                    name: 'United States',
+                    type: 'country',
+                    country_code: 'US',
+                    country_name: 'United States',
+                    supports_region: true,
+                    supports_city: true,
+                },
+            ],
+            name: campaign_value.toString(),
+            budget: budget_value.toString(),
+            primary_text: 'adsasd',
+            platforms: ['facebook'],
+            start_date: start_value.toString(),
+            end_date: end_value.toString(),
+            min_age: minSelectedValue,
+            max_age: maxSelectedValue,
+            gender: genderSelectedValue,
+            expansion: 0,
+            interests: [],
+            demographics: [],
+            behaviors: [],
+        };
+        POST(publishCampaign, params).then((res) => {
+            if (res.success) {
+                success(res.message);
+            } else {
+                error(res.message);
+            }
+        });
+    };
+
     return (
         <>
             <PageHeader
@@ -532,6 +573,7 @@ const CampaignPage = (_props: DIProps) => {
                             content: 'Create Campaign',
                             type: 'Primary',
                             disable: enableCreateButton(),
+                            onClick: () => publishCamp(),
                         }}
                         secondaryAction={{
                             content: 'Cancel',

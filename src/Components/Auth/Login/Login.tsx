@@ -30,6 +30,22 @@ interface loginStateObj {
     eyeoff: boolean;
 }
 function Login(_props: PropsI): JSX.Element {
+    // destructuring of props
+    const {
+        di: {
+            POST,
+            globalState: { set },
+        },
+        error,
+        history,
+    } = _props;
+    // destructing of fetching calls
+    const {
+        post: { userLogin },
+    } = urlFetchCalls;
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const dispatcher = useContext(StoreDispatcher);
     const [state, setState] = useState<loginStateObj>({
         username: '',
         password: '',
@@ -40,27 +56,14 @@ function Login(_props: PropsI): JSX.Element {
         email: { error: true, message: '', showError: false },
         password: { error: true, showError: false },
     });
-    const navigate = useNavigate();
-    const dispatcher = useContext(StoreDispatcher);
-    // destructuring of props
-    const {
-        di: {
-            POST,
-            globalState: { set },
-        },
-        error,
-    } = _props;
+
     // destructuring of states
     const { username, password, loading, eyeoff } = state;
     const {
         email: { message: emailMsg, showError: emailError },
         password: { showError: pwdError },
     } = errorValidation;
-    // destructing of fetching calls
-    const {
-        post: { userLogin },
-    } = urlFetchCalls;
-    const [searchParams] = useSearchParams();
+
     useEffect(() => {
         let bearerToken = searchParams.get('bearer');
         let status = searchParams.get('connection_status');
@@ -129,7 +132,6 @@ function Login(_props: PropsI): JSX.Element {
     // function hits the login api on login button handler
     const login = () => {
         setState({ ...state, loading: true });
-
         POST(userLogin, {
             email: username,
             password: password,
@@ -222,7 +224,7 @@ function Login(_props: PropsI): JSX.Element {
                             <Button
                                 type="TextButton"
                                 thickness="thin"
-                                onClick={() => navigate('/auth/forgot')}>
+                                onClick={() => history('/auth/forgot')}>
                                 Forgot Password?
                             </Button>
                         </FlexLayout>
