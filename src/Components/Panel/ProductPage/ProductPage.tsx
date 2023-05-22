@@ -581,7 +581,7 @@ const ProductPage = (_props: productProps) => {
     useEffect(() => {
         getProductsData();
         syncProducts();
-    }, []);
+    }, [countPerPage]);
 
     const renderSearchedData = (searchedArr: any) => {
         setShowFilters((prev: any) => {
@@ -863,13 +863,13 @@ const ProductPage = (_props: productProps) => {
                             currentPage={parseInt(currentPage.toString())}
                             optionPerPage={pageArr}
                             totalitem={totalItems}
-                            onCountChange={(page) =>
+                            onCountChange={(page) => {
                                 setPagination({
                                     ...pagination,
                                     countPerPage: page,
                                     currentPage: 1,
-                                })
-                            }
+                                });
+                            }}
                             onEnter={(page) =>
                                 setPagination({
                                     ...pagination,
