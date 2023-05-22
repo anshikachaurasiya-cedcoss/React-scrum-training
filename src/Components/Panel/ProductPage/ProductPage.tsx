@@ -49,12 +49,6 @@ const ProductPage = (_props: productProps) => {
         },
     ];
 
-    // const productFilterData = [
-    //     { status: 'Active', checked: false },
-    //     { status: 'Error', checked: false },
-    //     { status: 'Pending', checked: false },
-    // ];
-
     const {
         get: { getRefineProductsUrl, getRefineProductsCountsUrl },
         post: { solutionsUrl },
@@ -92,7 +86,6 @@ const ProductPage = (_props: productProps) => {
     const [open, setOpen] = useState({
         filterPopOver: false,
         errorModal: false,
-        // syncModal: false,
     });
     const { productLoading, productsData } = products;
     const { syncProductData, syncModal } = panel;
@@ -181,10 +174,6 @@ const ProductPage = (_props: productProps) => {
                     );
                 }
             }
-            // if (ele.items[0].visibility === 'Catalog and Search') {
-            //     obj.value = ele.items[0].title;
-            //     obj.label = ele.items[0].title;
-            // }
             if (
                 ele.items.length === 1 &&
                 ele.items[0].visibility === 'Catalog and Search'
@@ -328,25 +317,6 @@ const ProductPage = (_props: productProps) => {
                             />
                         </FlexLayout>
                     );
-                } else if (ele.status && ele.status === 'pending') {
-                    pending = (
-                        <FlexLayout
-                            spacing="mediumTight"
-                            valign="center"
-                            wrap="noWrap">
-                            <Dots status="none" />
-                            <TextStyles
-                                utility="light--text"
-                                type="Paragraph"
-                                paragraphTypes="SM-1.3"
-                                content={`${
-                                    obj.status_arr.pending < 10
-                                        ? '0' + obj.status_arr.pending
-                                        : obj.status_arr.pending
-                                } Pending`}
-                            />
-                        </FlexLayout>
-                    );
                 } else {
                     pending = (
                         <FlexLayout
@@ -478,7 +448,7 @@ const ProductPage = (_props: productProps) => {
                     {filtersArr.map((ele, i) => {
                         return (
                             <CheckBox
-                                key={i}
+                                key={ele.status}
                                 labelVal={ele.status}
                                 checked={ele.checked}
                                 onClick={() => filterHandler(ele, i)}
@@ -589,12 +559,9 @@ const ProductPage = (_props: productProps) => {
                 GET(getRefineProductsUrl, {
                     'filter[title][3]': searchVal,
                     is_only_parent_allow: false,
-                    // activePage: 1,
-                    // count: 5,
                 }).then((res) => {
                     setShowFilters({ ...showFilters, searchLoading: false });
                     if (res.success) {
-                        // if (res.success.rows.length > 0) {
                         res.data.rows.forEach((ele: any) => {
                             obj = { value: ele.title, label: ele.title };
                             Object.assign(obj, ele);
@@ -617,18 +584,9 @@ const ProductPage = (_props: productProps) => {
     }, []);
 
     const renderSearchedData = (searchedArr: any) => {
-        if (searchVal === '') {
-            // setPagination({
-            //     ...pagination,
-            //     currentPage: 1,
-            //     countPerPage: 5,
-            // });
-            // getProductsData();
-        } else {
-            setShowFilters((prev: any) => {
-                return { ...prev, searchedValues: searchedArr };
-            });
-        }
+        setShowFilters((prev: any) => {
+            return { ...prev, searchedValues: searchedArr };
+        });
     };
     const selectSearch = (val: any) => {
         let arr: any = [];
@@ -646,15 +604,8 @@ const ProductPage = (_props: productProps) => {
         designProductsData(arr);
     };
 
-    const openSolutionAccordian = (ele: any, i: number) => {
-        Object.values(modalErrors[0]).forEach((item: any, index) => {
-            if (
-                item.sku === ele.sku &&
-                item.source_product_id === ele.source_product_id
-            ) {
-                item.solutionAction = !item.solutionAction;
-            }
-        });
+    const openSolutionAccordian = (ele: any) => {
+        ele.solutionAction = !ele.solutionAction;
         setModalErrors([...modalErrors]);
     };
     const closeFilter = () => {
@@ -945,7 +896,11 @@ const ProductPage = (_props: productProps) => {
             ) : (
                 <EmptyProduct />
             )}
-            <Modal open={errorModal} close={openModal} heading="Errors">
+            <Modal
+                open={errorModal}
+                close={openModal}
+                heading="Errors"
+                modalSize="large">
                 <FlexLayout direction="vertical" spacing="loose">
                     {modalErrors.length > 0 &&
                         Object.entries(modalErrors[0]).map(
@@ -1008,18 +963,22 @@ const ProductPage = (_props: productProps) => {
                                                                             title="Resolutions"
                                                                             onClick={() =>
                                                                                 openSolutionAccordian(
-                                                                                    item,
-                                                                                    index
+                                                                                    item
                                                                                 )
                                                                             }
                                                                             active={
-                                                                                value.solutionAction
+                                                                                value[
+                                                                                    index
+                                                                                ]
+                                                                                    .solutionAction
                                                                             }
                                                                             children={
                                                                                 <TextStyles
                                                                                     content={
-                                                                                        ''
-                                                                                        // ele.answer
+                                                                                        value[
+                                                                                            index
+                                                                                        ]
+                                                                                            .answer
                                                                                     }
                                                                                     type="Paragraph"
                                                                                     paragraphTypes="MD-1.4"

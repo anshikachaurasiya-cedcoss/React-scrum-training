@@ -35,6 +35,7 @@ import { APP_TARGET_NAME, urlFetchCalls } from '../../Constant';
 import { dateFormat } from '../CommonFunctions';
 import HelpPage from './HelpPage/HelpPage';
 import FAQPage from './FAQPage/FAQPage';
+import { environment } from '../../environments/environment';
 
 const Panel = (_props: DIProps) => {
     let navigate = useNavigate();
@@ -169,7 +170,7 @@ const Panel = (_props: DIProps) => {
             // just after opening connection its required to send identity to server
             ws.send(
                 '{ "action": "identity","client_id":' +
-                    7 +
+                    process.env.CLIENT_ID +
                     ',"customer_id":"' +
                     _props.redux.user_id +
                     '","token":"' +
@@ -308,9 +309,7 @@ const Panel = (_props: DIProps) => {
                         shopId: _props.redux.current?.target._id,
                     },
                 };
-                POST(productImport, params).then((res) => {
-                    console.log(res);
-                });
+                POST(productImport, params).then((res) => {});
             }
         });
     };

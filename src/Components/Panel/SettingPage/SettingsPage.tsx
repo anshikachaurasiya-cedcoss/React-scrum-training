@@ -123,8 +123,10 @@ const SettingsPage = (_props: DIProps) => {
         let params = { group_code: ['meta_TnC'] };
         POST(getConfigUrl, params).then((res) => {
             if (res.success) {
-                privacy.privacyChecked = res.data[0].value.meta_LDU;
-                privacy.checkedValue = res.data[0].value.meta_LDU;
+                if (res.data.length > 0) {
+                    privacy.privacyChecked = res.data[0].value.meta_LDU;
+                    privacy.checkedValue = res.data[0].value.meta_LDU;
+                }
             } else {
                 error(res.message);
             }
